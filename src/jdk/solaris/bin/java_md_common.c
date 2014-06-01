@@ -25,8 +25,9 @@
 #include "java.h"
 
 /*
- * If app is "/foo/bin/javac", or "/foo/bin/sparcv9/javac" then put
- * "/foo" into buf.
+ * 根据当前java程序的启动命令解析出当前jre的安装路径,两种模式:
+ * 	1./{**}/bin/javac(java)		-------> /{**}/
+ * 	2./{**}/bin/{arch(sparcv9 or amd64)}/javac(java)	-------> /{**}/
  */
 jboolean
 GetApplicationHome(char *buf, jint bufsize)
@@ -39,21 +40,28 @@ GetApplicationHome(char *buf, jint bufsize)
         return JNI_FALSE;
     }
 
-    if (JLI_StrRChr(buf, '/') == 0) {
+    if (JLI_StrRChr(buf, '/') == 0) {	//直接在系统根目录下,则无法找到jre安装路径
         buf[0] = '\0';
         return JNI_FALSE;
     }
+
+    //去掉末尾的javac/java
     *(JLI_StrRChr(buf, '/')) = '\0';    /* executable file      */
+
+    //非'/{**}/bin'或'/{**}/bin/{arch(sparcv9 or amd64)}'形式,则无法找到jre安装路径
     if (JLI_StrLen(buf) < 4 || JLI_StrRChr(buf, '/') == 0) {
         buf[0] = '\0';
         return JNI_FALSE;
     }
+
     if (JLI_StrCmp("/bin", buf + JLI_StrLen(buf) - 4) != 0)
         *(JLI_StrRChr(buf, '/')) = '\0';        /* sparcv9 or amd64     */
+
     if (JLI_StrLen(buf) < 4 || JLI_StrCmp("/bin", buf + JLI_StrLen(buf) - 4) != 0) {
         buf[0] = '\0';
         return JNI_FALSE;
     }
+
     *(JLI_StrRChr(buf, '/')) = '\0';    /* bin                  */
 
     return JNI_TRUE;
@@ -191,25 +199,9 @@ CheckSanity(char *path, char *dir)
 }
 
 /*
- *      Determine if there is an acceptable JRE in the directory dirname.
- *      Upon locating the "best" one, return a fully qualified path to
- *      it. "Best" is defined as the most advanced JRE meeting the
- *      constraints contained in the manifest_info. If no JRE in this
- *      directory meets the constraints, return NULL.
- *
- *      Note that we don't check for errors in reading the directory
- *      (which would be done by checking errno).  This is because it
- *      doesn't matter if we get an error reading the directory, or
- *      we just don't find anything interesting in the directory.  We
- *      just return NULL in either case.
- *
- *      The historical names of j2sdk and j2re were changed to jdk and
- *      jre respecively as part of the 1.5 rebranding effort.  Since the
- *      former names are legacy on Linux, they must be recognized for
- *      all time.  Fortunately, this is a minor cost.
+ * 从给定目录中搜索与指定版本最匹配的jre安装路径
  */
-static char
-*ProcessDir(manifest_info *info, char *dirname)
+static char *ProcessDir(manifest_info *info, char *dirname)
 {
     DIR     *dirp;
     struct dirent *dp;
@@ -218,6 +210,8 @@ static char
     int     best_offset = 0;
     char    *ret_str = NULL;
     char    buffer[PATH_MAX];
+
+    printf("%s[%d] [tid: %lu]: 开始从目录[%]中搜索安装的最佳jre版本...\n", __FILE__, __LINE__, pthread_self(), dirname);
 
     if ((dirp = opendir(dirname)) == NULL)
         return (NULL);
@@ -232,9 +226,11 @@ static char
                 offset = 4;
             else if (JLI_StrNCmp(dp->d_name, "j2sdk", 5) == 0)
                 offset = 5;
+
             if (offset > 0) {
                 if ((JLI_AcceptableRelease(dp->d_name + offset,
-                    info->jre_version)) && CheckSanity(dirname, dp->d_name))
+                    info->jre_version)) && CheckSanity(dirname, dp->d_name)){
+
                     if ((best == NULL) || (JLI_ExactVersionId(
                       dp->d_name + offset, best + best_offset) > 0)) {
                         if (best != NULL)
@@ -242,16 +238,26 @@ static char
                         best = JLI_StringDup(dp->d_name);
                         best_offset = offset;
                     }
+                }
             }
         }
+
     } while (dp != NULL);
+
     (void) closedir(dirp);
-    if (best == NULL)
+
+    if (best == NULL){
+    	printf("%s[%d] [tid: %lu]: 目录[%]中没有找到合适的jre版本...\n", __FILE__, __LINE__, pthread_self(), dirname);
+
         return (NULL);
+    }
     else {
         ret_str = JLI_MemAlloc(JLI_StrLen(dirname) + JLI_StrLen(best) + 2);
         sprintf(ret_str, "%s/%s", dirname, best);
         JLI_MemFree(best);
+
+        printf("%s[%d] [tid: %lu]: 搜索到最合适的jre版本: %s...\n", __FILE__, __LINE__, pthread_self(), ret_str);
+
         return (ret_str);
     }
 }
@@ -293,8 +299,10 @@ char* LocateJRE(manifest_info* info)
         cp = JLI_StrChr(dp, (int)':');
         if (cp != NULL)
             *cp = '\0';
+
         if ((target = ProcessDir(info, dp)) != NULL)
             break;
+
         dp = cp;
         if (dp != NULL)
             dp++;
@@ -304,7 +312,19 @@ char* LocateJRE(manifest_info* info)
 }
 
 /*
- * 使用指定的jre环境来运行java程序
+ * 使用指定的jvm版本来运行java程序
+ *
+ * ******************************************************************************
+ * 函数原型：	char *realpath(const char *path, char *resolved_path);
+ * 函数说明：	用来将参数path所指的相对路径转换成绝对路径后存于参数resolved_path所指的字符串数组或指针中
+ * 函数返回： 	成功则返回指向resolved_path的指针，失败返回NULL，错误代码存于errno
+ *
+ * ******************************************************************************
+ * 函数原型:	int execve(const char * filename,char * const argv[],char * const envp[]);
+ * 函数说明：	execve用来执行参数filename字符串所代表的文件路径,第二个参数是利用数组指针来传递给执行文件,并且需要以
+ * 			空指针(NULL)结束,最后一个参数则为传递给执行文件的新环境变量数组.exec函数一共有六个,其中execve为内核
+ * 			级系统调用,其他(execl,execle,execlp,execv,execvp)都是调用execve的库函数
+ * 函数返回：	如果执行成功则函数不会返回,执行失败则直接返回-1,失败原因存于errno中
  */
 void ExecJRE(char *jre, char **argv)
 {
@@ -321,7 +341,7 @@ void ExecJRE(char *jre, char **argv)
     }
 
     /*
-     * Resolve the real path to the currently running launcher.
+     * 获取启动当前JVM进程的命令
      */
     SetExecname(argv);
     execname = GetExecName();
@@ -363,6 +383,8 @@ void ExecJRE(char *jre, char **argv)
         printf("\n");
     }
     JLI_TraceLauncher("TRACER_MARKER:About to EXEC\n");
+
+    //刷当前进程的标准输出/错误输出流
     (void)fflush(stdout);
     (void)fflush(stderr);
 

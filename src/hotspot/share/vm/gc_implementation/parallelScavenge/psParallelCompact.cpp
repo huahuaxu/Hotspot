@@ -1965,6 +1965,9 @@ void PSParallelCompact::summary_phase(ParCompactionManager* cm,
 // may be true because this method can be called without intervening
 // activity.  For example when the heap space is tight and full measure
 // are being taken to free space.
+/**
+ * 执行一次Full Gc,如果配置了ScavengeBeforeFullGC,则在执行Full Gc之前先试图执行一次Minor Gc
+ */
 void PSParallelCompact::invoke(bool maximum_heap_compaction) {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
   assert(Thread::current() == (Thread*)VMThread::vm_thread(),
@@ -1977,7 +1980,7 @@ void PSParallelCompact::invoke(bool maximum_heap_compaction) {
   PSAdaptiveSizePolicy* policy = heap->size_policy();
   IsGCActiveMark mark;
 
-  if (ScavengeBeforeFullGC) {
+  if (ScavengeBeforeFullGC) {	//在执行Full Gc之前先尝试执行一次Minor Gc
     PSScavenge::invoke_no_policy();
   }
 
@@ -1995,6 +1998,9 @@ bool ParallelCompactData::region_contains(size_t region_index, HeapWord* addr) {
 
 // This method contains no policy. You should probably
 // be calling invoke() instead.
+/**
+ * 试图执行一次Full Gc
+ */
 bool PSParallelCompact::invoke_no_policy(bool maximum_heap_compaction) {
   assert(SafepointSynchronize::is_at_safepoint(), "must be at a safepoint");
   assert(ref_processor() != NULL, "Sanity");

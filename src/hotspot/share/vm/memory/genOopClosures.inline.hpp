@@ -85,6 +85,7 @@ template <class T> inline void ScanClosure::do_oop_work(T* p) {
       assert(!_g->to()->is_in_reserved(obj), "Scanning field twice?");
       oop new_obj = obj->is_forwarded() ? obj->forwardee()
                                         : _g->copy_to_survivor_space(obj);
+
       oopDesc::encode_store_heap_oop_not_null(p, new_obj);
     }
     if (_gc_barrier) {

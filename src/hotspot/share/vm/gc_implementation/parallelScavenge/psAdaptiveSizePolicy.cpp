@@ -78,6 +78,9 @@ PSAdaptiveSizePolicy::PSAdaptiveSizePolicy(size_t init_eden_size,
   _old_gen_policy_is_ready = false;
 }
 
+/**
+ * 记录当前Full Gc的开始时间
+ */
 void PSAdaptiveSizePolicy::major_collection_begin() {
   // Update the interval time
   _major_timer.stop();
@@ -94,6 +97,9 @@ void PSAdaptiveSizePolicy::update_minor_pause_old_estimator(
     minor_pause_in_ms);
 }
 
+/**
+ * 记录当前Full Gc的结束时间
+ */
 void PSAdaptiveSizePolicy::major_collection_end(size_t amount_live,
   GCCause::Cause gc_cause) {
   // Update the pause time.
@@ -159,9 +165,11 @@ void PSAdaptiveSizePolicy::major_collection_end(size_t amount_live,
   _major_timer.start();
 }
 
-// If the remaining free space in the old generation is less that
-// that expected to be needed by the next collection, do a full
-// collection now.
+/**
+ * 判断当前是否应该进行Full Gc
+ * 	true:	如果每次Minor Gc对象升级的平均总大小大于目前年老代的空闲空间;
+ * 	false:	否则;
+ */
 bool PSAdaptiveSizePolicy::should_full_GC(size_t old_free_in_bytes) {
 
   // A similar test is done in the scavenge's should_attempt_scavenge().  If
@@ -211,7 +219,8 @@ void PSAdaptiveSizePolicy::compute_generation_free_space(
   _avg_base_footprint->sample(BaseFootPrintEstimate + perm_live);
   avg_young_live()->sample(young_live);
   avg_eden_live()->sample(eden_live);
-  if (is_full_gc) {
+
+  if (is_full_gc) {	//如果是刚刚经了Full Gc,则更行Gc后旧生代的平均使用量
     // old_live is only accurate after a full gc
     avg_old_live()->sample(old_live);
   }
@@ -250,8 +259,8 @@ void PSAdaptiveSizePolicy::compute_generation_free_space(
 
   // Cache some values. There's a bit of work getting these, so
   // we might save a little time.
-  const double major_cost = major_gc_cost();
-  const double minor_cost = minor_gc_cost();
+  const double major_cost = major_gc_cost();	//Full Gc平均代价
+  const double minor_cost = minor_gc_cost();	//Minor Gc平均代价
 
   // Used for diagnostics
   clear_generation_free_space_flags();
@@ -491,6 +500,9 @@ void PSAdaptiveSizePolicy::decay_supplemental_growth(bool is_full_gc) {
   }
 }
 
+/**
+ * 计算年青代新的容量大小以减少Minor Gc的时间消耗
+ */
 void PSAdaptiveSizePolicy::adjust_for_minor_pause_time(bool is_full_gc,
     size_t* desired_promo_size_ptr, size_t* desired_eden_size_ptr) {
 
@@ -502,17 +514,15 @@ void PSAdaptiveSizePolicy::adjust_for_minor_pause_time(bool is_full_gc,
   // be added for consistency.
   if (minor_pause_young_estimator()->decrement_will_decrease()) {
         // reduce eden size
-    set_change_young_gen_for_min_pauses(
-          decrease_young_gen_for_min_pauses_true);
-    *desired_eden_size_ptr = *desired_eden_size_ptr -
-      eden_decrement_aligned_down(*desired_eden_size_ptr);
+    set_change_young_gen_for_min_pauses(decrease_young_gen_for_min_pauses_true);
+    *desired_eden_size_ptr = *desired_eden_size_ptr - eden_decrement_aligned_down(*desired_eden_size_ptr);
     } else {
       // EXPERIMENTAL ADJUSTMENT
       // Only record that the estimator indicated such an action.
       // *desired_eden_size_ptr = *desired_eden_size_ptr + eden_heap_delta;
-      set_change_young_gen_for_min_pauses(
-          increase_young_gen_for_min_pauses_true);
+      set_change_young_gen_for_min_pauses(increase_young_gen_for_min_pauses_true);
   }
+
   if (PSAdjustTenuredGenForMinorPause) {
     // If the desired eden size is as small as it will get,
     // try to adjust the old gen size.
@@ -531,14 +541,16 @@ void PSAdaptiveSizePolicy::adjust_for_minor_pause_time(bool is_full_gc,
           promo_increment_with_supplement_aligned_up(*desired_promo_size_ptr);
         if ((*desired_promo_size_ptr + promo_heap_delta) >
             *desired_promo_size_ptr) {
-          *desired_promo_size_ptr =
-            _promo_size + promo_heap_delta;
+          *desired_promo_size_ptr = _promo_size + promo_heap_delta;
         }
       }
     }
   }
 }
 
+/*
+ * 由于Gc造成的应用暂停时间超过配置的时间开销容忍上线,所以调整年青代+旧生代大小来减少Gc造成的应用暂停时间
+ */
 void PSAdaptiveSizePolicy::adjust_for_pause_time(bool is_full_gc,
                                              size_t* desired_promo_size_ptr,
                                              size_t* desired_eden_size_ptr) {
@@ -871,6 +883,9 @@ size_t PSAdaptiveSizePolicy::eden_increment(size_t cur_eden,
   return eden_heap_delta;
 }
 
+/**
+ * 计算年青代Eden区的内存容量增长量
+ */
 size_t PSAdaptiveSizePolicy::eden_increment(size_t cur_eden) {
   return eden_increment(cur_eden, YoungGenerationSizeIncrement);
 }
@@ -897,6 +912,9 @@ size_t PSAdaptiveSizePolicy::eden_decrement_aligned_down(size_t cur_eden) {
   return align_size_down(eden_heap_delta, _intra_generation_alignment);
 }
 
+/**
+ * 计算年青代Eden区内存容量的减少量
+ */
 size_t PSAdaptiveSizePolicy::eden_decrement(size_t cur_eden) {
   size_t eden_heap_delta = eden_increment(cur_eden) /
     AdaptiveSizeDecrementScaleFactor;

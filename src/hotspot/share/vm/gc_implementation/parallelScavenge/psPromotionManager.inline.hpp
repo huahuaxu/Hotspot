@@ -64,8 +64,11 @@ inline void PSPromotionManager::claim_or_forward_depth(T* p) {
 //
 // This method is pretty bulky. It would be nice to split it up
 // into smaller submethods, but we need to be careful not to hurt
-// performance.
+// performance
 //
+/**
+ * 用于Minor Gc,复制对象到年青代的To区,或升级年青代中的对象到年老代
+ */
 template<bool promote_immediately>
 oop PSPromotionManager::copy_to_survivor_space(oop o) {
   assert(PSScavenge::should_scavenge(&o), "Sanity");
@@ -78,18 +81,19 @@ oop PSPromotionManager::copy_to_survivor_space(oop o) {
   markOop test_mark = o->mark();
 
   // The same test as "o->is_forwarded()"
-  if (!test_mark->is_marked()) {
+  if (!test_mark->is_marked()) {	//对象还没有复制
     bool new_obj_is_tenured = false;
     size_t new_obj_size = o->size();
 
-    if (!promote_immediately) {
+    if (!promote_immediately) {	//不直接升级对象
       // Find the objects age, MT safe.
       int age = (test_mark->has_displaced_mark_helper() /* o->has_displaced_mark() */) ?
         test_mark->displaced_mark_helper()->age() : test_mark->age();
 
       // Try allocating obj in to-space (unless too old)
-      if (age < PSScavenge::tenuring_threshold()) {
+      if (age < PSScavenge::tenuring_threshold()) {	//对象还不够升级资格
         new_obj = (oop) _young_lab.allocate(new_obj_size);
+
         if (new_obj == NULL && !_young_gen_is_full) {
           // Do we allocate directly, or flush and refill?
           if (new_obj_size > (YoungPLABSize / 2)) {
@@ -113,7 +117,7 @@ oop PSPromotionManager::copy_to_survivor_space(oop o) {
     }
 
     // Otherwise try allocating obj tenured
-    if (new_obj == NULL) {
+    if (new_obj == NULL) {	//对象可以升级或年青代内存不够
 #ifndef PRODUCT
       if (Universe::heap()->promotion_should_fail()) {
         return oop_promotion_failed(o, test_mark);
@@ -157,7 +161,7 @@ oop PSPromotionManager::copy_to_survivor_space(oop o) {
 
     assert(new_obj != NULL, "allocation should have succeeded");
 
-    // Copy obj
+    //复制对象到新的存储空间
     Copy::aligned_disjoint_words((HeapWord*)o, (HeapWord*)new_obj, new_obj_size);
 
     // Now we have to CAS in the header.
@@ -168,7 +172,7 @@ oop PSPromotionManager::copy_to_survivor_space(oop o) {
       // Increment age if obj still in new generation. Now that
       // we're dealing with a markOop that cannot change, it is
       // okay to use the non mt safe oop methods.
-      if (!new_obj_is_tenured) {
+      if (!new_obj_is_tenured) {	//对象没有被升级,则增加其年岁
         new_obj->incr_age();
         assert(young_space()->contains(new_obj), "Attempt to push non-promoted obj");
       }
@@ -179,12 +183,12 @@ oop PSPromotionManager::copy_to_survivor_space(oop o) {
       // So, the is->objArray() test would be very infrequent.
       if (new_obj_size > _min_array_size_for_chunking &&
           new_obj->is_objArray() &&
-          PSChunkLargeArrays) {
+          PSChunkLargeArrays) {	//大数组对象
         // we'll chunk it
         oop* const masked_o = mask_chunked_array_oop(o);
         push_depth(masked_o);
         TASKQUEUE_STATS_ONLY(++_arrays_chunked; ++_masked_pushes);
-      } else {
+      } else {	//普通对象
         // we'll just push its contents
         new_obj->push_contents(this);
       }

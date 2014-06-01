@@ -842,15 +842,22 @@ G1CollectorPolicy::verify_young_ages(HeapRegion* head,
 }
 #endif // PRODUCT
 
+/**
+ * 记录当前Full Gc的开始时间
+ */
 void G1CollectorPolicy::record_full_collection_start() {
   _cur_collection_start_sec = os::elapsedTime();
+
   // Release the future to-space so that it is available for compaction into.
   _g1->set_full_collection();
 }
 
+/**
+ * 记录当前Full Gc的结束时间
+ */
 void G1CollectorPolicy::record_full_collection_end() {
-  // Consider this like a collection pause for the purposes of allocation
-  // since last pause.
+
+   //本次Full Gc时间
   double end_sec = os::elapsedTime();
   double full_gc_time_sec = end_sec - _cur_collection_start_sec;
   double full_gc_time_ms = full_gc_time_sec * 1000.0;
@@ -867,6 +874,7 @@ void G1CollectorPolicy::record_full_collection_end() {
   _last_young_gc = false;
   clear_initiate_conc_mark_if_possible();
   clear_during_initial_mark_pause();
+
   _known_garbage_bytes = 0;
   _known_garbage_ratio = 0.0;
   _in_marking_window = false;
@@ -1124,13 +1132,15 @@ double G1CollectorPolicy::max_sum(double* data1, double* data2) {
   return ret;
 }
 
+/**
+ * 根据当前的内存堆的使用量来判断是否触发后台的并发标记
+ */
 bool G1CollectorPolicy::need_to_start_conc_mark(const char* source, size_t alloc_word_size) {
-  if (_g1->concurrent_mark()->cmThread()->during_cycle()) {
+  if (_g1->concurrent_mark()->cmThread()->during_cycle()) {	//后台的并发标记已经开始或触发
     return false;
   }
 
-  size_t marking_initiating_used_threshold =
-    (_g1->capacity() / 100) * InitiatingHeapOccupancyPercent;
+  size_t marking_initiating_used_threshold = (_g1->capacity() / 100) * InitiatingHeapOccupancyPercent;
   size_t cur_used_bytes = _g1->non_young_capacity_bytes();
   size_t alloc_byte_size = alloc_word_size * HeapWordSize;
 
@@ -1148,6 +1158,7 @@ bool G1CollectorPolicy::need_to_start_conc_mark(const char* source, size_t alloc
         marking_initiating_used_threshold,
         (double) InitiatingHeapOccupancyPercent,
         source);
+
       return true;
     } else {
       ergo_verbose5(ErgoConcCycles,
@@ -2171,7 +2182,7 @@ G1CollectorPolicy::decide_on_conc_mark_initiation() {
     // concurrent marking cycle. So we might initiate one.
 
     bool during_cycle = _g1->concurrent_mark()->cmThread()->during_cycle();
-    if (!during_cycle) {
+    if (!during_cycle) {	//当前并发标记没有被触发也没有被正在执行
       // The concurrent marking thread is not "during a cycle", i.e.,
       // it has completed the last one. So we can go ahead and
       // initiate a new cycle.
@@ -2187,7 +2198,7 @@ G1CollectorPolicy::decide_on_conc_mark_initiation() {
 
       // And we can now clear initiate_conc_mark_if_possible() as
       // we've already acted on it.
-      clear_initiate_conc_mark_if_possible();
+      clear_initiate_conc_mark_if_possible();	//禁止其它线程触发并发标记
 
       ergo_verbose0(ErgoConcCycles,
                   "initiate concurrent cycle",

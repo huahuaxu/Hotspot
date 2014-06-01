@@ -79,6 +79,14 @@ void stubRoutines_init2(); // note: StubRoutines need 2-phase init
 void perfMemory_exit();
 void ostream_exit();
 
+/**
+ * 初始化全局数据结构
+ * 	1.Java基本类型系统
+ * 	2.全局时间缓冲区(事件队列)
+ * 	3.全局锁
+ * 	4.初始化ChunkPool
+ * 	5.JVM性能统计数据区
+ */
 void vm_init_globals() {
   check_ThreadShadow();
   basic_types_init();

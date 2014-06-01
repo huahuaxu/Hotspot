@@ -39,13 +39,15 @@
 // size of a generation is required, the adjacent generation
 // must be shrunk.  Adjusting the boundary between the generations
 // is called for in this class.
-
+/**
+ * 相邻两内存代管理器
+ */
 class AdjoiningGenerations : public CHeapObj {
   friend class VMStructs;
  private:
   // The young generation and old generation, respectively
-  PSYoungGen* _young_gen;
-  PSOldGen* _old_gen;
+  PSYoungGen* _young_gen;	//年青代
+  PSOldGen* _old_gen;		//旧生代
 
   // The spaces used by the two generations.
   AdjoiningVirtualSpaces _virtual_spaces;

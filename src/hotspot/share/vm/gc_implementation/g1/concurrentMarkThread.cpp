@@ -45,6 +45,7 @@ ConcurrentMarkThread::ConcurrentMarkThread(ConcurrentMark* cm) :
   _in_progress(false),
   _vtime_accum(0.0),
   _vtime_mark_accum(0.0) {
+
   create_and_start();
 }
 
@@ -77,6 +78,7 @@ public:
 
 void ConcurrentMarkThread::run() {
   initialize_in_thread();
+
   _vtime_start = os::elapsedVTime();
   wait_for_universe_init();
 
@@ -86,8 +88,10 @@ void ConcurrentMarkThread::run() {
   Thread *current_thread = Thread::current();
 
   while (!_should_terminate) {
+
     // wait until started is set.
     sleepBeforeNextCycle();
+
     {
       ResourceMark rm;
       HandleMark   hm;
@@ -138,6 +142,7 @@ void ConcurrentMarkThread::run() {
         double mark_end_time = os::elapsedVTime();
         double mark_end_sec = os::elapsedTime();
         _vtime_mark_accum += (mark_end_time - cycle_start);
+
         if (!cm()->has_aborted()) {
           if (g1_policy->adaptive_young_list_length()) {
             double now = os::elapsedTime();

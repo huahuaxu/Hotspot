@@ -36,6 +36,7 @@ inline HeapWord* G1OffsetTableContigSpace::allocate(size_t size) {
 // Because of the requirement of keeping "_offsets" up to date with the
 // allocations, we sequentialize these with a lock.  Therefore, best if
 // this is used for larger LAB allocations only.
+
 inline HeapWord* G1OffsetTableContigSpace::par_allocate(size_t size) {
   MutexLocker x(&_par_alloc_lock);
   // Given that we take the lock no need to use par_allocate() here.

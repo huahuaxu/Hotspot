@@ -323,6 +323,7 @@ valid_element(char *element)
     do {
         if ((end = JLI_StrChr(element, '&')) != NULL)
             *end = '\0';
+
         if (!valid_simple_element(element))
             return (0);
         if (end != NULL)

@@ -55,6 +55,9 @@
 class elapsedTimer;
 class GenerationSizer;
 
+/**
+ * 内存代大小调整器
+ */
 class PSAdaptiveSizePolicy : public AdaptiveSizePolicy {
  friend class PSGCAdaptivePolicyCounters;
  private:
@@ -90,7 +93,7 @@ class PSAdaptiveSizePolicy : public AdaptiveSizePolicy {
   // These record the most recent collection times.  They
   // are available as an alternative to using the averages
   // for making ergonomic decisions.
-  double _latest_major_mutator_interval_seconds;
+  double _latest_major_mutator_interval_seconds;	//最近一次Full Gc的间隔时间
 
   const size_t _intra_generation_alignment; // alignment for eden, survivors
 
@@ -135,7 +138,7 @@ class PSAdaptiveSizePolicy : public AdaptiveSizePolicy {
   AdaptivePaddedAverage* avg_major_pause() const { return _avg_major_pause; }
   double gc_minor_pause_goal_sec() const { return _gc_minor_pause_goal_sec; }
 
-  // Change the young generation size to achieve a minor GC pause time goal
+  //调整年青代大小已减少Minor Gc的时间消耗
   void adjust_for_minor_pause_time(bool is_full_gc,
                                    size_t* desired_promo_size_ptr,
                                    size_t* desired_eden_size_ptr);

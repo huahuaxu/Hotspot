@@ -134,6 +134,9 @@ class OopMapBlock VALUE_OBJ_CLASS_SPEC {
   uint _count;
 };
 
+/**
+ * 普通类型的描述信息
+ */
 class instanceKlass: public Klass {
   friend class VMStructs;
  public:
@@ -244,8 +247,8 @@ class instanceKlass: public Klass {
   u2              _minor_version;        // minor version number of class file
   u2              _major_version;        // major version number of class file
   Thread*         _init_thread;          // Pointer to current thread doing initialization (to handle recusive initialization)
-  int             _vtable_len;           // length of Java vtable (in words)
-  int             _itable_len;           // length of Java itable (in words)
+  int             _vtable_len;           // 虚方法地址表的长度
+  int             _itable_len;           // 接口方法地址表的长度
   OopMapCache*    volatile _oop_map_cache;   // OopMapCache for all methods in the klass (allocated lazily)
   JNIid*          _jni_ids;              // First JNI identifier for static fields in this class
   jmethodID*      _methods_jmethod_ids;  // jmethodIDs corresponding to method_idnum, or NULL if none
@@ -681,14 +684,17 @@ class instanceKlass: public Klass {
     return (instanceKlass*) kp;
   }
 
-  // Sizing (in words)
+  //普通实例对象的头部长度
   static int header_size()            { return align_object_offset(oopDesc::header_size() + sizeof(instanceKlass)/HeapWordSize); }
+  //
   int object_size() const             { return object_size(align_object_offset(vtable_length()) + align_object_offset(itable_length()) + nonstatic_oop_map_size()); }
+  //
   static int vtable_start_offset()    { return header_size(); }
   static int vtable_length_offset()   { return oopDesc::header_size() + offset_of(instanceKlass, _vtable_len) / HeapWordSize; }
   static int object_size(int extra)   { return align_object_size(header_size() + extra); }
 
   intptr_t* start_of_vtable() const        { return ((intptr_t*)as_klassOop()) + vtable_start_offset(); }
+  //接口方法地址表的偏移起始位置
   intptr_t* start_of_itable() const        { return start_of_vtable() + align_object_offset(vtable_length()); }
   int  itable_offset_in_words() const { return start_of_itable() - (intptr_t*)as_klassOop(); }
 
@@ -696,6 +702,7 @@ class instanceKlass: public Klass {
 
   address static_field_addr(int offset);
 
+  //实例属性引用地址表的偏移起始位置
   OopMapBlock* start_of_nonstatic_oop_maps() const {
     return (OopMapBlock*)(start_of_itable() + align_object_offset(itable_length()));
   }
@@ -704,7 +711,7 @@ class instanceKlass: public Klass {
   juint alloc_size() const            { return _alloc_count * size_helper(); }
   void set_alloc_size(juint n)        {}
 
-  // Use this to return the size of an instance in heap words:
+  //该类型的对象实例所占存储空间的大小(byte单位):sizeof(instanceOopDesc) + 实例数据
   int size_helper() const {
     return layout_helper_to_size_helper(layout_helper());
   }

@@ -61,15 +61,15 @@ class GCCause : public AllStatic {
     _permanent_generation_full,
 
     _cms_generation_full,
-    _cms_initial_mark,		//CMS中的第一次串行标记
-    _cms_final_remark,		//CMS中的第二次串行标记
+    _cms_initial_mark,
+    _cms_final_remark,
 
     _old_generation_expanded_on_last_scavenge,
     _old_generation_too_full_to_scavenge,
     _adaptive_size_policy,
 
     _g1_inc_collection_pause,
-    _g1_humongous_allocation,
+    _g1_humongous_allocation,	//大对象分配
 
     _last_ditch_collection,
     _last_gc_cause

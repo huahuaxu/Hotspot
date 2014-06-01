@@ -68,6 +68,7 @@ inline void G1RemSet::par_write_ref(HeapRegion* from, T* p, int tid) {
     assert(to->rem_set() != NULL, "Need per-region 'into' remsets.");
     to->rem_set()->add_reference(p, tid);
   }
+
 }
 
 template <class T>

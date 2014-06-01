@@ -149,6 +149,7 @@ const char * os::Linux::_libpthread_version = NULL;
 
 static jlong initial_time_count=0;
 
+//系统每秒tick数
 static int clock_tics_per_sec = 100;
 
 // For diagnostics to print a message once. see run_periodic_checks
@@ -323,6 +324,11 @@ static const char *unstable_chroot_error = "/proc file system not found.\n"
                      "Java may be unstable running multithreaded in a chroot "
                      "environment on Linux when /proc filesystem is not mounted.";
 
+/**
+ * 获取基本系统信息:
+ * 	1.cpu数量
+ * 	2.内存大小
+ */
 void os::Linux::initialize_system_info() {
 
   //获取系统cpu个数
@@ -543,6 +549,9 @@ bool os::Linux::is_sig_ignored(int sig) {
            return false;
 }
 
+/**
+ * 初始化普通信号集
+ */
 void os::Linux::signal_sets_init() {
   // Should also have an assertion stating we are still single-threaded.
   assert(!signal_sets_initialized, "Already initialized");
@@ -1426,11 +1435,17 @@ jlong os::javaTimeMillis() {
 #define CLOCK_MONOTONIC (1)
 #endif
 
+/**
+ * 初始化获取系统时间的函数(指针)
+ */
 void os::Linux::clock_init() {
   // we do dlopen's in this particular order due to bug in linux
   // dynamical loader (see 6348968) leading to crash on exit
+  printf("%s[%d] [tid: %lu]: 试图打开动态链接库[librt.so.1]以初始化获取系统时间的函数...\n", __FILE__, __LINE__, pthread_self());
   void* handle = dlopen("librt.so.1", RTLD_LAZY);
   if (handle == NULL) {
+	printf("%s[%d] [tid: %lu]: 试图打开动态链接库[librt.so]以初始化获取系统时间的函数...\n", __FILE__, __LINE__, pthread_self());
+
     handle = dlopen("librt.so", RTLD_LAZY);
   }
 
@@ -1439,6 +1454,8 @@ void os::Linux::clock_init() {
            (int(*)(clockid_t, struct timespec*))dlsym(handle, "clock_getres");
     int (*clock_gettime_func)(clockid_t, struct timespec*) =
            (int(*)(clockid_t, struct timespec*))dlsym(handle, "clock_gettime");
+
+    //测试当前Linux 内核是否支持CLOCK_MONOTONIC时钟
     if (clock_getres_func && clock_gettime_func) {
       // See if monotonic clock is supported by the kernel. Note that some
       // early implementations simply return kernel jiffies (updated every
@@ -1476,10 +1493,14 @@ void os::Linux::clock_init() {
 #define sys_clock_getres(x,y)  ::syscall(SYS_clock_getres, x, y)
 #endif
 
+/*
+ * 快速线程时钟初始化
+ */
 void os::Linux::fast_thread_clock_init() {
   if (!UseLinuxPosixThreadCPUClocks) {
     return;
   }
+
   clockid_t clockid;
   struct timespec tp;
   int (*pthread_getcpuclockid_func)(pthread_t, clockid_t *) =
@@ -1524,13 +1545,13 @@ void os::Linux::fast_thread_clock_init() {
  *
  */
 jlong os::javaTimeNanos() {
-  if (Linux::supports_monotonic_clock()) {
+  if (Linux::supports_monotonic_clock()) {	//精确到ns级别
     struct timespec tp;
     int status = Linux::clock_gettime(CLOCK_MONOTONIC, &tp);
     assert(status == 0, "gettime error");
     jlong result = jlong(tp.tv_sec) * (1000 * 1000 * 1000) + jlong(tp.tv_nsec);
     return result;
-  } else {
+  } else {	//精确到us级别
     timeval time;
     int status = gettimeofday(&time, NULL);
     assert(status != -1, "linux error");
@@ -2626,7 +2647,9 @@ char *os::scan_pages(char *start, char* end, page_info* page_expected, page_info
   return end;
 }
 
-
+/**
+ * 应用级别(JVM)实现sched_getcpu系统调用
+ */
 int os::Linux::sched_getcpu_syscall(void) {
   unsigned int cpu;
   int retval = -1;
@@ -2669,18 +2692,44 @@ void* os::Linux::libnuma_dlsym(void* handle, const char *name) {
   return f;
 }
 
+/**
+ *	加载NUMA(非一致存储访问系统架构)模块(针对NUMA架构的服务器)
+ *
+ * 函数原型:	void * dlopen( const char * pathname, int mode);
+ * 函数说明:	打开一个动态链接库
+ * 参数说明:	pathname	动态链接库路径
+ * 			mode		打开方式,在linux下，按功能可分为三类:
+ * 							1.解析方式
+ * 								RTLD_LAZY：在dlopen返回前,对于动态库中的未定义的符号不执行解析(只对函数引用有效，对于变量引用总是立即解析)
+ * 								RTLD_NOW： 需要在dlopen返回前,解析出所有未定义符号,如果解析不出来,在dlopen会返回NULL
+ * 							2.作用范围
+ * 								RTLD_GLOBAL：动态库中定义的符号可被其后打开的其它库重定位
+ * 								RTLD_LOCAL： 与RTLD_GLOBAL作用相反,动态库中定义的符号不能被其后打开的其它库重定位.如果没有指明是RTLD_GLOBAL还是RTLD_LOCAL,则缺省为RTLD_LOCAL
+ * 							3.作用方式
+ * 								RTLD_NODELETE： 在dlclose()期间不卸载库,并且在以后使用dlopen()重新加载库时不初始化库中的静态变量.这个flag不是POSIX-2001标准
+ * 								RTLD_NOLOAD： 不加载库.可用于测试库是否已加载(dlopen()返回NULL说明未加载，否则说明已加载),也可用于改变已加载库的flag,如：先前加载库的flag为RTLD_LOCAL,用dlopen(RTLD_NOLOAD|RTLD_GLOBAL)后flag将变成RTLD_GLOBAL.这个flag不是POSIX-2001标准
+ * 								RTLD_DEEPBIND：在搜索全局符号前先搜索库内的符号,避免同名符号的冲突.这个flag不是POSIX-2001标准.
+ * 	函数返回:	错误返回NULL
+ * 			成功返回库引用
+ */
 bool os::Linux::libnuma_init() {
+
+  printf("%s[%d] [tid: %lu]: 开始加载NUMA(非一致存储访问系统架构)模块...\n", __FILE__, __LINE__, pthread_self());
+
   // sched_getcpu() should be in libc.
   set_sched_getcpu(CAST_TO_FN_PTR(sched_getcpu_func_t,
                                   dlsym(RTLD_DEFAULT, "sched_getcpu")));
 
   // If it's not, try a direct syscall.
-  if (sched_getcpu() == -1)
+  if (sched_getcpu() == -1)		//系统级别不支持sched_getcpu系统调用,则在应用级别实现
     set_sched_getcpu(CAST_TO_FN_PTR(sched_getcpu_func_t, (void*)&sched_getcpu_syscall));
 
   if (sched_getcpu() != -1) { // Does it work?
+
+	printf("%s[%d] [tid: %lu]: 试图打开动态链接库(RTLD_LAZY)[libnuma.so.1]...\n", __FILE__, __LINE__, pthread_self());
+
     void *handle = dlopen("libnuma.so.1", RTLD_LAZY);
-    if (handle != NULL) {
+    if (handle != NULL) {	//
       set_numa_node_to_cpus(CAST_TO_FN_PTR(numa_node_to_cpus_func_t,
                                            libnuma_dlsym(handle, "numa_node_to_cpus")));
       set_numa_max_node(CAST_TO_FN_PTR(numa_max_node_func_t,
@@ -2991,7 +3040,10 @@ bool os::unguard_memory(char* addr, size_t size) {
   return linux_mprotect(addr, size, PROT_READ|PROT_WRITE);
 }
 
-bool os::Linux::hugetlbfs_sanity_check(bool warn, size_t page_size) {
+/**
+ * 检查当前Linux是否支持基于hugetlb特殊文件系统的大页面
+ */
+bool os::Linux::(bool warn, size_t page_size) {
   bool result = false;
   void *p = mmap (NULL, page_size, PROT_READ|PROT_WRITE,
                   MAP_ANONYMOUS|MAP_PRIVATE|MAP_HUGETLB,
@@ -3073,11 +3125,13 @@ static size_t _large_page_size = 0;
  * 初始化大内存页的配置
  */
 void os::large_page_init() {
-  if (!UseLargePages) {
+  if (!UseLargePages) {	//JVM禁止大内存页
     UseHugeTLBFS = false;
     UseSHM = false;
     return;
   }
+
+  printf("%s[%d] [tid: %lu]: 开始计算大内存页的标准大小...\n", __FILE__, __LINE__, pthread_self());
 
   if (FLAG_IS_DEFAULT(UseHugeTLBFS) && FLAG_IS_DEFAULT(UseSHM)) {
     // If UseLargePages is specified on the command line try both methods,
@@ -3089,7 +3143,7 @@ void os::large_page_init() {
     }
   }
 
-  if (LargePageSizeInBytes) {
+  if (LargePageSizeInBytes) {	//启动JVM时指定了大内存页的大小
     _large_page_size = LargePageSizeInBytes;
   } else {
     // large_page_size on Linux is used to round up heap size. x86 uses either
@@ -3141,6 +3195,8 @@ void os::large_page_init() {
     _page_sizes[1] = default_page_size;
     _page_sizes[2] = 0;
   }
+
+  //检查当前Linux是否支持基于hugetlb特殊文件系统的大页面
   UseHugeTLBFS = UseHugeTLBFS &&
                  Linux::hugetlbfs_sanity_check(warn_on_failure, _large_page_size);
 
@@ -3661,6 +3717,7 @@ static void SR_handler(int sig, siginfo_t* siginfo, ucontext_t* context) {
   Thread* thread = Thread::current();
   OSThread* osthread = thread->osthread();
   assert(thread->is_VM_thread(), "Must be VMThread");
+
   // read current suspend action
   int action = osthread->sr.suspend_action();
   if (action == SR_SUSPEND) {
@@ -3697,14 +3754,50 @@ static void SR_handler(int sig, siginfo_t* siginfo, ucontext_t* context) {
   errno = old_errno;
 }
 
-
+/**
+ * 安装线程的suspend/resume处理信号
+ *
+ * 函数原型:	int sigemptyset(sigset_t *set);
+ * 函数说明:	将信号集set初始化并清空
+ * 函数返回:	执行成功则返回0,如果有错误则返回-1
+ *
+ * **********************************************************************************
+ * 函数原型:	int sigaddset(sigset_t *set,int signum);
+ * 函数说明:	将参数signum 代表的信号加入至参数set信号集里
+ *
+ * **********************************************************************************
+ * 函数原型:	int pthread_sigmask(int how,const sigset_t * newmask, sigset_t * oldmask);
+ * 函数说明:	用来改变或者设置线程的信号屏蔽
+ * 参数说明:	how	改变方式:
+ * 				SIG_SETMASK	把信号屏蔽值设置为newmask
+ * 				SIG_BLOCK	把newmask中指定的信号添加到了当前信号的屏蔽中
+ * 				SIG_UNBLOCK	把newmask中指定的信号从当前信号屏蔽中删除
+ * 			newmask	用来执行信号屏蔽
+ * 			oldmask	以前的信号屏蔽被存放到oldmask指向的位置
+ *
+ * *********************************************************************************
+ * 函数原型:	int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+ * 函数说明:	根据参数signum指定的信号编号来设置该信号的处理函数,参数signum可以指定SIGKILL和SIGSTOP以外的所有信号
+ * 参数说明:	struct sigaction {
+ * 				void (*sa_handler)(int);	//默认信号处理函数
+ * 				void (*sa_sigaction)(int, siginfo_t *, void *);	//sa_flags中设置了SA_SIGINFO位时的信号处理函数
+ * 				sigset_t sa_mask;	//暂时搁置的信号集
+ * 				int sa_flags;		//标志:
+ * 										SA_RESETHAND：当调用信号处理函数时,将信号的处理函数重置为缺省值SIG_DFL
+ * 										SA_RESTART：如果信号中断了进程的某个系统调用,则系统自动启动该系统调用
+ * 										SA_NODEFER：一般情况下,当信号处理函数运行时,内核将阻塞该给定信号.
+ * 													但是如果设置了 SA_NODEFER标记, 那么在该信号处理函数运行时,内核将不会阻塞该信号
+ * 				void (*sa_restorer)(void);	//没有使用
+ * 			}
+ */
 static int SR_initialize() {
   struct sigaction act;
   char *s;
+
   /* Get signal number to use for suspend/resume */
   if ((s = ::getenv("_JAVA_SR_SIGNUM")) != 0) {
-    int sig = ::strtol(s, 0, 10);
-    if (sig > 0 || sig < _NSIG) {
+    int sig = ::strtol(s, 0, 10);	//数字字符串到十进制数转换
+    if (sig > 0 || sig < _NSIG) {	//_NSIG代表内核支持的信号总数量
         SR_signum = sig;
     }
   }
@@ -3975,9 +4068,11 @@ void os::Linux::set_signal_handler(int sig, bool set_installed) {
   struct sigaction oldAct;
   sigaction(sig, (struct sigaction*)NULL, &oldAct);
 
+  //获取旧的信号处理函数
   void* oldhand = oldAct.sa_sigaction
                 ? CAST_FROM_FN_PTR(void*,  oldAct.sa_sigaction)
                 : CAST_FROM_FN_PTR(void*,  oldAct.sa_handler);
+
   if (oldhand != CAST_FROM_FN_PTR(void*, SIG_DFL) &&
       oldhand != CAST_FROM_FN_PTR(void*, SIG_IGN) &&
       oldhand != CAST_FROM_FN_PTR(void*, (sa_sigaction_t)signalHandler)) {
@@ -4004,6 +4099,7 @@ void os::Linux::set_signal_handler(int sig, bool set_installed) {
     sigAct.sa_sigaction = signalHandler;
     sigAct.sa_flags = SA_SIGINFO|SA_RESTART;
   }
+
   // Save flags, which are set by ours
   assert(sig > 0 && sig < MAXSIGNUM, "vm signal out of expected range");
   sigflags[sig] = sigAct.sa_flags;
@@ -4026,6 +4122,7 @@ void os::Linux::install_signal_handlers() {
 
     // signal-chaining
     typedef void (*signal_setting_t)();
+
     signal_setting_t begin_signal_setting = NULL;
     signal_setting_t end_signal_setting = NULL;
     begin_signal_setting = CAST_TO_FN_PTR(signal_setting_t,
@@ -4038,6 +4135,7 @@ void os::Linux::install_signal_handlers() {
       libjsig_is_loaded = true;
       assert(UseSignalChaining, "should enable signal-chaining");
     }
+
     if (libjsig_is_loaded) {
       // Tell libjsig jvm is setting signal handlers
       (*begin_signal_setting)();
@@ -4065,6 +4163,7 @@ void os::Linux::install_signal_handlers() {
         }
         check_signals = false;
       }
+
       if (AllowUserSignalHandlers) {
         if (PrintJNIResolving) {
           tty->print_cr("Info: AllowUserSignalHandlers is activated, all active signal checking is disabled");
@@ -4082,6 +4181,9 @@ void os::Linux::install_signal_handlers() {
 // For reference, please, see IEEE Std 1003.1-2004:
 //   http://www.unix.org/single_unix_specification
 
+/**
+ * 获取某一线程的cpu使用时间
+ */
 jlong os::Linux::fast_thread_cpu_time(clockid_t clockid) {
   struct timespec tp;
   int rc = os::Linux::clock_gettime(clockid, &tp);
@@ -4296,6 +4398,9 @@ const char* os::exception_name(int exception_code, char* buf, size_t size) {
 }
 
 // this is called _before_ the most of global arguments have been parsed
+/**
+ * 第一次初始化操作系统模块(全局参数解析配置之前)
+ */
 void os::init(void) {
   char dummy;   /* used to get a guess on initial stack address */
 //  first_hrtime = gethrtime();
@@ -4312,12 +4417,14 @@ void os::init(void) {
 
   _initial_pid = (java_launcher_pid > 0) ? java_launcher_pid : getpid();
 
+  //获取系统每秒tick数
   clock_tics_per_sec = sysconf(_SC_CLK_TCK);
 
   init_random(1234567);
 
   ThreadCritical::initialize();
 
+  //获取Linux系统内存页大小
   Linux::set_page_size(sysconf(_SC_PAGESIZE));
   if (Linux::page_size() == -1) {
     fatal(err_msg("os_linux.cpp: os::init: sysconf failed (%s)", strerror(errno)));
@@ -4325,13 +4432,17 @@ void os::init(void) {
 
   init_page_sizes((size_t) Linux::page_size());
 
+  //获取系统基本信息
   Linux::initialize_system_info();
 
   // main_thread points to the aboriginal thread
   Linux::_main_thread = pthread_self();
 
+  //系统时钟初始化
   Linux::clock_init();
+
   initial_time_count = os::elapsed_counter();
+
   pthread_mutex_init(&dl_mutex, NULL);
 }
 
@@ -4342,7 +4453,9 @@ extern "C" {
   }
 }
 
-// this is called _after_ the global arguments have been parsed
+/**
+ * 第二次初始化操作系统模块(全局参数解析配置之后)
+ */
 jint os::init_2(void)
 {
   Linux::fast_thread_clock_init();
@@ -4351,7 +4464,7 @@ jint os::init_2(void)
   address polling_page = (address) ::mmap(NULL, Linux::page_size(), PROT_READ, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
   guarantee( polling_page != MAP_FAILED, "os::init_2: failed to allocate polling page" );
 
-  os::set_polling_page( polling_page );
+  os::set_polling_page(polling_page );
 
 #ifndef PRODUCT
   if(Verbose && PrintMiscellaneous)
@@ -4406,6 +4519,7 @@ jint os::init_2(void)
   Linux::capture_initial_stack(JavaThread::stack_size_at_create());
 
   Linux::libpthread_init();
+
   if (PrintMiscellaneous && (Verbose || WizardMode)) {
      tty->print_cr("[HotSpot is running with %s, %s(%s)]\n",
           Linux::glibc_version(), Linux::libpthread_version(),
@@ -4438,12 +4552,36 @@ jint os::init_2(void)
         UseNUMA = false;
       }
     }
+
     if (!UseNUMA && ForceNUMA) {
       UseNUMA = true;
     }
   }
 
-  if (MaxFDLimit) {
+  /**
+   * 函数原型:	int getrlimit(int resource, struct rlimit *rlp);
+   * 		int setrlimit(int resource, const struct rlimit *rlp);
+   * 函数说明:	获得、设置每个进程能够创建的各种系统资源的限制使用量
+   * 参数说明:	resource 资源类型:
+   * 			RLIMIT_CORE	core文件的最大字节数,若其值为0则阻止创建core文件
+   * 			RLIMIT_CPU	CPU时间的最大量值(秒),当超过此软限制时,向该进程发送SIGXCPU信号
+   * 			RLIMIT_DATA	一个进程的数据段最大字节长度
+   * 			RLIMIT_FSIZE 可以创建的文件的最大字节长度.当超过此软限制时,则向该进程发送SIGXFSZ信号
+   * 			RLIMIT_NOFILE 每个进程能打开的最多文件数
+   * 			RLIMIT_STACK  栈的最大字节长度.系统不会动态增加栈的大小限制
+   * 			RLIMIT_VMEM   可映照地址空间的最大字节长度
+   * 			RLIMIT_AS     进程可用内存最大字节数
+   * 		struct rlimit{
+   * 			rlim_t rlim_cur; //当前(软)限制
+   * 			rlim_t rlim_max; //硬限制
+   * 		}
+   * 函数返回:	成功完成后,getrlimit()和setrlimit()返回0.否则,返回-1并设置errno指定相应错误
+   * 			EFAULT	参数rlp指向非法地址
+   * 			EINVAL	指定了一个无效的资源;或者在调用函数setrlimit()时新的rlim_cur值超过了新的rlim_max值
+   * 			EPERM	调用函数setrlimit试图增加最大限制值，但该进程并不属于超级用户
+   * 			EINVAL	指定的限制值不能去减低限制值因为当前用法已经大于该指定限制值
+   */
+  if (MaxFDLimit) {	//设置当前JVM进程能够使用的文件描述符数量
     // set the number of file descriptors to max. print out error
     // if getrlimit/setrlimit fails but continue regardless.
     struct rlimit nbr_files;
@@ -4469,6 +4607,11 @@ jint os::init_2(void)
   // call to exit(3C). There can be only 32 of these functions registered
   // and atexit() does not set errno.
 
+  /**
+   * 函数原型:	int atexit(void (*func)(void));
+   * 函数说明: 注册终止函数(即main执行结束后调用的函数)
+   * 		(exit调用这些注册函数的顺序与它们 登记时候的顺序相反.同一个函数如若登记多次,则也会被调用多次)
+   */
   if (PerfAllowAtExitRegistration) {
     // only register atexit functions if PerfAllowAtExitRegistration is set.
     // atexit functions can be delayed until process exit time, which
@@ -4688,6 +4831,9 @@ int local_vsnprintf(char* buf, size_t count, const char* format, va_list args) {
 }
 
 // Is a (classpath) directory empty?
+/**
+ * 判断指定的目录是否为空目录(不包括. ..两个目录)
+ */
 bool os::dir_is_empty(const char* path) {
   DIR *dir = NULL;
   struct dirent *ptr;
@@ -4948,6 +5094,9 @@ static clockid_t thread_cpu_clockid(Thread* thread) {
 // current_thread_cpu_time() and thread_cpu_time(Thread*) returns
 // the fast estimate available on the platform.
 
+/**
+ * 获取当前线程的(user+sys)cpu时间
+ */
 jlong os::current_thread_cpu_time() {
   if (os::Linux::supports_fast_thread_cpu_time()) {
     return os::Linux::fast_thread_cpu_time(CLOCK_THREAD_CPUTIME_ID);
@@ -4957,6 +5106,9 @@ jlong os::current_thread_cpu_time() {
   }
 }
 
+/**
+ * 获取指定线程的(user+sys)cpu时间
+ */
 jlong os::thread_cpu_time(Thread* thread) {
   // consistent with what current_thread_cpu_time() returns
   if (os::Linux::supports_fast_thread_cpu_time()) {
@@ -4966,6 +5118,9 @@ jlong os::thread_cpu_time(Thread* thread) {
   }
 }
 
+/**
+ * 获取当前线程的(user/user+sys)cpu时间
+ */
 jlong os::current_thread_cpu_time(bool user_sys_cpu_time) {
   if (user_sys_cpu_time && os::Linux::supports_fast_thread_cpu_time()) {
     return os::Linux::fast_thread_cpu_time(CLOCK_THREAD_CPUTIME_ID);
@@ -4974,6 +5129,9 @@ jlong os::current_thread_cpu_time(bool user_sys_cpu_time) {
   }
 }
 
+/**
+ * 获取指定线程的(user/user+sys)cpu时间
+ */
 jlong os::thread_cpu_time(Thread *thread, bool user_sys_cpu_time) {
   if (user_sys_cpu_time && os::Linux::supports_fast_thread_cpu_time()) {
     return os::Linux::fast_thread_cpu_time(thread_cpu_clockid(thread));
@@ -4986,6 +5144,13 @@ jlong os::thread_cpu_time(Thread *thread, bool user_sys_cpu_time) {
 //  -1 on error.
 //
 
+/**
+ * 获取指定线程的cpu时间,Linux内核版本不一,实现也不一样,但都是通过读文件来获取cpu使用时间
+ *
+ * 	1./proc/<pid>/cpu (linux kernels 2.5-)(无法在线程级别获取,只能通过进程cpu时间来对等计算)
+ * 	2./proc/<tid>/stat
+ * 	3./proc/self/task/<tid>/stat
+ */
 static jlong slow_thread_cpu_time(Thread *thread, bool user_sys_cpu_time) {
   static bool proc_pid_cpu_avail = true;
   static bool proc_task_unchecked = true;
@@ -5097,6 +5262,27 @@ int os::loadavg(double loadavg[], int nelem) {
   return ::getloadavg(loadavg, nelem);
 }
 
+/**
+ *
+ * 函数原型:	int open(const char *pathname, int flags, mode_t mode);
+ * 函数说明:	打开和创建文件
+ * 参数说明:	pathname 是待打开/创建文件的POSIX路径名
+ * 			flags 用于指定文件的打开/创建模式,这个参数可由以下常量通过逻辑位或逻辑构成:
+ * 				O_RDONLY 只读模式
+ * 				O_WRONLY 只写模式
+ * 				O_RDWR 读写模式
+ * 				O_APPEND 每次写操作都写入文件的末尾
+ * 				O_CREAT 如果指定文件不存在，则创建这个文件
+ * 				O_EXCL 如果要创建的文件已存在，则返回 -1,并且修改 errno 的值
+ * 				O_TRUNC 如果文件存在,并且以只写/读写方式打开,则清空文件全部内容(即将其长度截短为0)
+ * 				O_NOCTTY 如果路径名指向终端设备，不要把这个设备用作控制终端。
+ * 				O_NONBLOCK 如果路径名指向 FIFO/块文件/字符文件，则把文件的打开和后继 I/O设置为非阻塞模式
+ * 				O_DSYNC 等待物理 I/O结束后再 write,在不影响读取新写入的数据的前提下，不等待文件属性更新
+ * 				O_RSYNCread等待所有写入同一区域的写操作完成后再进行
+ * 				O_SYNC 等待物理 I/O结束后再write,包括更新文件属性的 I/O
+ * 函数返回:	成功则返回文件描述符,否则返回 -1
+ *
+ */
 void os::pause() {
   char filename[MAX_PATH];
   if (PauseAtStartupFile && PauseAtStartupFile[0]) {

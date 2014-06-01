@@ -210,11 +210,16 @@ void PSYoungGen::set_space_boundaries(size_t eden_size, size_t survivor_size) {
   MemRegion to_mr  ((HeapWord*)to_start, (HeapWord*)from_start);
   MemRegion from_mr((HeapWord*)from_start, (HeapWord*)from_end);
 
+  printf("%s[%d] [tid: %lu]: 试图给Eden/From/To配置内存区...\n", __FILE__, __LINE__, pthread_self());
+
   eden_space()->initialize(eden_mr, true, ZapUnusedHeapArea);
     to_space()->initialize(to_mr  , true, ZapUnusedHeapArea);
   from_space()->initialize(from_mr, true, ZapUnusedHeapArea);
 }
 
+/**
+ * 检查Eden/From/To区的内存空间不重叠
+ */
 #ifndef PRODUCT
 void PSYoungGen::space_invariants() {
   ParallelScavengeHeap* heap = (ParallelScavengeHeap*)Universe::heap();
@@ -293,9 +298,11 @@ void PSYoungGen::resize(size_t eden_size, size_t survivor_size) {
   }
 }
 
-
+/**
+ * 调整年青代的物理内存块
+ */
 bool PSYoungGen::resize_generation(size_t eden_size, size_t survivor_size) {
-  const size_t alignment = virtual_space()->alignment();
+  const size_t alignment = virtual_space()->alignment();	//年青代的内存对齐单位
   size_t orig_size = virtual_space()->committed_size();
   bool size_changed = false;
 
@@ -307,14 +314,14 @@ bool PSYoungGen::resize_generation(size_t eden_size, size_t survivor_size) {
 
   assert(min_gen_size() <= orig_size && orig_size <= max_size(), "just checking");
 
-  // Adjust new generation size
+  //计算年青代的新容量
   const size_t eden_plus_survivors =
           align_size_up(eden_size + 2 * survivor_size, alignment);
   size_t desired_size = MAX2(MIN2(eden_plus_survivors, max_size()),
                              min_gen_size());
   assert(desired_size <= max_size(), "just checking");
 
-  if (desired_size > orig_size) {
+  if (desired_size > orig_size) {	//扩张年青代的内存容量
     // Grow the generation
     size_t change = desired_size - orig_size;
     assert(change % alignment == 0, "just checking");
@@ -331,7 +338,7 @@ bool PSYoungGen::resize_generation(size_t eden_size, size_t survivor_size) {
       SpaceMangler::mangle_region(mangle_region);
     }
     size_changed = true;
-  } else if (desired_size < orig_size) {
+  } else if (desired_size < orig_size) {	//裁剪年青代的内存容量
     size_t desired_change = orig_size - desired_size;
     assert(desired_change % alignment == 0, "just checking");
 
@@ -343,7 +350,7 @@ bool PSYoungGen::resize_generation(size_t eden_size, size_t survivor_size) {
 
       size_changed = true;
     }
-  } else {
+  } else {	//年青代的内存容量不变
     if (Verbose && PrintGC) {
       if (orig_size == gen_size_limit()) {
         gclog_or_tty->print_cr("PSYoung generation size at maximum: "
@@ -449,6 +456,9 @@ void PSYoungGen::mangle_survivors(MutableSpace* s1,
 }
 #endif // NOT PRODUCT
 
+/**
+ * 重新调整Eden/From/To的大小及其对应的物理内存块
+ */
 void PSYoungGen::resize_spaces(size_t requested_eden_size,
                                size_t requested_survivor_size) {
   assert(UseAdaptiveSizePolicy, "sanity check");
@@ -512,7 +522,7 @@ void PSYoungGen::resize_spaces(size_t requested_eden_size,
 
   bool eden_from_to_order = from_start < to_start;
   // Check whether from space is below to space
-  if (eden_from_to_order) {
+  if (eden_from_to_order) {	//年青代三个内存区的排列顺序是:Eden-From-To
     // Eden, from, to
     eden_from_to_order = true;
     if (PrintAdaptiveSizePolicy && Verbose) {

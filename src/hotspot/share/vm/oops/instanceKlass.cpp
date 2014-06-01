@@ -711,7 +711,8 @@ instanceOop instanceKlass::register_finalizer(instanceOop i, TRAPS) {
  */
 instanceOop instanceKlass::allocate_instance(TRAPS) {
   assert(!oop_is_instanceMirror(), "wrong allocation path");
-  bool has_finalizer_flag = has_finalizer(); // Query before possible GC
+
+  bool has_finalizer_flag = has_finalizer(); //该java类型重写了finalize()方法
   int size = size_helper();  // Query before forming handle.
 
   KlassHandle h_k(THREAD, as_klassOop());
@@ -1694,6 +1695,9 @@ template <class T> void assert_nothing(T *p) {}
   }                                                                      \
 }
 
+/**
+ * 遍历给定的该类型的实例对象的所有引用对象
+ */
 #define InstanceKlass_OOP_MAP_REVERSE_ITERATE(obj, do_oop, assert_fn)    \
 {                                                                        \
   OopMapBlock* const start_map = start_of_nonstatic_oop_maps();          \
@@ -1839,6 +1843,9 @@ int instanceKlass::oop_adjust_pointers(oop obj) {
   return size;
 }
 
+/**
+ * 用于并行回收Gc,处理该类型的实例对象中存储在年青代的属性对象
+ */
 #ifndef SERIALGC
 void instanceKlass::oop_push_contents(PSPromotionManager* pm, oop obj) {
   InstanceKlass_OOP_MAP_REVERSE_ITERATE( \

@@ -46,6 +46,9 @@ extern address JVM_FunctionAtEnd();
 // an archive file should stop the process.  Unrecoverable errors during
 // the reading of the archive file should stop the process.
 
+/**
+ * jar包共享内存操作失败时自动终结当前JVM
+ */
 static void fail(const char *msg, va_list ap) {
   // This occurs very early during initialization: tty is not initialized.
   jio_fprintf(defaultStream::error_stream(),
@@ -70,12 +73,17 @@ void FileMapInfo::fail_stop(const char *msg, ...) {
 //
 // If we continue, then disable shared spaces and close the file.
 
+/**
+ * jar包共享内存操作失败时，当前JVM放弃jar共享
+ */
 void FileMapInfo::fail_continue(const char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
+
   if (RequireSharedSpaces) {
     fail(msg, ap);
   }
+
   va_end(ap);
   UseSharedSpaces = false;
   close();
@@ -84,6 +92,9 @@ void FileMapInfo::fail_continue(const char *msg, ...) {
 
 // Fill in the fileMapInfo structure with data about this VM instance.
 
+/**
+ * 使用当前JVM的jar包
+ */
 void FileMapInfo::populate_header(size_t alignment) {
   _header._magic = 0xf00baba2;
   _header._version = _current_version;
@@ -107,7 +118,7 @@ void FileMapInfo::populate_header(size_t alignment) {
   ClassPathEntry *cpe = ClassLoader::classpath_entry(0);
   for ( ; cpe != NULL; cpe = cpe->next()) {
 
-    if (cpe->is_jar_file()) {
+    if (cpe->is_jar_file()) {	//jar包文件
       if (_header._num_jars >= JVM_SHARED_JARS_MAX) {
         fail_stop("Too many jar files to share.", NULL);
       }
@@ -133,6 +144,7 @@ void FileMapInfo::populate_header(size_t alignment) {
       }
     }
   }
+
 }
 
 
@@ -145,10 +157,12 @@ bool FileMapInfo::init_from_file(int fd) {
     fail_continue("Unable to read the file header.");
     return false;
   }
+
   if (_header._version != current_version()) {
     fail_continue("The shared archive file has the wrong version.");
     return false;
   }
+
   _file_offset = (long)n;
   return true;
 }
@@ -179,7 +193,20 @@ bool FileMapInfo::open_for_read() {
 
 
 // Write the FileMapInfo information to the file.
-
+/**
+ *
+ *
+ * 函数原型:	int remove(const char * pathname);
+ * 函数说明:	删除参数pathname指定的文件.如果参数pathname为一文件,则调用unlink()处理;
+ * 			若参数pathname为一目录,则调用rmdir()来处理.
+ * 函数返回:	成功则返回0,失败则返回-1,错误原因存于errno.
+ * 				EROFS 欲写入的文件存在于只读文件系统内
+ * 				EFAULT 参数pathname指针超出可存取内存空间
+ * 				ENAMETOOLONG 参数pathname太长
+ * 				ENOMEM 核心内存不足
+ * 				ELOOP 参数pathname有过多符号连接问题
+ * 				EIO I/O 存取错误
+ */
 void FileMapInfo::open_for_write() {
  _full_path = Arguments::GetSharedArchivePath();
   if (PrintSharedSpaces) {
@@ -189,10 +216,12 @@ void FileMapInfo::open_for_write() {
 
   // Remove the existing file in case another process has it open.
   remove(_full_path);
+
   int fd = open(_full_path, O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0444);
   if (fd < 0) {
     fail_stop("Unable to create shared archive file %s.", _full_path);
   }
+
   _fd = fd;
   _file_offset = 0;
   _file_open = true;
@@ -254,6 +283,7 @@ void FileMapInfo::write_bytes(const void* buffer, int nbytes) {
       fail_stop("Unable to write to shared archive file.", NULL);
     }
   }
+
   _file_offset += nbytes;
 }
 
@@ -311,6 +341,7 @@ bool FileMapInfo::map_space(int i, ReservedSpace rs, ContiguousSpace* space) {
       return false;
     }
   }
+
   bool result = (map_region(i, rs) != NULL);
   if (space != NULL && result) {
     space->set_top((HeapWord*)(si->_base + si->_used));
@@ -371,6 +402,7 @@ char* FileMapInfo::map_region(int i, bool address_must_match) {
   struct FileMapInfo::FileMapHeader::space_info* si = &_header._space[i];
   size_t used = si->_used;
   size_t size = align_size_up(used, os::vm_allocation_granularity());
+
   char *requested_addr = 0;
   if (address_must_match) {
     requested_addr = si->_base;
@@ -382,6 +414,7 @@ char* FileMapInfo::map_region(int i, bool address_must_match) {
     fail_continue("Unable to map shared space.");
     return NULL;
   }
+
   if (address_must_match) {
     if (base != si->_base) {
       fail_continue("Unable to map shared space at required address.");
@@ -490,6 +523,7 @@ bool FileMapInfo::validate() {
           fail_continue("Unable to open jar file %s.", path);
           return false;
         }
+
         if (_header._jar[num_jars_now]._timestamp != st.st_mtime ||
             _header._jar[num_jars_now]._filesize != st.st_size) {
           fail_continue("A jar file is not the one used while building"
@@ -509,6 +543,7 @@ bool FileMapInfo::validate() {
       }
     }
   }
+
   if (num_jars_now < _header._num_jars) {
     fail_continue("The number of jar files in the boot classpath is"
                   " less than the number the shared archive was created with.");

@@ -93,6 +93,7 @@ class oopDesc {
   oop* klass_addr();
   narrowOop* compressed_klass_addr();
 
+  //设置当前实例对象的类型描述信息指针
   void set_klass(klassOop k);
 
   // For klass field compression

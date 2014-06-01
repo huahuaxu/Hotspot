@@ -49,11 +49,15 @@
 
 class HeapRegion;
 
+/**
+ * 标记清除所有的垃圾对象
+ */
 void G1MarkSweep::invoke_at_safepoint(ReferenceProcessor* rp,
                                       bool clear_all_softrefs) {
   assert(SafepointSynchronize::is_at_safepoint(), "must be at a safepoint");
 
   SharedHeap* sh = SharedHeap::heap();
+
 #ifdef ASSERT
   if (sh->collector_policy()->should_clear_all_soft_refs()) {
     assert(clear_all_softrefs, "Policy should have been checked earler");
@@ -123,6 +127,9 @@ void G1MarkSweep::allocate_stacks() {
   GenMarkSweep::_preserved_count = 0;
 }
 
+/**
+ * 标记所有active对象
+ */
 void G1MarkSweep::mark_sweep_phase1(bool& marked_for_unloading,
                                     bool clear_all_softrefs) {
   // Recursively traverse all live objects and mark them
@@ -274,6 +281,9 @@ public:
   HeapRegion* result() { return _a_region; }
 };
 
+/**
+ * 计算出所有active对象新的存储地址
+ */
 void G1MarkSweep::mark_sweep_phase2() {
   // Now all live objects are marked, compute the new object addresses.
 
@@ -330,6 +340,9 @@ class G1AdjustPointersClosure: public HeapRegionClosure {
   }
 };
 
+/**
+ * 更新所有active对象的物理存储地址映射
+ */
 void G1MarkSweep::mark_sweep_phase3() {
   G1CollectedHeap* g1h = G1CollectedHeap::heap();
   Generation* pg = g1h->perm_gen();
@@ -384,6 +397,9 @@ public:
   }
 };
 
+/**
+ * 移动复制所有active对象到其新的存储空间
+ */
 void G1MarkSweep::mark_sweep_phase4() {
   // All pointers are now adjusted, move objects accordingly
 

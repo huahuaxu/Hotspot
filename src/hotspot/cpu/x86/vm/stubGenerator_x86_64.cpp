@@ -230,9 +230,12 @@ class StubGenerator: public StubCodeGenerator {
            (int)frame::entry_frame_call_wrapper_offset == (int)call_wrapper_off,
            "adjust this code");
     StubCodeMark mark(this, "StubRoutines", "call_stub");
+
+    //记录pc寄存器
     address start = __ pc();
 
     // same as in generate_catch_exception()!
+    //创建一些局部变量保存信息
     const Address rsp_after_call(rbp, rsp_after_call_off * wordSize);
 
     const Address call_wrapper  (rbp, call_wrapper_off   * wordSize);
@@ -267,7 +270,7 @@ class StubGenerator: public StubCodeGenerator {
     __ movptr(result,       c_rarg1); // result
     __ movptr(call_wrapper, c_rarg0); // call wrapper
 
-    // save regs belonging to calling function
+    //调用java方法之前,保存当前寄存器
     __ movptr(rbx_save, rbx);
     __ movptr(r12_save, r12);
     __ movptr(r13_save, r13);
@@ -320,6 +323,7 @@ class StubGenerator: public StubCodeGenerator {
     __ testl(c_rarg3, c_rarg3);
     __ jcc(Assembler::zero, parameters_done);
 
+    //按照参数出现顺序复制方法参数
     Label loop;
     __ movptr(c_rarg2, parameters);       // parameter pointer
     __ movl(c_rarg1, c_rarg3);            // parameter counter is in c_rarg1
@@ -335,14 +339,14 @@ class StubGenerator: public StubCodeGenerator {
     __ movptr(rbx, method);             // get methodOop
     __ movptr(c_rarg1, entry_point);    // get entry_point
     __ mov(r13, rsp);                   // set sender sp
+
     BLOCK_COMMENT("call Java function");
-    __ call(c_rarg1);
+    __ call(c_rarg1);	//调用java方法
 
     BLOCK_COMMENT("call_stub_return_address:");
     return_address = __ pc();
 
-    // store result depending on type (everything that is not
-    // T_OBJECT, T_LONG, T_FLOAT or T_DOUBLE is treated as T_INT)
+    // 确定java方法返回值类型
     __ movptr(c_rarg0, result);
     Label is_long, is_float, is_double, exit;
     __ movl(c_rarg1, result_type);
@@ -385,6 +389,8 @@ class StubGenerator: public StubCodeGenerator {
       __ movdqu(as_XMMRegister(i), xmm_save(i));
     }
 #endif
+
+    //恢复调用java方法之前的寄存器
     __ movptr(r15, r15_save);
     __ movptr(r14, r14_save);
     __ movptr(r13, r13_save);
@@ -405,7 +411,7 @@ class StubGenerator: public StubCodeGenerator {
     __ pop(rbp);
     __ ret(0);
 
-    // handle return types different from T_INT
+    //根据返回值类型处理返回值
     __ BIND(is_long);
     __ movq(Address(c_rarg0, 0), rax);
     __ jmp(exit);

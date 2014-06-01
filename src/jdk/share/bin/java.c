@@ -165,7 +165,7 @@ static jlong maxHeapSize        = 0;  /* max heap size */
 static jlong initialHeapSize    = 0;  /* inital heap size */
 
 /*
- * Entry point.
+ * JVM入口主函数
  */
 int
 JLI_Launch(int argc, char ** argv,              /* main argc, argc */
@@ -231,7 +231,7 @@ JLI_Launch(int argc, char ** argv,              /* main argc, argc */
         AddOption("-Dsun.java.launcher.diag=true", NULL);
     }
 
-    printf("%s[%d] [tid: %lu]: 试图创建java主程序执行的环境..\n", __FILE__, __LINE__, pthread_self());
+    printf("%s[%d] [tid: %lu]: 试图创建java主程序执行的环境(JRE及JVM的安装路径---->libjava.so/libjvm.so)..\n", __FILE__, __LINE__, pthread_self());
     CreateExecutionEnvironment(&argc, &argv,
                                jrepath, sizeof(jrepath),
                                jvmpath, sizeof(jvmpath),
@@ -277,7 +277,7 @@ JLI_Launch(int argc, char ** argv,              /* main argc, argc */
     /* Parse command line options; if the return value of
      * ParseArguments is false, the program should exit.
      */
-    printf("%s[%d] [tid: %lu]: 试图从命令行中解析出JVM的参数..\n", __FILE__, __LINE__, pthread_self());
+    printf("%s[%d] [tid: %lu]: 试图从命令行中解析出JVM的配置参数..\n", __FILE__, __LINE__, pthread_self());
     if (!ParseArguments(&argc, &argv, &mode, &what, &ret, jrepath))
     {
         return(ret);
@@ -363,7 +363,7 @@ int JNICALL JavaMain(void * _args)
     RegisterThread();
 
     /* Initialize the virtual machine */
-    printf("%s[%d] [tid: %lu]: 试图创建/初始化JVM...\n", __FILE__, __LINE__, pthread_self());
+    printf("%s[%d] [tid: %lu]: 试图创建/初始化一个JVM实例...\n", __FILE__, __LINE__, pthread_self());
     start = CounterGet();
     if (!InitializeJVM(&vm, &env, &ifn)) {
         JLI_ReportErrorMessage(JVM_ERROR1);
@@ -431,11 +431,12 @@ int JNICALL JavaMain(void * _args)
      *     2)   Remove the vestages of maintaining main_class through
      *          the environment (and remove these comments).
      */
-    printf("%s[%d] [tid: %lu]: 试图加载java主程序类[%s]..\n", __FILE__, __LINE__, pthread_self(), what);
+    printf("%s[%d] [tid: %lu]: 试图加载解析java主程序类[%s]..\n", __FILE__, __LINE__, pthread_self(), what);
     mainClass = LoadMainClass(env, mode, what);
     CHECK_EXCEPTION_NULL_LEAVE(mainClass);
 
     PostJVMInit(env, mainClass, vm);
+
     /*
      * The LoadMainClass not only loads the main class, it will also ensure
      * that the main method's signature is correct, therefore further checking
@@ -447,13 +448,15 @@ int JNICALL JavaMain(void * _args)
     CHECK_EXCEPTION_NULL_LEAVE(mainID);
 
     /* Build argument array */
-    printf("%s[%d] [tid: %lu]: 试图构建java主程序[%s]的main方法参数..\n", __FILE__, __LINE__, pthread_self(), what);
+    printf("%s[%d] [tid: %lu]: 试图构建java主程序[%s]的main方法参数[char** ------> java.lang.String[]]..\n", __FILE__, __LINE__, pthread_self(), what);
     mainArgs = NewPlatformStringArray(env, argv, argc);
     CHECK_EXCEPTION_NULL_LEAVE(mainArgs);
 
     /* Invoke main method. */
     printf("%s[%d] [tid: %lu]: 试图执行java主程序[%s]的main方法..\n", __FILE__, __LINE__, pthread_self(), what);
     (*env)->CallStaticVoidMethod(env, mainClass, mainID, mainArgs);
+
+    printf("%s[%d] [tid: %lu]: Java主程序[%s]的main方法已执行完毕.\n", __FILE__, __LINE__, pthread_self(), what);
 
     /*
      * The launcher's exit code (in the absence of calls to
@@ -468,14 +471,9 @@ int JNICALL JavaMain(void * _args)
 }
 
 /*
- * Checks the command line options to find which JVM type was
- * specified.  If no command line option was given for the JVM type,
- * the default type is used.  The environment variable
- * JDK_ALTERNATE_VM and the command line option -XXaltjvm= are also
- * checked as ways of specifying which JVM type to invoke.
+ * 检查当前JVM的实现是否支持用户指定的JVM类型
  */
-char *
-CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
+char * CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     int i, argi;
     int argc;
     char **newArgv;
@@ -552,7 +550,7 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     *argv = newArgv;
     *pargc = newArgvIdx;
 
-    /* use the default VM type if not specified (no alias processing) */
+    //用户没有指定特殊的JVM类型
     if (jvmtype == NULL) {
       char* result = knownVMs[0].name+1;
       /* Use a different VM type if we are on a server class machine? */
@@ -568,7 +566,7 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     if (jvmidx < 0)
       return jvmtype;
 
-    /* Resolve aliases first */
+    //迭代别名,获取真正的JVM类型
     {
       int loopCount = 0;
       while (knownVMs[jvmidx].flag == VM_ALIASED_TO) {
@@ -599,7 +597,7 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     }
 
     switch (knownVMs[jvmidx].flag) {
-    case VM_WARN:
+    case VM_WARN:	//不存在时找一个JVM替代
         if (!speculative) {
             JLI_ReportErrorMessage(CFG_WARN1, jvmtype, knownVMs[0].name + 1);
         }
@@ -607,9 +605,9 @@ CheckJvmType(int *pargc, char ***argv, jboolean speculative) {
     case VM_IGNORE:
         jvmtype = knownVMs[jvmidx=0].name + 1;
         /* fall through */
-    case VM_KNOWN:
+    case VM_KNOWN:		//JVM存在
         break;
-    case VM_ERROR:
+    case VM_ERROR:		//不存在抛出异常
         if (!speculative) {
             JLI_ReportErrorMessage(CFG_ERROR3, jvmtype);
             exit(1);
@@ -710,8 +708,10 @@ AddOption(char *str, void *info)
     }
 }
 
-static void
-SetClassPath(const char *s)
+/**
+ * 设置JVM依赖的jar包路径
+ */
+static void SetClassPath(const char *s)
 {
     char *def;
     const char *orig = s;
@@ -727,6 +727,11 @@ SetClassPath(const char *s)
 }
 
 /*
+ * 确定java程序做运行的JVM版本
+ * java程序运行的两种模式:
+ * 	1.java [options] class [argument...]
+ * 	2.java [options] -jar file.jar [argument...]
+ *
  * The SelectVersion() routine ensures that an appropriate version of
  * the JRE is running.  The specification for the appropriate version
  * is obtained from either the manifest of a jar file (preferred) or
@@ -784,10 +789,11 @@ static void SelectVersion(int argc, char **argv, char **main_class)
      * Changes here should be reproduced there.
      */
     new_argv = JLI_MemAlloc((argc + 1) * sizeof(char*));
-    new_argv[0] = argv[0];
+    new_argv[0] = argv[0];	//启动当前进程的命令
     new_argp = &new_argv[1];
     argc--;
     argv++;
+
     /**
      * 解析部分JVM级参数
      */
@@ -809,7 +815,7 @@ static void SelectVersion(int argc, char **argv, char **main_class)
                 *new_argp++ = arg;
                 argc--;
                 argv++;
-                arg = *argv;
+                arg = *argv;	//jar包路径
             }
 
             /*
@@ -840,7 +846,8 @@ static void SelectVersion(int argc, char **argv, char **main_class)
     //复制java主运行程序的命令行参数
     while (argc-- > 0)  /* Copy over [argument...] */
         *new_argp++ = *argv++;
-    *new_argp = NULL;
+
+    *new_argp = NULL;	//最后一个参数标记为NULL
 
     /*
      * If there is a jar file, read the manifest. If the jarfile can't be
@@ -859,6 +866,7 @@ static void SelectVersion(int argc, char **argv, char **main_class)
                 JLI_ReportErrorMessage(JAR_ERROR2, operand);
             else
                 JLI_ReportErrorMessage(JAR_ERROR3, operand);
+
             exit(1);
         }
 
@@ -912,7 +920,7 @@ static void SelectVersion(int argc, char **argv, char **main_class)
     /*
      * 使用当前的jre环境来执行java程序
      */
-    if (info.jre_version == NULL) {
+    if (info.jre_version == NULL) {	//释放临时空间后返回
         JLI_FreeManifest();
         JLI_MemFree(new_argv);
         return;
@@ -942,12 +950,22 @@ static void SelectVersion(int argc, char **argv, char **main_class)
         (info.jre_restrict_search?"true":"false"), (jre?jre:"null"));
 
     if (jre == NULL) {
+    	printf("%s[%d] [tid: %lu]: 没有搜索到合适的jre版本.\n", __FILE__, __LINE__, pthread_self());
+
         if (JLI_AcceptableRelease(GetFullVersion(), info.jre_version)) {
             JLI_FreeManifest();
             JLI_MemFree(new_argv);
+
+            printf("%s[%d] [tid: %lu]: 使用当前的jre版本[%s]代替指定的jre版本[%s]来执行java程序.\n", __FILE__, __LINE__,
+            		pthread_self(), GetFullVersion(), info.jre_version);
+
             return;
         } else {
             JLI_ReportErrorMessage(CFG_ERROR4, info.jre_version);
+
+            printf("%s[%d] [tid: %lu]: 当前的jre版本[%s]无法满足指定的jre版本[%s]来执行java程序.\n", __FILE__, __LINE__,
+                        		pthread_self(), GetFullVersion(), info.jre_version);
+
             exit(1);
         }
     }
@@ -972,9 +990,14 @@ static void SelectVersion(int argc, char **argv, char **main_class)
             exit(1);
         }
     }
+
+
     (void)putenv(env_entry);
 
-    ExecJRE(jre, new_argv);
+
+    printf("%s[%d] [tid: %lu]: 试图创建一个子进程来启动指定的jvm版本[%s]来运行java程序.\n", __FILE__, __LINE__,
+                            		pthread_self(), jre);
+    ExecJRE(jre, new_argv);	//fork一个子进程来启动指定版本的JVM运行java程序
 
     JLI_FreeManifest();
     JLI_MemFree(new_argv);
@@ -1001,11 +1024,11 @@ ParseArguments(int *pargc, char ***pargv,
         if (JLI_StrCmp(arg, "-classpath") == 0 || JLI_StrCmp(arg, "-cp") == 0) {
             ARG_CHECK (argc, ARG_ERROR1, arg);
             SetClassPath(*argv);
-            mode = LM_CLASS;
+            mode = LM_CLASS;	//可运行主类模式
             argv++; --argc;
         } else if (JLI_StrCmp(arg, "-jar") == 0) {
             ARG_CHECK (argc, ARG_ERROR2, arg);
-            mode = LM_JAR;
+            mode = LM_JAR;	//可运行jar包模式
         } else if (JLI_StrCmp(arg, "-help") == 0 ||
                    JLI_StrCmp(arg, "-h") == 0 ||
                    JLI_StrCmp(arg, "-?") == 0) {
@@ -1136,7 +1159,7 @@ static jboolean InitializeJVM(JavaVM **pvm, JNIEnv **penv, InvocationFunctions *
             printf("    option[%2d] = '%s'\n",  i, args.options[i].optionString);
     }
 
-    printf("%s[%d] [tid: %lu]: 试图创建一个JVM...\n", __FILE__, __LINE__, pthread_self());
+    printf("%s[%d] [tid: %lu]: 试图创建一个JVM实例...\n", __FILE__, __LINE__, pthread_self());
     r = ifn->CreateJavaVM(pvm, (void **)penv, &args);
 
     //JVM的参数已经配置到了刚创建的JVM，现在释放其占用的内存
@@ -1212,7 +1235,7 @@ static jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc)
 }
 
 /*
- * 装载一个类，并检查其是否声明了 static main(String[] args) 方法
+ * 装载一个java可运行类，并检查其是否声明了 static main(String[] args) 方法
  */
 static jclass LoadMainClass(JNIEnv *env, int mode, char *name)
 {
@@ -1603,8 +1626,7 @@ PrintUsage(JNIEnv* env, jboolean doXUsage)
  * The intent is explicitly not to provide a full aliasing or predicate
  * mechanism.
  */
-jint
-ReadKnownVMs(const char *jvmCfgName, jboolean speculative)
+jint ReadKnownVMs(const char *jvmCfgName, jboolean speculative)
 {
     FILE *jvmCfg;
     char line[MAXPATHLEN+20];
@@ -1616,12 +1638,18 @@ ReadKnownVMs(const char *jvmCfgName, jboolean speculative)
     char *altVMName = NULL;
     char *serverClassVMName = NULL;
     static char *whiteSpace = " \t";
+
+    printf("%s[%d] [tid: %lu]: 获取JVM实现支持的JVM类型...\n", __FILE__, __LINE__, pthread_self());
+
     if (JLI_IsTraceLauncher()) {
         start = CounterGet();
     }
 
+    printf("%s[%d] [tid: %lu]: 打开JVM的配置文件: %s..\n", __FILE__, __LINE__, pthread_self(), jvmCfgName);
     jvmCfg = fopen(jvmCfgName, "r");
     if (jvmCfg == NULL) {
+      printf("%s[%d] [tid: %lu]: 无法打开JVM的配置文件: %s.\n", __FILE__, __LINE__, pthread_self(), jvmCfgName);
+
       if (!speculative) {
         JLI_ReportErrorMessage(CFG_ERROR6, jvmCfgName);
         exit(1);
@@ -1635,12 +1663,15 @@ ReadKnownVMs(const char *jvmCfgName, jboolean speculative)
         lineno++;
         if (line[0] == '#')
             continue;
+
         if (line[0] != '-') {
             JLI_ReportErrorMessage(CFG_WARN2, lineno, jvmCfgName);
         }
+
         if (cnt >= knownVMsLimit) {
             GrowKnownVMs(cnt);
         }
+
         line[JLI_StrLen(line)-1] = '\0'; /* remove trailing newline */
         tmpPtr = line + JLI_StrCSpn(line, whiteSpace);
         if (*tmpPtr == 0) {
@@ -1855,6 +1886,9 @@ IsWildCardEnabled()
     return _wc_enabled;
 }
 
+/**
+ * 创建新线程来装载JVM
+ */
 int ContinueInNewThread(InvocationFunctions* ifn, jlong threadStackSize,
                     int argc, char **argv,
                     int mode, char *what, int ret)

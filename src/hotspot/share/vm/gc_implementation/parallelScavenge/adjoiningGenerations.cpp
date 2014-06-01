@@ -33,7 +33,7 @@
 // the old behavior otherwise (with PSYoungGen and PSOldGen).
 
 /**
- * 相邻内存代管理器
+ * 相邻两内存代管理器
  */
 AdjoiningGenerations::AdjoiningGenerations(ReservedSpace old_young_rs,
                                            size_t init_low_byte_size,
@@ -79,12 +79,14 @@ AdjoiningGenerations::AdjoiningGenerations(ReservedSpace old_young_rs,
                               _virtual_spaces.low_byte_size_limit(),
                               "old", 1);
 
+    printf("%s[%d] [tid: %lu]: 试图初始化创建年青代[ASPSYoungGen]...\n", __FILE__, __LINE__, pthread_self());
     young_gen()->initialize_work();
     assert(young_gen()->reserved().byte_size() <= young_gen()->gen_size_limit(),
      "Consistency check");
     assert(old_young_rs.size() >= young_gen()->gen_size_limit(),
      "Consistency check");
 
+    printf("%s[%d] [tid: %lu]: 试图初始化创建旧生代[ASPSOldGen]...\n", __FILE__, __LINE__, pthread_self());
     old_gen()->initialize_work("old", 1);
     assert(old_gen()->reserved().byte_size() <= old_gen()->gen_size_limit(),
      "Consistency check");
@@ -110,10 +112,12 @@ AdjoiningGenerations::AdjoiningGenerations(ReservedSpace old_young_rs,
     _old_gen = new PSOldGen(init_low_byte_size, min_low_byte_size, max_low_byte_size,
                             "old", 1);
 
+    printf("%s[%d] [tid: %lu]: 试图初始化创建年青代[PSYoungGen]...\n", __FILE__, __LINE__, pthread_self());
     // The virtual spaces are created by the initialization of the gens.
     _young_gen->initialize(young_rs, alignment);
-    assert(young_gen()->gen_size_limit() == young_rs.size(),
-      "Consistency check");
+    assert(young_gen()->gen_size_limit() == young_rs.size(), "Consistency check");
+
+    printf("%s[%d] [tid: %lu]: 试图初始化创建旧生代[PSOldGen]...\n", __FILE__, __LINE__, pthread_self());
     _old_gen->initialize(old_rs, alignment, "old", 1);
     assert(old_gen()->gen_size_limit() == old_rs.size(), "Consistency check");
   }

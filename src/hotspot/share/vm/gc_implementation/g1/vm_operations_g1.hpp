@@ -75,6 +75,9 @@ public:
   }
 };
 
+/**
+ * Minor Gc操作
+ */
 class VM_G1IncCollectionPause: public VM_G1OperationWithAllocRequest {
 private:
   bool         _should_initiate_conc_mark;

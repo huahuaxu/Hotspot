@@ -55,11 +55,11 @@
 
 
 HeapWord*                  PSScavenge::_to_space_top_before_gc = NULL;
-int                        PSScavenge::_consecutive_skipped_scavenges = 0;
+int                        PSScavenge::_consecutive_skipped_scavenges = 0;	//Minor Gc触发而无法执行的次数
 ReferenceProcessor*        PSScavenge::_ref_processor = NULL;
 CardTableExtension*        PSScavenge::_card_table = NULL;
 bool                       PSScavenge::_survivor_overflow = false;
-int                        PSScavenge::_tenuring_threshold = 0;
+int                        PSScavenge::_tenuring_threshold = 0;				//对象从年青代升级到旧生代的门槛
 HeapWord*                  PSScavenge::_young_generation_boundary = NULL;
 elapsedTimer               PSScavenge::_accumulated_time;
 Stack<markOop>             PSScavenge::_preserved_mark_stack;
@@ -215,6 +215,11 @@ void PSRefProcTaskExecutor::execute(EnqueueTask& task)
 //
 // Note that this method should only be called from the vm_thread while
 // at a safepoint!
+/**
+ * 执行一次Minor Gc或Full Gc
+ * 	1.优先执行一次Minor Gc
+ * 	2.如果可以执行一次Full Gc则执行一个Full Gc
+ */
 bool PSScavenge::invoke() {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
   assert(Thread::current() == (Thread*)VMThread::vm_thread(), "should be in vm thread");
@@ -253,8 +258,11 @@ bool PSScavenge::invoke() {
   return full_gc_done;
 }
 
-// This method contains no policy. You should probably
-// be calling invoke() instead.
+/**
+ * 试图对年青代执行Minor Gc
+ *
+ * 成功执行返回true;否则返回false
+ */
 bool PSScavenge::invoke_no_policy() {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
   assert(Thread::current() == (Thread*)VMThread::vm_thread(), "should be in vm thread");
@@ -268,7 +276,7 @@ bool PSScavenge::invoke_no_policy() {
 
   scavenge_entry.update();
 
-  if (GC_locker::check_active_before_gc()) {
+  if (GC_locker::check_active_before_gc()) {	//Gc已被其它线程触发,则直接返回
     return false;
   }
 
@@ -277,16 +285,19 @@ bool PSScavenge::invoke_no_policy() {
   assert(heap->kind() == CollectedHeap::ParallelScavengeHeap, "Sanity");
 
   // Check for potential problems.
-  if (!should_attempt_scavenge()) {
+  if (!should_attempt_scavenge()) {	//放弃执行Minor Gc
     return false;
   }
 
+  //对象升级是否失败
   bool promotion_failure_occurred = false;
 
   PSYoungGen* young_gen = heap->young_gen();
   PSOldGen* old_gen = heap->old_gen();
   PSPermGen* perm_gen = heap->perm_gen();
   PSAdaptiveSizePolicy* size_policy = heap->size_policy();
+
+  //通知内存堆管理器更新总Gc计数器
   heap->increment_total_collections();
 
   AdaptiveSizePolicyOutput(size_policy, heap->total_collections());
@@ -332,7 +343,7 @@ bool PSScavenge::invoke_no_policy() {
 
     if (TraceGen0Time) accumulated_time()->start();
 
-    // Let the size policy know we're starting
+    //Minor Gc计时器开始
     size_policy->minor_collection_begin();
 
     // Verify the object start arrays.
@@ -354,6 +365,8 @@ bool PSScavenge::invoke_no_policy() {
     } else if (ZapUnusedHeapArea) {
       young_gen->to_space()->mangle_unused_area();
     }
+
+    //记录此时年青代的To区分配位置
     save_to_space_top_before_gc();
 
     COMPILER2_PRESENT(DerivedPointerTable::clear());
@@ -418,8 +431,7 @@ bool PSScavenge::invoke_no_policy() {
       q->enqueue(new ScavengeRootsTask(ScavengeRootsTask::code_cache));
 
       ParallelTaskTerminator terminator(
-        active_workers,
-                  (TaskQueueSetSuper*) promotion_manager->stack_array_depth());
+        active_workers, (TaskQueueSetSuper*) promotion_manager->stack_array_depth());
       if (active_workers > 1) {
         for (uint j = 0; j < active_workers; j++) {
           q->enqueue(new StealTask(&terminator));
@@ -431,17 +443,17 @@ bool PSScavenge::invoke_no_policy() {
 
     scavenge_midpoint.update();
 
-    // Process reference objects discovered during scavenge
+    //回收软/弱引用对象
     {
       reference_processor()->setup_policy(false); // not always_clear
       reference_processor()->set_active_mt_degree(active_workers);
       PSKeepAliveClosure keep_alive(promotion_manager);
       PSEvacuateFollowersClosure evac_followers(promotion_manager);
-      if (reference_processor()->processing_is_mt()) {
+      if (reference_processor()->processing_is_mt()) {	//多线程并发处理
         PSRefProcTaskExecutor task_executor;
         reference_processor()->process_discovered_references(
           &_is_alive_closure, &keep_alive, &evac_followers, &task_executor);
-      } else {
+      } else {	//单线程处理
         reference_processor()->process_discovered_references(
           &_is_alive_closure, &keep_alive, &evac_followers, NULL);
       }
@@ -455,7 +467,7 @@ bool PSScavenge::invoke_no_policy() {
       reference_processor()->enqueue_discovered_references(NULL);
     }
 
-    if (!JavaObjectsInPerm) {
+    if (!JavaObjectsInPerm) {	//java.lang.Class实例对象在永久代中分配
       // Unlink any dead interned Strings
       StringTable::unlink(&_is_alive_closure);
       // Process the remaining live ones
@@ -479,7 +491,7 @@ bool PSScavenge::invoke_no_policy() {
     // implicitly saying it's mutator time).
     size_policy->minor_collection_end(gc_cause);
 
-    if (!promotion_failure_occurred) {
+    if (!promotion_failure_occurred) {	//Minor Gc执行成功
       // Swap the survivor spaces.
 
 
@@ -525,10 +537,8 @@ bool PSScavenge::invoke_no_policy() {
           counters->update_survivor_overflowed(_survivor_overflow);
         }
 
-        size_t survivor_limit =
-          size_policy->max_survivor_size(young_gen->max_size());
-        _tenuring_threshold =
-          size_policy->compute_survivor_space_size_and_threshold(
+        size_t survivor_limit = size_policy->max_survivor_size(young_gen->max_size());
+        _tenuring_threshold = size_policy->compute_survivor_space_size_and_threshold(
                                                            _survivor_overflow,
                                                            _tenuring_threshold,
                                                            survivor_limit);
@@ -728,6 +738,11 @@ void PSScavenge::oop_promotion_failed(oop obj, markOop obj_mark) {
   }
 }
 
+/**
+ * 当前是否可以进行Minor Gc(&):
+ * 	1.年青代的To区完全空闲
+ * 	2.年老代有足够的空闲空间用于对象升级
+ */
 bool PSScavenge::should_attempt_scavenge() {
   ParallelScavengeHeap* heap = (ParallelScavengeHeap*)Universe::heap();
   assert(heap->kind() == CollectedHeap::ParallelScavengeHeap, "Sanity");

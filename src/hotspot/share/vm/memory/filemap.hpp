@@ -43,7 +43,9 @@ static const int JVM_IDENT_MAX = 256;
 static const int JVM_ARCH_MAX = 12;
 
 
-
+/**
+ * jar包内存映射文件信息(通过共享内存的方式让多个JVM共享jar包所占用的永久代内存)
+ */
 class FileMapInfo : public CHeapObj {
 private:
   enum {

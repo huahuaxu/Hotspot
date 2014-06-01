@@ -379,10 +379,17 @@ class HeapRegion: public G1OffsetTableContigSpace {
     VerifyCountClaimValue      = 9
   };
 
+  /**
+   * 并发分配(保证多线程安全)
+   */
   inline HeapWord* par_allocate_no_bot_updates(size_t word_size) {
     assert(is_young(), "we can only skip BOT updates on young regions");
     return ContiguousSpace::par_allocate(word_size);
   }
+
+  /**
+   * 串行分配(内部不保证多线程安全）
+   */
   inline HeapWord* allocate_no_bot_updates(size_t word_size) {
     assert(is_young(), "we can only skip BOT updates on young regions");
     return ContiguousSpace::allocate(word_size);

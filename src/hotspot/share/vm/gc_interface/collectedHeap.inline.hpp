@@ -52,7 +52,7 @@
 /**
  * 初始化实例对象的两个基本信息
  *    1.标记信息
- *    2.类型描述对象的指针
+ *    2.该实例对象类型所对应的类型描述对象
  */
 void CollectedHeap::post_allocation_setup_common(KlassHandle klass,
                                                  HeapWord* obj,
@@ -61,6 +61,9 @@ void CollectedHeap::post_allocation_setup_common(KlassHandle klass,
   post_allocation_install_obj_klass(klass, oop(obj), (int) size);
 }
 
+/**
+ * 初始化新分配对象的标记位
+ */
 void CollectedHeap::post_allocation_setup_no_klass_install(KlassHandle klass,
                                                            HeapWord* objPtr,
                                                            size_t size) {
@@ -77,6 +80,9 @@ void CollectedHeap::post_allocation_setup_no_klass_install(KlassHandle klass,
 
 }
 
+/**
+ * 设置新分配对象的类型描述信息
+ */
 void CollectedHeap::post_allocation_install_obj_klass(KlassHandle klass,
                                                    oop obj,
                                                    int size) {
@@ -86,12 +92,17 @@ void CollectedHeap::post_allocation_install_obj_klass(KlassHandle klass,
   assert(klass() == NULL || klass()->is_klass(), "not a klass");
   assert(klass() == NULL || klass()->klass_part() != NULL, "not a klass");
   assert(obj != NULL, "NULL object pointer");
+
   obj->set_klass(klass());
+
   assert(!Universe::is_fully_initialized() || obj->blueprint() != NULL,
          "missing blueprint");
 }
 
 // Support for jvmti and dtrace
+/**
+ * 向相关组件通知一个新对象的分配
+ */
 inline void post_allocation_notify(KlassHandle klass, oop obj) {
   // support low memory notifications (no-op if not enabled)
   LowMemoryDetector::detect_low_memory_for_collected_pools();
@@ -107,6 +118,9 @@ inline void post_allocation_notify(KlassHandle klass, oop obj) {
   }
 }
 
+/**
+ * 普通对象分配之后的初始化
+ */
 void CollectedHeap::post_allocation_setup_obj(KlassHandle klass,
                                               HeapWord* obj,
                                               size_t size) {
@@ -114,10 +128,14 @@ void CollectedHeap::post_allocation_setup_obj(KlassHandle klass,
 
   assert(Universe::is_bootstrapping() ||
          !((oop)obj)->blueprint()->oop_is_array(), "must not be an array");
+
   // notify jvmti and dtrace
   post_allocation_notify(klass, (oop)obj);
 }
 
+/**
+ * 数组对象分配之后的初始化
+ */
 void CollectedHeap::post_allocation_setup_array(KlassHandle klass,
                                                 HeapWord* obj,
                                                 size_t size,
@@ -126,8 +144,12 @@ void CollectedHeap::post_allocation_setup_array(KlassHandle klass,
   // in post_allocation_setup_common() because the klass field
   // indicates that the object is parsable by concurrent GC.
   assert(length >= 0, "length should be non-negative");
+
+  //设置该数组的长度
   ((arrayOop)obj)->set_length(length);
+
   post_allocation_setup_common(klass, obj, size);
+
   assert(((oop)obj)->blueprint()->oop_is_array(), "must be an array");
   // notify jvmti and dtrace (must be after length is set for dtrace)
   post_allocation_notify(klass, (oop)obj);

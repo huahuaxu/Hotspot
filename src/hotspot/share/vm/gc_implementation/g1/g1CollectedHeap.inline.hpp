@@ -45,10 +45,13 @@ G1CollectedHeap::heap_region_containing(const T addr) const {
   return hr;
 }
 
+/**
+ * 计算给定的对象所在的内存片
+ */
 template <class T>
-inline HeapRegion*
-G1CollectedHeap::heap_region_containing_raw(const T addr) const {
+inline HeapRegion* G1CollectedHeap::heap_region_containing_raw(const T addr) const {
   assert(_g1_reserved.contains((const void*) addr), "invariant");
+
   HeapRegion* res = _hrs.addr_to_region_unsafe((HeapWord*) addr);
   return res;
 }
@@ -58,8 +61,14 @@ inline bool G1CollectedHeap::obj_in_cs(oop obj) {
   return r != NULL && r->in_collection_set();
 }
 
-inline HeapWord*
-G1CollectedHeap::attempt_allocation(size_t word_size,
+/**
+ * 从Eden区分配小存储空间
+ * 	1.快分配----->并行分配
+ * 	2.慢分配----->1.串行分配
+ * 				2.触发Minor Gc
+ * 				3.并行分配
+ */
+inline HeapWord* G1CollectedHeap::attempt_allocation(size_t word_size,
                                     unsigned int* gc_count_before_ret) {
   assert_heap_not_locked_and_not_at_safepoint();
   assert(!isHumongous(word_size), "attempt_allocation() should not "
@@ -71,9 +80,11 @@ G1CollectedHeap::attempt_allocation(size_t word_size,
     result = attempt_allocation_slow(word_size, gc_count_before_ret);
   }
   assert_heap_not_locked();
+
   if (result != NULL) {
     dirty_young_block(result, word_size);
   }
+
   return result;
 }
 

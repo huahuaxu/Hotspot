@@ -119,6 +119,7 @@ HeapWord* G1AllocRegion::new_alloc_region_and_allocate(size_t word_size,
   HeapRegion* new_alloc_region = allocate_new_region(word_size, force);
   if (new_alloc_region != NULL) {
     new_alloc_region->reset_pre_dummy_top();
+
     // Need to do this before the allocation
     _used_bytes_before = new_alloc_region->used();
     HeapWord* result = allocate(new_alloc_region, word_size, _bot_updates);

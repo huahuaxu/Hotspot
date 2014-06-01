@@ -89,7 +89,7 @@ class VM_CMS_Operation: public VM_Operation {
 };
 
 /**
- * 初始标记JVM级操作,主要用于 CMS Gc过程中的第一次串行标记阶段(作用于后台CMS Gc)
+ * 初始标记JVM级操作,主要用于 CMS Gc过程中的第一次串行标记阶段
  */
 class VM_CMS_Initial_Mark: public VM_CMS_Operation {
  public:
@@ -109,7 +109,7 @@ class VM_CMS_Initial_Mark: public VM_CMS_Operation {
 };
 
 /**
- * 重新标记JVM级操作,主要用于 CMS Gc过程中的第二次串行标记阶段(作用于后台CMS Gc)
+ * 重新标记JVM级操作,主要用于 CMS Gc过程中的第二次串行标记阶段
  */
 class VM_CMS_Final_Remark: public VM_CMS_Operation {
  public:

@@ -343,7 +343,7 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
   else debug_only(args->verify(method, result->get_type(), thread));
 
   // Ignore call if method is empty
-  if (method->is_empty_method()) {
+  if (method->is_empty_method()) {	//调用的是空方法
     assert(result->get_type() == T_VOID, "an empty method must return a void value");
     return;
   }
@@ -360,7 +360,7 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
 
 
   assert(!thread->is_Compiler_thread(), "cannot compile from the compiler");
-  if (CompilationPolicy::must_be_compiled(method)) {
+  if (CompilationPolicy::must_be_compiled(method)) {	//方法必须被编译
     CompileBroker::compile_method(method, InvocationEntryBci,
                                   CompilationPolicy::policy()->initial_compile_level(),
                                   methodHandle(), 0, "must_be_compiled", CHECK);
@@ -376,12 +376,13 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
 
   // Figure out if the result value is an oop or not (Note: This is a different value
   // than result_type. result_type will be T_INT of oops. (it is about size)
-  BasicType result_type = runtime_type_from(result);
+  BasicType result_type = runtime_type_from(result);	//返回值类型
+  //返回值是否指对象类型
   bool oop_result_flag = (result->get_type() == T_OBJECT || result->get_type() == T_ARRAY);
 
   // NOTE: if we move the computation of the result_val_address inside
   // the call to call_stub, the optimizer produces wrong code.
-  intptr_t* result_val_address = (intptr_t*)(result->get_value_addr());
+  intptr_t* result_val_address = (intptr_t*)(result->get_value_addr());	//返回值的存储地址
 
   // Find receiver
   Handle receiver = (!method->is_static()) ? args->receiver() : Handle();

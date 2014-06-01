@@ -3164,16 +3164,16 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
 
   extern void JDK_Version_init();
 
-  // Check version
+  //检查当前JVM是否支持上层的java程序版本
   if (!is_supported_jni_version(args->version)) return JNI_EVERSION;
 
-  // Initialize the output stream module
+  //初始化输出流模块
   ostream_init();
 
-  // Process java launcher properties.
+  //配置Launcher属性
   Arguments::process_sun_java_launcher_properties(args);
 
-  // Initialize the os module before using TLS
+  //初始化底层OS模块
   os::init();
 
   // Initialize system properties.
@@ -3232,7 +3232,7 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
   // Initialize TLS
   ThreadLocalStorage::init();
 
-  // Initialize global data structures and create system classes in heap
+  //初始化全局数据结构
   vm_init_globals();
 
   // Attach the main thread to this os thread

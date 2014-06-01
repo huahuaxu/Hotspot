@@ -75,6 +75,7 @@ protected:
     if (_buffer_curr == _buffer_top) {
       process_buffer();
     }
+
     StarTask new_ref(p);
     *_buffer_curr = new_ref;
     ++_buffer_curr;

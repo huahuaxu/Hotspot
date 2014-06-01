@@ -27,6 +27,9 @@
 
 #include "gc_implementation/g1/g1AllocRegion.hpp"
 
+/**
+ * 串行分配
+ */
 inline HeapWord* G1AllocRegion::allocate(HeapRegion* alloc_region,
                                          size_t word_size,
                                          bool bot_updates) {
@@ -41,17 +44,10 @@ inline HeapWord* G1AllocRegion::allocate(HeapRegion* alloc_region,
 
 inline HeapWord* G1AllocRegion::par_allocate(HeapRegion* alloc_region,
                                              size_t word_size,
-                                             bool bot_updates) {
-  assert(alloc_region != NULL, err_msg("pre-condition"));
-  assert(!alloc_region->is_empty(), err_msg("pre-condition"));
-
-  if (!bot_updates) {
-    return alloc_region->par_allocate_no_bot_updates(word_size);
-  } else {
-    return alloc_region->par_allocate(word_size);
-  }
-}
-
+                                             bool bot_updates) {w}
+/**
+ * 并发分配
+ */
 inline HeapWord* G1AllocRegion::attempt_allocation(size_t word_size,
                                                    bool bot_updates) {
   assert(bot_updates == _bot_updates, ar_ext_msg(this, "pre-condition"));

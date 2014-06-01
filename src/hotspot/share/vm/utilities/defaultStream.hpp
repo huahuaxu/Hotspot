@@ -27,12 +27,15 @@
 
 #include "utilities/xmlstream.hpp"
 
+/**
+ * 默认输出流
+ */
 class defaultStream : public xmlTextStream {
   friend void ostream_abort();
  public:
   enum { NO_WRITER = -1 };
  private:
-  bool         _inited;
+  bool         _inited;		//当前输出流是否被初始化
   fileStream*  _log_file;  // XML-formatted file shared by all threads
   static int   _output_fd;
   static int   _error_fd;

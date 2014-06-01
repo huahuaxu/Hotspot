@@ -41,6 +41,9 @@ class ar_ext_msg;
 // and a lock will need to be taken when the active region needs to be
 // replaced.
 
+/**
+ * 基于内存区的分配器
+ */
 class G1AllocRegion VALUE_OBJ_CLASS_SPEC {
   friend class ar_ext_msg;
 
@@ -55,7 +58,7 @@ private:
   // then _alloc_region is NULL and this object should not be used to
   // satisfy allocation requests (it was done this way to force the
   // correct use of init() and release()).
-  HeapRegion* _alloc_region;
+  HeapRegion* _alloc_region;	//当前用于分配的内存区
 
   // It keeps track of the distinct number of regions that are used
   // for allocation in the active interval of this object, i.e.,
@@ -90,12 +93,12 @@ private:
   // and, given that these methods will be hopefully inlined, the
   // compiler should compile out the test.
 
-  // Perform a non-MT-safe allocation out of the given region.
+  //非多线程安全分配
   static inline HeapWord* allocate(HeapRegion* alloc_region,
                                    size_t word_size,
                                    bool bot_updates);
 
-  // Perform a MT-safe allocation out of the given region.
+  //多线程安全分配
   static inline HeapWord* par_allocate(HeapRegion* alloc_region,
                                        size_t word_size,
                                        bool bot_updates);

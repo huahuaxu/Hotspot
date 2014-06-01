@@ -199,7 +199,7 @@ private:
   jlong  _num_cc_clears;                // number of times the card count cache has been cleared
 #endif
 
-  // These exclude marking times.
+  //最近一次Gc的消耗时间
   TruncatedSeq* _recent_gc_times_ms;
 
   TruncatedSeq* _concurrent_mark_remark_times_ms;
@@ -208,7 +208,7 @@ private:
   Summary*           _summary;
 
   NumberSeq* _all_pause_times_ms;
-  NumberSeq* _all_full_gc_times_ms;
+  NumberSeq* _all_full_gc_times_ms;		//JVM进程的Full Gc总时间
   double _stop_world_start;
   NumberSeq* _all_stop_world_times_ms;
   NumberSeq* _all_yield_times_ms;
@@ -505,6 +505,7 @@ public:
 
   size_t cset_region_length()       { return young_cset_region_length() +
                                              old_cset_region_length(); }
+  //年青代的内存片的数量
   size_t young_cset_region_length() { return eden_cset_region_length() +
                                              survivor_cset_region_length(); }
 
@@ -708,7 +709,7 @@ private:
   // initial-mark work.
   volatile bool _during_initial_mark_pause;
 
-  bool _last_young_gc;
+  bool _last_young_gc;	//上一次Gc是否是Minor Gc
 
   // This set of variables tracks the collector efficiency, in order to
   // determine whether we should initiate a new marking.
@@ -1128,12 +1129,17 @@ private:
 
 public:
 
+  /**
+  * 根据对象的存活时间决定该对象应该存储位置:
+  * 	1.年青代幸存区
+  * 	2.旧生代
+   */
   inline GCAllocPurpose
     evacuation_destination(HeapRegion* src_region, int age, size_t word_sz) {
       if (age < _tenuring_threshold && src_region->is_young()) {
-        return GCAllocForSurvived;
+        return GCAllocForSurvived;	//年青代幸存区
       } else {
-        return GCAllocForTenured;
+        return GCAllocForTenured;	//旧生代
       }
   }
 

@@ -49,7 +49,9 @@ class VMThread;
 // This task scans all the roots of a given type.
 //
 //
-
+/**
+ * 处理
+ */
 class ScavengeRootsTask : public GCTask {
  public:
   enum RootType {
@@ -116,7 +118,9 @@ class StealTask : public GCTask {
 // SerialOldToYoungRootsTask
 //
 // This task is used to scan for roots in the perm gen
-
+/**
+ * 用于处理Minor Gc过程中,旧生代中对象的引用对象存储在年青代中的情况(串行模式)
+ */
 class SerialOldToYoungRootsTask : public GCTask {
  private:
   PSOldGen* _gen;
@@ -176,9 +180,12 @@ class SerialOldToYoungRootsTask : public GCTask {
 // by adding slice_stride to the start of stripe 0 in slice 0 to get
 // to the start of stride 0 in slice 1.
 
+/**
+ * 用于处理Minor Gc过程中,旧生代中对象的引用对象存储在年青代中的情况(并行模式)
+ */
 class OldToYoungRootsTask : public GCTask {
  private:
-  PSOldGen* _gen;
+  PSOldGen* _gen;		//旧生代
   HeapWord* _gen_top;
   uint _stripe_number;
   uint _stripe_total;

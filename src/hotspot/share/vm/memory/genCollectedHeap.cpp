@@ -146,6 +146,7 @@ jint GenCollectedHeap::initialize() {
       if (heap_rs.is_reserved()) {
         heap_rs.release();
       }
+
       FileMapInfo* mapinfo = FileMapInfo::current_info();
       mapinfo->fail_continue("Unable to reserve shared region.");
       allocate(alignment, perm_gen_spec, &total_reserved, &n_covered_regions, &heap_rs);

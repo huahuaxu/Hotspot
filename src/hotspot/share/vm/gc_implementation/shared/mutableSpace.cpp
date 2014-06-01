@@ -171,6 +171,9 @@ void MutableSpace::set_top_for_allocations() {
 #endif
 
 // This version requires locking. */
+/**
+ * 从当前内存区分配指定大小的内存块(不支持多线程并发)
+ */
 HeapWord* MutableSpace::allocate(size_t size) {
   assert(Heap_lock->owned_by_self() ||
          (SafepointSynchronize::is_at_safepoint() &&
@@ -189,6 +192,9 @@ HeapWord* MutableSpace::allocate(size_t size) {
 }
 
 // This version is lock-free.
+/**
+ * 从当前内存区分配指定大小的内存块(支持多线程并发)
+ */
 HeapWord* MutableSpace::cas_allocate(size_t size) {
   do {
     HeapWord* obj = top();
@@ -216,6 +222,9 @@ bool MutableSpace::cas_deallocate(HeapWord *obj, size_t size) {
   return (HeapWord*)Atomic::cmpxchg_ptr(obj, top_addr(), expected_top) == expected_top;
 }
 
+/**
+ * 遍历当前内存区中分配的对象
+ */
 void MutableSpace::oop_iterate(OopClosure* cl) {
   HeapWord* obj_addr = bottom();
   HeapWord* t = top();

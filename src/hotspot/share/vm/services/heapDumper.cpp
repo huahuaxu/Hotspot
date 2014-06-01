@@ -442,12 +442,9 @@ DumpWriter::DumpWriter(const char* path) {
     }
   } while (_buffer == NULL && _size > 0);
   assert((_size > 0 && _buffer != NULL) || (_size == 0 && _buffer == NULL), "sanity check");
-
   _pos = 0;
   _error = NULL;
   _bytes_written = 0L;
-
-  printf("%s[%d] [tid: %lu]: 试图打开文件: %s...\n", __FILE__, __LINE__, pthread_self(), path);
   _fd = os::create_binary_file(path, false);    // don't replace existing file
 
   // if the open failed we record the error
@@ -1717,7 +1714,7 @@ void VM_HeapDumper::doit() {
   ch->ensure_parsability(false); // must happen, even if collection does
                                  // not happen (e.g. due to GC_locker)
 
-  if (_gc_before_heap_dump) {	//dump内存堆之前先执行Gc
+  if (_gc_before_heap_dump) {
     if (GC_locker::is_active()) {
       warning("GC locker is held; pre-heapdump GC was skipped");
     } else {
@@ -1856,9 +1853,7 @@ void VM_HeapDumper::dump_stack_traces() {
   }
 }
 
-/**
- * dump出内存堆中的所有(active)对象到指定的文件
- */
+// dump the heap to given path.
 int HeapDumper::dump(const char* path) {
   assert(path != NULL && strlen(path) > 0, "path missing");
 
@@ -1870,7 +1865,7 @@ int HeapDumper::dump(const char* path) {
 
   // create the dump writer. If the file can be opened then bail
   DumpWriter writer(path);
-  if (!writer.is_open()) {	//输出文件创建失败
+  if (!writer.is_open()) {
     set_error(writer.error());
     if (print_to_tty()) {
       tty->print_cr("Unable to create %s: %s", path,
@@ -1879,7 +1874,7 @@ int HeapDumper::dump(const char* path) {
     return -1;
   }
 
-  //创建一个HeapDump操作,并交给"VM Thread"线程执行
+  // generate the dump
   VM_HeapDumper dumper(&writer, _gc_before_heap_dump, _oome);
   if (Thread::current()->is_VM_thread()) {
     assert(SafepointSynchronize::is_at_safepoint(), "Expected to be called at a safepoint");

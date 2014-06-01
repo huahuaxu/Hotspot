@@ -161,7 +161,9 @@ void StealTask::do_it(GCTaskManager* manager, uint which) {
 //
 // SerialOldToYoungRootsTask
 //
-
+/**
+ * 单线程移动复制旧生代中对象属性在年青代中的引用对象
+ */
 void SerialOldToYoungRootsTask::do_it(GCTaskManager* manager, uint which) {
   assert(_gen != NULL, "Sanity");
   assert(_gen->object_space()->contains(_gen_top) || _gen_top == _gen->object_space()->top(), "Sanity");
@@ -186,7 +188,9 @@ void SerialOldToYoungRootsTask::do_it(GCTaskManager* manager, uint which) {
 //
 // OldToYoungRootsTask
 //
-
+/**
+ * 多线程并发移动复制旧生代中对象属性在年青代中的引用对象
+ */
 void OldToYoungRootsTask::do_it(GCTaskManager* manager, uint which) {
   assert(_gen != NULL, "Sanity");
   assert(_gen->object_space()->contains(_gen_top) || _gen_top == _gen->object_space()->top(), "Sanity");

@@ -267,6 +267,9 @@ static off_t find_end(int fd, Byte *eb)
 
 /**
  * 从zip文件中查找给定的文件信息
+ *
+ * fd	zip文件句柄
+ * file_name	需要搜索的文件名
  */
 static int find_file(int fd, zentry *entry, const char *file_name)
 {
@@ -277,7 +280,7 @@ static int find_file(int fd, zentry *entry, const char *file_name)
     int     base_offset;
     Byte    *p;
     Byte    *bp;
-    Byte    *buffer;
+    Byte    *buffer;	//文件读取缓冲区
     Byte    locbuf[LOCHDR];
 
     if ((buffer = (Byte*)malloc(BUFSIZE)) == NULL) {//从系统申请存储空间

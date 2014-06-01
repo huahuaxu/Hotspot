@@ -113,9 +113,9 @@ class AdaptiveSizePolicy : public CHeapObj {
   AdaptiveWeightedAverage* _avg_major_gc_cost;
 
   // Footprint statistics
-  AdaptiveWeightedAverage* _avg_young_live;
-  AdaptiveWeightedAverage* _avg_eden_live;
-  AdaptiveWeightedAverage* _avg_old_live;
+  AdaptiveWeightedAverage* _avg_young_live;		//Gc之后年青代的平均使用量
+  AdaptiveWeightedAverage* _avg_eden_live;		//Gc之后年青代中Eden区的平均使用量
+  AdaptiveWeightedAverage* _avg_old_live;		//Gc之后年旧生代的平均使用量
 
   // Statistics for survivor space calculation for young generation
   AdaptivePaddedAverage*   _avg_survived;

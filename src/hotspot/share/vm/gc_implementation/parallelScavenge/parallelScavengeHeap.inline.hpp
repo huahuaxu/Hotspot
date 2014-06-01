@@ -47,6 +47,9 @@ inline void ParallelScavengeHeap::invoke_scavenge()
   PSScavenge::invoke();
 }
 
+/**
+ * 执行一次Full Gc,如果配置了ScavengeBeforeFullGC,则在执行Full Gc之前先试图执行一次Minor Gc
+ */
 inline void ParallelScavengeHeap::invoke_full_gc(bool maximum_compaction)
 {
   if (UseParallelOldGC) {

@@ -63,6 +63,7 @@ void GC_locker::verify_critical_count() {
 
 bool GC_locker::check_active_before_gc() {
   assert(SafepointSynchronize::is_at_safepoint(), "only read at safepoint");
+
   if (is_active() && !_needs_gc) {
     verify_critical_count();
     _needs_gc = true;
@@ -73,6 +74,7 @@ bool GC_locker::check_active_before_gc() {
     }
 
   }
+
   return is_active();
 }
 

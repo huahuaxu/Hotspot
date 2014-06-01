@@ -29,8 +29,8 @@
 #include "runtime/timer.hpp"
 #include "utilities/ostream.hpp"
 #include "utilities/workgroup.hpp"
-elapsedTimer AdaptiveSizePolicy::_minor_timer;
-elapsedTimer AdaptiveSizePolicy::_major_timer;
+elapsedTimer AdaptiveSizePolicy::_minor_timer;		//Minor Gc计时器
+elapsedTimer AdaptiveSizePolicy::_major_timer;		//Full Gc计时器
 bool AdaptiveSizePolicy::_debug_perturbation = false;
 
 // The throughput goal is implemented as
@@ -241,15 +241,16 @@ void AdaptiveSizePolicy::update_minor_pause_young_estimator(
 }
 
 void AdaptiveSizePolicy::minor_collection_end(GCCause::Cause gc_cause) {
-  // Update the pause time.
+  //通知Minor Gc计时
   _minor_timer.stop();
 
   if (gc_cause != GCCause::_java_lang_system_gc ||
       UseAdaptiveSizePolicyWithSystemGC) {
+	  //计算Minor Gc消耗时间
     double minor_pause_in_seconds = _minor_timer.seconds();
     double minor_pause_in_ms = minor_pause_in_seconds * MILLIUNITS;
 
-    // Sample for performance counter
+    //更新Minor Gc平均消耗时间
     _avg_minor_pause->sample(minor_pause_in_seconds);
 
     // Cost of collection (unit-less)
@@ -258,10 +259,11 @@ void AdaptiveSizePolicy::minor_collection_end(GCCause::Cause gc_cause) {
         (minor_pause_in_seconds > 0.0)) {
       double interval_in_seconds =
         _latest_minor_mutator_interval_seconds + minor_pause_in_seconds;
-      collection_cost =
-        minor_pause_in_seconds / interval_in_seconds;
+      collection_cost = minor_pause_in_seconds / interval_in_seconds;
+      //更新一次Minor Gc的平均开销:gc消耗时间/(gc消耗时间+应用消耗时间)
       _avg_minor_gc_cost->sample(collection_cost);
-      // Sample for performance counter
+
+      //更新一次Minor Gc的平均间隔时间
       _avg_minor_interval->sample(interval_in_seconds);
     }
 

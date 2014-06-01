@@ -510,6 +510,9 @@ HeapRegion* CMRootRegions::claim_next() {
   return res;
 }
 
+/**
+ * 通知其它线程,本次根内存区扫描已完成
+ */
 void CMRootRegions::scan_finished() {
   assert(scan_in_progress(), "pre-condition");
 
@@ -526,6 +529,9 @@ void CMRootRegions::scan_finished() {
   }
 }
 
+/**
+ * 如果根内存区正在被扫描,则等待其扫描被完成
+ */
 bool CMRootRegions::wait_until_scan_finished() {
   if (!scan_in_progress()) return false;
 
@@ -596,6 +602,7 @@ ConcurrentMark::ConcurrentMark(ReservedSpace rs,
 
   _count_card_bitmaps(NULL),
   _count_marked_bytes(NULL) {
+
   CMVerboseLevel verbose_level = (CMVerboseLevel) G1MarkingVerboseLevel;
   if (verbose_level < no_verbose) {
     verbose_level = no_verbose;
@@ -667,6 +674,7 @@ ConcurrentMark::ConcurrentMark(ReservedSpace rs,
     vm_exit_during_initialization("Can't have more ConcGCThreads "
                                   "than ParallelGCThreads.");
   }
+
   if (ParallelGCThreads == 0) {
     // if we are not running with any parallel GC threads we will not
     // spawn any marking threads either
@@ -728,8 +736,9 @@ ConcurrentMark::ConcurrentMark(ReservedSpace rs,
 #endif
 
     guarantee(parallel_marking_threads() > 0, "peace of mind");
-    _parallel_workers = new FlexibleWorkGang("G1 Parallel Marking Threads",
-         _max_parallel_marking_threads, false, true);
+
+    printf("%s[%d] [tid: %lu]: 试图创建G并行标记线程调度管理器...\n", __FILE__, __LINE__, pthread_self());
+    _parallel_workers = new FlexibleWorkGang("G1 Parallel Marking Threads", _max_parallel_marking_threads, false, true);
     if (_parallel_workers == NULL) {
       vm_exit_during_initialization("Failed necessary allocation.");
     } else {
@@ -1213,9 +1222,13 @@ public:
 
 // Calculates the number of active workers for a concurrent
 // phase.
+/**
+ * 评估当前所需并行标记线程的数量
+ */
 uint ConcurrentMark::calc_parallel_marking_threads() {
   if (G1CollectedHeap::use_parallel_gc_threads()) {
     uint n_conc_workers = 0;
+
     if (!UseDynamicNumberOfGCThreads ||
         (!FLAG_IS_DEFAULT(ConcGCThreads) &&
          !ForceDynamicNumberOfGCThreads)) {

@@ -1124,6 +1124,7 @@ oop frame::get_native_receiver() {
 
 void frame::oops_entry_do(OopClosure* f, const RegisterMap* map) {
   assert(map != NULL, "map must be set");
+
   if (map->include_argument_oops()) {
     // must collect argument oops, as nobody else is doing it
     Thread *thread = Thread::current();
@@ -1131,6 +1132,7 @@ void frame::oops_entry_do(OopClosure* f, const RegisterMap* map) {
     EntryFrameOopFinder finder(this, m->signature(), m->is_static());
     finder.arguments_do(f);
   }
+
   // Traverse the Handle Block saved in the entry frame
   entry_frame_call_wrapper()->oops_do(f);
 }

@@ -525,19 +525,23 @@ G1CollectedHeap* G1CollectedHeap::_g1h;
 
 // Private methods.
 
-HeapRegion*
-G1CollectedHeap::new_region_try_secondary_free_list() {
+/**
+ * 从二级空闲内存片列表中分配内存片
+ */
+HeapRegion* G1CollectedHeap::new_region_try_secondary_free_list() {
   MutexLockerEx x(SecondaryFreeList_lock, Mutex::_no_safepoint_check_flag);
+
+  //二级空闲内存片列表非空或有内存片将被释放
   while (!_secondary_free_list.is_empty() || free_regions_coming()) {
     if (!_secondary_free_list.is_empty()) {
+
       if (G1ConcRegionFreeingVerbose) {
         gclog_or_tty->print_cr("G1ConcRegionFreeing [region alloc] : "
                                "secondary_free_list has "SIZE_FORMAT" entries",
                                _secondary_free_list.length());
       }
-      // It looks as if there are free regions available on the
-      // secondary_free_list. Let's move them to the free_list and try
-      // again to allocate from it.
+
+      //将二级空闲内存片都添加到一级空闲内存片列表的头部
       append_secondary_free_list();
 
       assert(!_free_list.is_empty(), "if the secondary_free_list was not "
@@ -561,16 +565,23 @@ G1CollectedHeap::new_region_try_secondary_free_list() {
     gclog_or_tty->print_cr("G1ConcRegionFreeing [region alloc] : "
                            "could not allocate from secondary_free_list");
   }
+
   return NULL;
 }
 
+/**
+ * 分配一个空闲内存片
+ * 	1.从二级空闲内存片列表中分配
+ * 	2.从一级空闲内存片列表中分配
+ * 	3.扩张内存堆空间再从一级空闲内存片列表中分配
+ */
 HeapRegion* G1CollectedHeap::new_region(size_t word_size, bool do_expand) {
   assert(!isHumongous(word_size) || word_size <= HeapRegion::GrainWords,
          "the only time we use this to allocate a humongous region is "
          "when we are allocating a single humongous region");
 
   HeapRegion* res;
-  if (G1StressConcRegionFreeing) {
+  if (G1StressConcRegionFreeing) {	//优先从二级空闲内存片列表中分配
     if (!_secondary_free_list.is_empty()) {
       if (G1ConcRegionFreeingVerbose) {
         gclog_or_tty->print_cr("G1ConcRegionFreeing [region alloc] : "
@@ -582,6 +593,8 @@ HeapRegion* G1CollectedHeap::new_region(size_t word_size, bool do_expand) {
       }
     }
   }
+
+  //从一级空闲内存片列表中分配
   res = _free_list.remove_head_or_null();
   if (res == NULL) {
     if (G1ConcRegionFreeingVerbose) {
@@ -590,6 +603,8 @@ HeapRegion* G1CollectedHeap::new_region(size_t word_size, bool do_expand) {
     }
     res = new_region_try_secondary_free_list();
   }
+
+  //扩张内存堆空间再分配
   if (res == NULL && do_expand && _expand_heap_after_alloc_failure) {
     // Currently, only attempts to allocate GC alloc regions set
     // do_expand to true. So, we should only reach here during a
@@ -602,6 +617,7 @@ HeapRegion* G1CollectedHeap::new_region(size_t word_size, bool do_expand) {
                   ergo_format_reason("region allocation request failed")
                   ergo_format_byte("allocation request"),
                   word_size * HeapWordSize);
+
     if (expand(word_size * HeapWordSize)) {
       // Given that expand() succeeded in expanding the heap, and we
       // always expand the heap by an amount aligned to the heap
@@ -615,16 +631,20 @@ HeapRegion* G1CollectedHeap::new_region(size_t word_size, bool do_expand) {
       _expand_heap_after_alloc_failure = false;
     }
   }
+
   return res;
 }
 
+/**
+ * 搜索连续的若干个内存片
+ */
 size_t G1CollectedHeap::humongous_obj_allocate_find_first(size_t num_regions,
                                                           size_t word_size) {
   assert(isHumongous(word_size), "word_size should be humongous");
   assert(num_regions * HeapRegion::GrainWords >= word_size, "pre-condition");
 
   size_t first = G1_NULL_HRS_INDEX;
-  if (num_regions == 1) {
+  if (num_regions == 1) {	//只需要一个内存片
     // Only one region to allocate, no need to go through the slower
     // path. The caller will attempt the expasion if this fails, so
     // let's not try to expand here too.
@@ -634,7 +654,7 @@ size_t G1CollectedHeap::humongous_obj_allocate_find_first(size_t num_regions,
     } else {
       first = G1_NULL_HRS_INDEX;
     }
-  } else {
+  } else {	//
     // We can't allocate humongous regions while cleanupComplete() is
     // running, since some of the regions we find to be empty might not
     // yet be added to the free list and it is not straightforward to
@@ -646,8 +666,8 @@ size_t G1CollectedHeap::humongous_obj_allocate_find_first(size_t num_regions,
     wait_while_free_regions_coming();
     append_secondary_free_list_if_not_empty_with_lock();
 
-    if (free_regions() >= num_regions) {
-      first = _hrs.find_contiguous(num_regions);
+    if (free_regions() >= num_regions) {	//有足够数量的空闲内存片
+      first = _hrs.find_contiguous(num_regions);	//寻找若干个连续的空闲内存片
       if (first != G1_NULL_HRS_INDEX) {
         for (size_t i = first; i < first + num_regions; ++i) {
           HeapRegion* hr = region_at(i);
@@ -659,6 +679,7 @@ size_t G1CollectedHeap::humongous_obj_allocate_find_first(size_t num_regions,
       }
     }
   }
+
   return first;
 }
 
@@ -685,10 +706,9 @@ G1CollectedHeap::humongous_obj_allocate_initialize_regions(size_t first,
   size_t word_size_sum = num_regions * HeapRegion::GrainWords;
   assert(word_size <= word_size_sum, "sanity");
 
-  // This will be the "starts humongous" region.
+  //起始内存片
   HeapRegion* first_hr = region_at(first);
-  // The header of the new object will be placed at the bottom of
-  // the first region.
+  //起始内存片的开始物理地址
   HeapWord* new_obj = first_hr->bottom();
   // This will be the new end of the first region in the series that
   // should also match the end of the last region in the seriers.
@@ -798,17 +818,23 @@ G1CollectedHeap::humongous_obj_allocate_initialize_regions(size_t first,
 // If could fit into free regions w/o expansion, try.
 // Otherwise, if can expand, do so.
 // Otherwise, if using ex regions might help, try with ex given back.
+/**
+ * 分配用于存储大对象的存储空间:搜索连续的若干个内存片
+ */
 HeapWord* G1CollectedHeap::humongous_obj_allocate(size_t word_size) {
   assert_heap_locked_or_at_safepoint(true /* should_be_vm_thread */);
 
   verify_region_sets_optional();
 
-  size_t num_regions =
-         round_to(word_size, HeapRegion::GrainWords) / HeapRegion::GrainWords;
-  size_t x_size = expansion_regions();
-  size_t fs = _hrs.free_suffix();
+  //计算需要内存片的数量
+  size_t num_regions = round_to(word_size, HeapRegion::GrainWords) / HeapRegion::GrainWords;
+  size_t x_size = expansion_regions();	//当前还可扩展的内存片数量
+  size_t fs = _hrs.free_suffix();	//当前空闲的内存片数量
+
+  //寻找连续的若干个内存片数量
   size_t first = humongous_obj_allocate_find_first(num_regions, word_size);
-  if (first == G1_NULL_HRS_INDEX) {
+  if (first == G1_NULL_HRS_INDEX) {	//未找到,则扩展内存堆
+
     // The only thing we can do now is attempt expansion.
     if (fs + x_size >= num_regions) {
       // If the number of regions we're trying to allocate for this
@@ -837,8 +863,7 @@ HeapWord* G1CollectedHeap::humongous_obj_allocate(size_t word_size) {
 
   HeapWord* result = NULL;
   if (first != G1_NULL_HRS_INDEX) {
-    result =
-      humongous_obj_allocate_initialize_regions(first, num_regions, word_size);
+    result = humongous_obj_allocate_initialize_regions(first, num_regions, word_size);
     assert(result != NULL, "it should always return a valid result");
 
     // A successful humongous object allocation changes the used space
@@ -852,6 +877,9 @@ HeapWord* G1CollectedHeap::humongous_obj_allocate(size_t word_size) {
   return result;
 }
 
+/**
+ * 给当前线程分配一个本地分配缓冲区(内存堆实现的标准接口方法)
+ */
 HeapWord* G1CollectedHeap::allocate_new_tlab(size_t word_size) {
   assert_heap_not_locked_and_not_at_safepoint();
   assert(!isHumongous(word_size), "we do not allow humongous TLABs");
@@ -861,7 +889,10 @@ HeapWord* G1CollectedHeap::allocate_new_tlab(size_t word_size) {
 }
 
 /**
- * 从内存堆中分配指定大小的一块内存
+ * 从内存堆中分配指定大小的一块内存(内存堆实现的标准接口方法)
+ * 	1.带Minor Gc的分配
+ * 	2.执行Full Gc
+ * 	3.goto 1)
  */
 HeapWord* G1CollectedHeap::mem_allocate(size_t word_size,
                               bool*  gc_overhead_limit_was_exceeded) {
@@ -872,9 +903,9 @@ HeapWord* G1CollectedHeap::mem_allocate(size_t word_size,
     unsigned int gc_count_before;
 
     HeapWord* result = NULL;
-    if (!isHumongous(word_size)) {
+    if (!isHumongous(word_size)) {	//小对象
       result = attempt_allocation(word_size, &gc_count_before);
-    } else {
+    } else {	//大对象
       result = attempt_allocation_humongous(word_size, &gc_count_before);
     }
 
@@ -882,6 +913,7 @@ HeapWord* G1CollectedHeap::mem_allocate(size_t word_size,
       return result;
     }
 
+    //分配失败,则触发Gc
     // Create the garbage collection operation...
     VM_G1CollectForAllocation op(gc_count_before, word_size);
     // ...and get the VM thread to execute it.
@@ -898,6 +930,7 @@ HeapWord* G1CollectedHeap::mem_allocate(size_t word_size,
         // this for non-humongous allocations, though.
         dirty_young_block(result, word_size);
       }
+
       return result;
     } else {
       assert(op.result() == NULL,
@@ -915,6 +948,12 @@ HeapWord* G1CollectedHeap::mem_allocate(size_t word_size,
   return NULL;
 }
 
+/**
+ * 慢分配指定大小的一块内存
+ * 	1.从Eden区串行分配
+ * 	2.触发Minor Gc/或等待Minor Gc完成
+ * 	3.从Eden区并行分配
+ */
 HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
                                            unsigned int *gc_count_before_ret) {
   // Make sure you read the note in attempt_allocation_humongous().
@@ -948,7 +987,8 @@ HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
       // allocate a new region. So the mutator alloc region should be NULL.
       assert(_mutator_alloc_region.get() == NULL, "only way to get here");
 
-      if (GC_locker::is_active_and_needs_gc()) {
+      //串行分配失败,则触发Gc
+      if (GC_locker::is_active_and_needs_gc()) {	//其它线程已触发
         if (g1_policy()->can_expand_young_list()) {
           // No need for an ergo verbose message here,
           // can_expand_young_list() does this when it returns true.
@@ -965,9 +1005,10 @@ HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
         gc_count_before = total_collections();
         should_try_gc = true;
       }
-    }
 
-    if (should_try_gc) {
+    }	//释放Heap_lock锁
+
+    if (should_try_gc) {	//触发Minor Gc
       bool succeeded;
       result = do_collection_pause(word_size, gc_count_before, &succeeded);
       if (result != NULL) {
@@ -975,7 +1016,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
         return result;
       }
 
-      if (succeeded) {
+      if (succeeded) {	//一次Gc之后仍然无法分配成功
         // If we get here we successfully scheduled a collection which
         // failed to allocate. No point in trying to allocate
         // further. We'll just return NULL.
@@ -983,18 +1024,11 @@ HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
         *gc_count_before_ret = total_collections();
         return NULL;
       }
-    } else {
+    } else {	//等待Gc完成
       GC_locker::stall_until_clear();
     }
 
-    // We can reach here if we were unsuccessul in scheduling a
-    // collection (because another thread beat us to it) or if we were
-    // stalled due to the GC locker. In either can we should retry the
-    // allocation attempt in case another thread successfully
-    // performed a collection and reclaimed enough space. We do the
-    // first attempt (without holding the Heap_lock) here and the
-    // follow-on attempt will be at the start of the next loop
-    // iteration (after taking the Heap_lock).
+    //等待其它线程完成之后,再从年青代的Eden区分配内存
     result = _mutator_alloc_region.attempt_allocation(word_size,
                                                       false /* bot_updates */);
     if (result != NULL) {
@@ -1013,6 +1047,13 @@ HeapWord* G1CollectedHeap::attempt_allocation_slow(size_t word_size,
   return NULL;
 }
 
+/**
+ * 大对象分配
+ * 	1.加锁Heap_lock
+ * 	2.申请足够的连续内存片
+ * 	3.触发Minor Gc
+ * 	4.goto 1)
+ */
 HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
                                           unsigned int * gc_count_before_ret) {
   // The structure of this method has a lot of similarities to
@@ -1060,7 +1101,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
         return result;
       }
 
-      if (GC_locker::is_active_and_needs_gc()) {
+      if (GC_locker::is_active_and_needs_gc()) {	//其它线程已经触发了Gc
         should_try_gc = false;
       } else {
         // Read the GC count while still holding the Heap_lock.
@@ -1069,7 +1110,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
       }
     }
 
-    if (should_try_gc) {
+    if (should_try_gc) {	//触发Minor Gc
       // If we failed to allocate the humongous object, we should try to
       // do a collection pause (if we're allowed) in case it reclaims
       // enough space for the allocation to succeed after the pause.
@@ -1081,7 +1122,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
         return result;
       }
 
-      if (succeeded) {
+      if (succeeded) {	//Gc之后还是无法分配
         // If we get here we successfully scheduled a collection which
         // failed to allocate. No point in trying to allocate
         // further. We'll just return NULL.
@@ -1089,7 +1130,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
         *gc_count_before_ret = total_collections();
         return NULL;
       }
-    } else {
+    } else {	//等待Gc被完成
       GC_locker::stall_until_clear();
     }
 
@@ -1111,6 +1152,9 @@ HeapWord* G1CollectedHeap::attempt_allocation_humongous(size_t word_size,
   return NULL;
 }
 
+/**
+ * 安全点分配
+ */
 HeapWord* G1CollectedHeap::attempt_allocation_at_safepoint(size_t word_size,
                                        bool expect_null_mutator_alloc_region) {
   assert_at_safepoint(true /* should_be_vm_thread */);
@@ -1118,7 +1162,7 @@ HeapWord* G1CollectedHeap::attempt_allocation_at_safepoint(size_t word_size,
                                              !expect_null_mutator_alloc_region,
          "the current alloc region was unexpectedly found to be non-NULL");
 
-  if (!isHumongous(word_size)) {
+  if (!isHumongous(word_size)) {	//直接从Eden区分配小存储空间
     return _mutator_alloc_region.attempt_allocation_locked(word_size,
                                                       false /* bot_updates */);
   } else {
@@ -1170,6 +1214,7 @@ class RebuildRSOutOfRegionClosure: public HeapRegionClosure {
   G1CollectedHeap*   _g1h;
   UpdateRSOopClosure _cl;
   int                _worker_i;
+
 public:
   RebuildRSOutOfRegionClosure(G1CollectedHeap* g1, int worker_i = 0) :
     _cl(g1->g1_rem_set(), worker_i),
@@ -1178,10 +1223,11 @@ public:
   { }
 
   bool doHeapRegion(HeapRegion* r) {
-    if (!r->continuesHumongous()) {
+    if (!r->continuesHumongous()) {	//非大内存片
       _cl.set_from(r);
       r->oop_iterate(&_cl);
     }
+
     return false;
   }
 };
@@ -1231,6 +1277,9 @@ public:
     : _hr_printer(hr_printer) { }
 };
 
+/**
+ * 执行一次Full Gc
+ */
 bool G1CollectedHeap::do_collection(bool explicit_gc,
                                     bool clear_all_soft_refs,
                                     size_t word_size) {
@@ -1240,6 +1289,8 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
     return false;
   }
 
+  printf("%s[%d] [tid: %lu]: 开始执行一次Full Gc...\n", __FILE__, __LINE__, pthread_self());
+
   SvcGCMarker sgcm(SvcGCMarker::FULL);
   ResourceMark rm;
 
@@ -1248,6 +1299,7 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
   HRSPhaseSetter x(HRSPhaseFullGC);
   verify_region_sets_optional();
 
+  //本次Full Gc是否清理所有的软/弱引用
   const bool do_clear_all_soft_refs = clear_all_soft_refs ||
                            collector_policy()->should_clear_all_soft_refs();
 
@@ -1275,13 +1327,11 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
     // could consider timing and reporting how long we wait in the
     // following two methods.
     wait_while_free_regions_coming();
-    // If we start the compaction before the CM threads finish
-    // scanning the root regions we might trip them over as we'll
-    // be moving objects / updating references. So let's wait until
-    // they are done. By telling them to abort, they should complete
-    // early.
+
+    //通知后台的根内存区扫描线程放弃本次扫描并等待扫描被完成或放弃
     _cm->root_regions()->abort();
     _cm->root_regions()->wait_until_scan_finished();
+
     append_secondary_free_list_if_not_empty_with_lock();
 
     gc_prologue(true);
@@ -1348,7 +1398,7 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
     ref_processor_stw()->enable_discovery(true /*verify_disabled*/, true /*verify_no_refs*/);
     ref_processor_stw()->setup_policy(do_clear_all_soft_refs);
 
-    // Do collection work
+    //标记清除所有的垃圾对象
     {
       HandleMark hm;  // Discard invalid handles created during gc
       G1MarkSweep::invoke_at_safepoint(ref_processor_stw(), do_clear_all_soft_refs);
@@ -1413,8 +1463,7 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
 
     // Rebuild remembered sets of all regions.
     if (G1CollectedHeap::use_parallel_gc_threads()) {
-      uint n_workers =
-        AdaptiveSizePolicy::calc_active_workers(workers()->total_workers(),
+      uint n_workers = AdaptiveSizePolicy::calc_active_workers(workers()->total_workers(),
                                        workers()->active_workers(),
                                        Threads::number_of_non_daemon_threads());
       assert(UseDynamicNumberOfGCThreads ||
@@ -1439,6 +1488,7 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
         "Active workers not properly set");
       set_par_threads(workers()->active_workers());
       workers()->run_task(&rebuild_rs_task);
+
       set_par_threads(0);
       assert(check_heap_region_claim_values(
              HeapRegion::RebuildRSClaimValue), "sanity check");
@@ -1502,6 +1552,9 @@ bool G1CollectedHeap::do_collection(bool explicit_gc,
   return true;
 }
 
+/**
+ * 执行一次Full Gc
+ */
 void G1CollectedHeap::do_full_collection(bool clear_all_soft_refs) {
   // do_collection() will return whether it succeeded in performing
   // the GC. Currently, there is no facility on the
@@ -1514,13 +1567,13 @@ void G1CollectedHeap::do_full_collection(bool clear_all_soft_refs) {
 }
 
 // This code is mostly copied from TenuredGeneration.
-void
-G1CollectedHeap::
-resize_if_necessary_after_full_collection(size_t word_size) {
+/**
+ * 调整当前内存堆的大小
+ */
+void G1CollectedHeap::resize_if_necessary_after_full_collection(size_t word_size) {
   assert(MinHeapFreeRatio <= MaxHeapFreeRatio, "sanity check");
 
-  // Include the current allocation, if any, and bytes that will be
-  // pre-allocated to support collections, as "used".
+  //gc之后内存堆的容量及使用量
   const size_t used_after_gc = used();
   const size_t capacity_after_gc = capacity();
   const size_t free_after_gc = capacity_after_gc - used_after_gc;
@@ -1603,9 +1656,10 @@ resize_if_necessary_after_full_collection(size_t word_size) {
   }
 }
 
-
-HeapWord*
-G1CollectedHeap::satisfy_failed_allocation(size_t word_size,
+/**
+ * 处理一次内存分配失败
+ */
+HeapWord* G1CollectedHeap::satisfy_failed_allocation(size_t word_size,
                                            bool* succeeded) {
   assert_at_safepoint(true /* should_be_vm_thread */);
 
@@ -1629,7 +1683,7 @@ G1CollectedHeap::satisfy_failed_allocation(size_t word_size,
     return result;
   }
 
-  // Expansion didn't work, we'll try to do a Full GC.
+  //执行一次Full Gc,不清除软/弱引用对象
   bool gc_succeeded = do_collection(false, /* explicit_gc */
                                     false, /* clear_all_soft_refs */
                                     word_size);
@@ -1646,7 +1700,7 @@ G1CollectedHeap::satisfy_failed_allocation(size_t word_size,
     return result;
   }
 
-  // Then, try a Full GC that will collect all soft references.
+  ////执行一次Full Gc,清除软/弱引用对象
   gc_succeeded = do_collection(false, /* explicit_gc */
                                true,  /* clear_all_soft_refs */
                                word_size);
@@ -1679,6 +1733,9 @@ G1CollectedHeap::satisfy_failed_allocation(size_t word_size,
 // successful, perform the allocation and return the address of the
 // allocated block, or else "NULL".
 
+/**
+ * 扩展分配:先扩展内存堆空间,再分配存储空间
+ */
 HeapWord* G1CollectedHeap::expand_and_allocate(size_t word_size) {
   assert_at_safepoint(true /* should_be_vm_thread */);
 
@@ -1712,6 +1769,9 @@ void G1CollectedHeap::update_committed_space(HeapWord* old_end,
   _bot_shared->resize(_g1_committed.word_size());
 }
 
+/**
+ * 扩展内存堆的大小
+ */
 bool G1CollectedHeap::expand(size_t expand_bytes) {
   size_t old_mem_size = _g1_storage.committed_size();
   size_t aligned_expand_bytes = ReservedSpace::page_align_size_up(expand_bytes);
@@ -1765,7 +1825,7 @@ bool G1CollectedHeap::expand(size_t expand_bytes) {
       assert(curr == mr.end(), "post-condition");
     }
     g1_policy()->record_new_heap_size(n_regions());
-  } else {
+  } else {	//扩展失败
     ergo_verbose0(ErgoHeapSizing,
                   "did not expand the heap",
                   ergo_format_reason("heap expansion operation failed"));
@@ -1777,6 +1837,7 @@ bool G1CollectedHeap::expand(size_t expand_bytes) {
       vm_exit_out_of_memory(aligned_expand_bytes, "G1 heap expansion");
     }
   }
+
   return successful;
 }
 
@@ -1823,6 +1884,9 @@ void G1CollectedHeap::shrink_helper(size_t shrink_bytes) {
   }
 }
 
+/**
+ * 缩减当前内存堆的大小(Full Gc之后)
+ */
 void G1CollectedHeap::shrink(size_t shrink_bytes) {
   verify_region_sets_optional();
 
@@ -1891,8 +1955,9 @@ G1CollectedHeap::G1CollectedHeap(G1CollectorPolicy* policy_) :
     vm_exit_during_initialization("Failed necessary allocation.");
   }
 
+  //大对象的判断标准
   _humongous_object_threshold_in_words = HeapRegion::GrainWords / 2;
-
+  //Gc时任务队列
   int n_queues = MAX2((int)ParallelGCThreads, 1);
   _task_queues = new RefToScanQueueSet(n_queues);
 
@@ -2267,6 +2332,9 @@ void G1CollectedHeap::iterate_dirty_card_closure(CardTableEntryClosure* cl,
 
 // Computes the sum of the storage used by the various regions.
 
+/**
+ * 当前内存堆的总使用量
+ */
 size_t G1CollectedHeap::used() const {
   assert(Heap_lock->owner() != NULL,
          "Should be owned on this thread's behalf.");
@@ -2434,14 +2502,17 @@ void G1CollectedHeap::collect(GCCause::Cause cause) {
       MutexLocker ml(Heap_lock);
 
       // Read the GC count while holding the Heap_lock
-      gc_count_before = total_collections();
-      full_gc_count_before = total_full_collections();
+      gc_count_before = total_collections();	//当前总的Gc次数
+      full_gc_count_before = total_full_collections();	//当前Full Gc的次数
     }
 
     if (should_do_concurrent_full_gc(cause)) {
       // Schedule an initial-mark evacuation pause that will start a
       // concurrent cycle. We're setting word_size to 0 which means that
       // we are not requesting a post-GC allocation.
+
+      printf("%s[%d] [tid: %lu]: 试图触发一次Minor Gc...\n", __FILE__, __LINE__, pthread_self());
+
       VM_G1IncCollectionPause op(gc_count_before,
                                  0,     /* word_size */
                                  true,  /* should_initiate_conc_mark */
@@ -2449,6 +2520,7 @@ void G1CollectedHeap::collect(GCCause::Cause cause) {
                                  cause);
 
       VMThread::execute(&op);
+
       if (!op.pause_succeeded()) {
         if (full_gc_count_before == total_full_collections()) {
           retry_gc = op.should_retry_gc();
@@ -2470,6 +2542,8 @@ void G1CollectedHeap::collect(GCCause::Cause cause) {
 
         // Schedule a standard evacuation pause. We're setting word_size
         // to 0 which means that we are not requesting a post-GC allocation.
+    	printf("%s[%d] [tid: %lu]: 试图触发一次Minor Gc...\n", __FILE__, __LINE__, pthread_self());
+
         VM_G1IncCollectionPause op(gc_count_before,
                                    0,     /* word_size */
                                    false, /* should_initiate_conc_mark */
@@ -2478,11 +2552,14 @@ void G1CollectedHeap::collect(GCCause::Cause cause) {
         VMThread::execute(&op);
       } else {
         // Schedule a Full GC.
+    	printf("%s[%d] [tid: %lu]: 试图触发一次Full Gc...\n", __FILE__, __LINE__, pthread_self());
+
         VM_G1CollectFull op(gc_count_before, full_gc_count_before, cause);
         VMThread::execute(&op);
       }
     }
   } while (retry_gc);
+
 }
 
 bool G1CollectedHeap::is_in(const void* p) const {
@@ -3428,11 +3505,15 @@ void G1CollectedHeap::gc_epilogue(bool full /* Ignored */) {
   Universe::update_heap_info_at_gc();
 }
 
+/**
+ * 触发一次Minor Gc操作
+ */
 HeapWord* G1CollectedHeap::do_collection_pause(size_t word_size,
                                                unsigned int gc_count_before,
                                                bool* succeeded) {
   assert_heap_not_locked_and_not_at_safepoint();
   g1_policy()->record_stop_world_start();
+
   VM_G1IncCollectionPause op(gc_count_before,
                              word_size,
                              false, /* should_initiate_conc_mark */
@@ -3450,8 +3531,10 @@ HeapWord* G1CollectedHeap::do_collection_pause(size_t word_size,
   return result;
 }
 
-void
-G1CollectedHeap::doConcurrentMark() {
+/**
+ * 开启并发标记
+ */
+void G1CollectedHeap::doConcurrentMark() {
   MutexLockerEx x(CGC_lock, Mutex::_no_safepoint_check_flag);
   if (!_cmThread->in_progress()) {
     _cmThread->set_started();
@@ -3485,9 +3568,12 @@ size_t G1CollectedHeap::cards_scanned() {
   return g1_rem_set()->cardsScanned();
 }
 
-void
-G1CollectedHeap::setup_surviving_young_words() {
+/**
+ * 初始化年青代的幸存区内存片列表
+ */
+void G1CollectedHeap::setup_surviving_young_words() {
   guarantee( _surviving_young_words == NULL, "pre-condition" );
+
   size_t array_length = g1_policy()->young_cset_region_length();
   _surviving_young_words = NEW_C_HEAP_ARRAY(size_t, array_length);
   if (_surviving_young_words == NULL) {
@@ -3568,14 +3654,19 @@ void G1CollectedHeap::reset_taskqueue_stats() {
 }
 #endif // TASKQUEUE_STATS
 
-bool
-G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
+/**
+ * 执行一次Minor Gc
+ */
+bool G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
   assert_at_safepoint(true /* should_be_vm_thread */);
+
   guarantee(!is_gc_active(), "collection is not reentrant");
 
-  if (GC_locker::check_active_before_gc()) {
+  if (GC_locker::check_active_before_gc()) {	//其它线程正在执行Gc,当前线程放弃
     return false;
   }
+
+  printf("%s[%d] [tid: %lu]: 开始执行一次Minor Gc...\n", __FILE__, __LINE__, pthread_self());
 
   SvcGCMarker sgcm(SvcGCMarker::MINOR);
   ResourceMark rm;
@@ -3612,6 +3703,7 @@ G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
     } else {
       strcat(verbose_str, "(mixed)");
     }
+
     if (g1_policy()->during_initial_mark_pause()) {
       strcat(verbose_str, " (initial-mark)");
       // We are about to start a marking cycle, so we increment the
@@ -3635,7 +3727,7 @@ G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
     // and wait if necessary. If the G1StressConcRegionFreeing flag is
     // set, skip this step so that the region allocation code has to
     // get entries from the secondary_free_list.
-    if (!G1StressConcRegionFreeing) {
+    if (!G1StressConcRegionFreeing) {	//将二级空闲内存片都添加到一级空闲内存片列表的头部
       append_secondary_free_list_if_not_empty_with_lock();
     }
 
@@ -3688,8 +3780,7 @@ G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
         // before the start GC event.
         _hr_printer.start_gc(false /* full */, (size_t) total_collections());
 
-        // The elapsed time induced by the start time below deliberately elides
-        // the possible verification above.
+        //本次Minor Gc的开始时间及当前的内存使用量
         double start_time_sec = os::elapsedTime();
         size_t start_used_bytes = used();
 
@@ -3697,8 +3788,8 @@ G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
         gclog_or_tty->print_cr("\nBefore recording pause start.\nYoung_list:");
         _young_list->print();
         g1_policy()->print_collection_set(g1_policy()->inc_cset_head(), gclog_or_tty);
-#endif // YOUNG_LIST_VERBOSE
 
+        //记录本次Minor Gc的开始时间及内存使用量
         g1_policy()->record_collection_pause_start(start_time_sec,
                                                    start_used_bytes);
 
@@ -3768,7 +3859,7 @@ G1CollectedHeap::do_collection_pause_at_safepoint(double target_pause_time_ms) {
         // Initialize the GC alloc regions.
         init_gc_alloc_regions();
 
-        // Actually do the work...
+        //真正开始执行Gc
         evacuate_collection_set();
 
         // We do this to mainly verify the per-thread SATB buffers
@@ -4010,11 +4101,16 @@ void G1CollectedHeap::release_mutator_alloc_region() {
   assert(_mutator_alloc_region.get() == NULL, "post-condition");
 }
 
+
+/**
+ * 初始化Gc时年青代幸存区分配器,旧生代分配器
+ */
 void G1CollectedHeap::init_gc_alloc_regions() {
   assert_at_safepoint(true /* should_be_vm_thread */);
 
   _survivor_gc_alloc_region.init();
   _old_gc_alloc_region.init();
+
   HeapRegion* retained_region = _retained_old_gc_alloc_region;
   _retained_old_gc_alloc_region = NULL;
 
@@ -4032,6 +4128,7 @@ void G1CollectedHeap::init_gc_alloc_regions() {
       !(retained_region->top() == retained_region->end()) &&
       !retained_region->is_empty() &&
       !retained_region->isHumongous()) {
+
     retained_region->set_saved_mark();
     // The retained region was added to the old region set when it was
     // retired. We have to remove it now, since we don't allow regions
@@ -4355,6 +4452,7 @@ void G1ParScanThreadState::trim_queue() {
       deal_with_reference(ref);
     }
   } while (!refs()->is_empty());
+
 }
 
 G1ParClosureSuper::G1ParClosureSuper(G1CollectedHeap* g1,
@@ -4398,23 +4496,35 @@ void G1ParCopyHelper::mark_forwarded_object(oop from_obj, oop to_obj) {
   _cm->grayRoot(to_obj, (size_t) from_obj->size(), _worker_id);
 }
 
+/**
+ * 复制指定的对象到年青代的幸存区中(用于Minor Gc)
+ */
 oop G1ParCopyHelper::copy_to_survivor_space(oop old) {
   size_t    word_sz = old->size();
+
+  //计算待复制对象所在的内存片
   HeapRegion* from_region = _g1->heap_region_containing_raw(old);
   // +1 to make the -1 indexes valid...
+
+  //指定的对象所在的内存片索引
   int       young_index = from_region->young_index_in_cset()+1;
   assert( (from_region->is_young() && young_index >  0) ||
          (!from_region->is_young() && young_index == 0), "invariant" );
+
   G1CollectorPolicy* g1p = _g1->g1_policy();
   markOop m = old->mark();
   int age = m->has_displaced_mark_helper() ? m->displaced_mark_helper()->age()
                                            : m->age();
+
+  //评估当前的对象应存储在年青代还是旧生代
   GCAllocPurpose alloc_purpose = g1p->evacuation_destination(from_region, age,
                                                              word_sz);
+
+  //申请存储空间
   HeapWord* obj_ptr = _par_scan_state->allocate(alloc_purpose, word_sz);
   oop       obj     = oop(obj_ptr);
 
-  if (obj_ptr == NULL) {
+  if (obj_ptr == NULL) {	//内存空间分配失败
     // This will either forward-to-self, or detect that someone else has
     // installed a forwarding pointer.
     OopsInHeapRegionClosure* cl = _par_scan_state->evac_failure_closure();
@@ -4425,8 +4535,10 @@ oop G1ParCopyHelper::copy_to_survivor_space(oop old) {
   Prefetch::write(obj_ptr, PrefetchCopyIntervalInBytes);
 
   oop forward_ptr = old->forward_to_atomic(obj);
-  if (forward_ptr == NULL) {
+  if (forward_ptr == NULL) {	//当前给定的对象还没有被其它线程处理
+	  //拷贝数据
     Copy::aligned_disjoint_words((HeapWord*) old, obj_ptr, word_sz);
+
     if (g1p->track_object_age(alloc_purpose)) {
       // We could simply do obj->incr_age(). However, this causes a
       // performance issue. obj->incr_age() will first check whether
@@ -4449,6 +4561,7 @@ oop G1ParCopyHelper::copy_to_survivor_space(oop old) {
         m = m->incr_age();
         obj->set_mark(m);
       }
+
       _par_scan_state->age_table()->add(obj, word_sz);
     } else {
       obj->set_mark(m);
@@ -4470,17 +4583,20 @@ oop G1ParCopyHelper::copy_to_survivor_space(oop old) {
       _scanner->set_region(_g1->heap_region_containing_raw(obj));
       obj->oop_iterate_backwards(_scanner);
     }
-  } else {
+
+  } else {	//给定的对象已经被其它Gc线程处理了
+
+	//回滚内存分配
     _par_scan_state->undo_allocation(alloc_purpose, obj_ptr, word_sz);
     obj = forward_ptr;
   }
+
   return obj;
 }
 
 template <bool do_gen_barrier, G1Barrier barrier, bool do_mark_object>
 template <class T>
-void G1ParCopyClosure<do_gen_barrier, barrier, do_mark_object>
-::do_oop_work(T* p) {
+void G1ParCopyClosure<do_gen_barrier, barrier, do_mark_object>::do_oop_work(T* p) {
   oop obj = oopDesc::load_decode_heap_oop(p);
   assert(barrier != G1BarrierRS || obj != NULL,
          "Precondition: G1BarrierRS implies obj is non-NULL");
@@ -4490,13 +4606,18 @@ void G1ParCopyClosure<do_gen_barrier, barrier, do_mark_object>
   // here the null check is implicit in the cset_fast_test() test
   if (_g1->in_cset_fast_test(obj)) {
     oop forwardee;
-    if (obj->is_forwarded()) {
+
+    if (obj->is_forwarded()) {	//该线程已被其它线程处理
       forwardee = obj->forwardee();
     } else {
-      forwardee = copy_to_survivor_space(obj);
+      forwardee = copy_to_survivor_space(obj);	//复制对象
     }
+
     assert(forwardee != NULL, "forwardee should not be NULL");
+
+    //更新对象的物理映射地址
     oopDesc::encode_store_heap_oop(p, forwardee);
+
     if (do_mark_object && forwardee != obj) {
       // If the object is self-forwarded we don't need to explicitly
       // mark it, the evacuation failure protocol will do so.
@@ -4618,6 +4739,7 @@ void G1ParEvacuateFollowersClosure::do_void() {
   do {
     while (queues()->steal(pss->queue_num(), pss->hash_seed(), stolen_task)) {
       assert(pss->verify_task(stolen_task), "sanity");
+
       if (stolen_task.is_narrow()) {
         pss->deal_with_reference((narrowOop*) stolen_task);
       } else {
@@ -4634,6 +4756,9 @@ void G1ParEvacuateFollowersClosure::do_void() {
   pss->retire_alloc_buffers();
 }
 
+/**
+ * 根对象并发扫描任务
+ */
 class G1ParTask : public AbstractGangTask {
 protected:
   G1CollectedHeap*       _g1h;
@@ -4683,6 +4808,7 @@ public:
     if (worker_id >= _n_workers) return;  // no work needed this round
 
     double start_time_ms = os::elapsedTime() * 1000.0;
+
     _g1h->g1_policy()->record_gc_worker_start_time(worker_id, start_time_ms);
 
     ResourceMark rm;
@@ -4716,6 +4842,7 @@ public:
 
     G1ParPushHeapRSClosure          push_heap_rs_cl(_g1h, &pss);
 
+    //搜索所有的根对象(根对象被保存在队列)
     pss.start_strong_roots();
     _g1h->g1_process_strong_roots(/* not collecting perm */ false,
                                   SharedHeap::SO_AllClasses,
@@ -4734,6 +4861,7 @@ public:
       _g1h->g1_policy()->record_obj_copy_time(worker_id, elapsed_ms-term_ms);
       _g1h->g1_policy()->record_termination(worker_id, term_ms, pss.term_attempts());
     }
+
     _g1h->g1_policy()->record_thread_age_table(pss.age_table());
     _g1h->update_surviving_young_words(pss.surviving_young_words()+1);
 
@@ -4749,6 +4877,7 @@ public:
     double end_time_ms = os::elapsedTime() * 1000.0;
     _g1h->g1_policy()->record_gc_worker_end_time(worker_id, end_time_ms);
   }
+
 };
 
 // *** Common G1 Evacuation Stuff
@@ -4756,8 +4885,7 @@ public:
 // This method is run in a GC worker.
 
 void
-G1CollectedHeap::
-g1_process_strong_roots(bool collecting_perm_gen,
+G1CollectedHeap::g1_process_strong_roots(bool collecting_perm_gen,
                         ScanningOption so,
                         OopClosure* scan_non_heap_roots,
                         OopsInHeapRegionClosure* scan_rs,
@@ -5358,12 +5486,14 @@ void G1CollectedHeap::enqueue_discovered_references() {
 
 void G1CollectedHeap::evacuate_collection_set() {
   _expand_heap_after_alloc_failure = true;
+
   set_evacuation_failed(false);
 
   g1_rem_set()->prepare_for_oops_into_collection_set_do();
   concurrent_g1_refine()->set_use_cache(false);
   concurrent_g1_refine()->clear_hot_cache_claimed_index();
 
+  //计算当前Gc所需的线程数量
   uint n_workers;
   if (G1CollectedHeap::use_parallel_gc_threads()) {
     n_workers =
@@ -5827,6 +5957,9 @@ void G1CollectedHeap::reset_free_regions_coming() {
   }
 }
 
+/**
+ * 等待当前正在被释放的空闲内存片被释放完成
+ */
 void G1CollectedHeap::wait_while_free_regions_coming() {
   // Most of the time we won't have to wait, so let's do a quick test
   // first before we take the lock.
@@ -6002,12 +6135,16 @@ bool G1CollectedHeap::is_in_closed_subset(const void* p) const {
 }
 
 // Methods for the mutator alloc region
-
+/**
+ * 给年青代Eden区分配一个内存片
+ * 	如果在年青代已满并且非强制分配,则不予分配内存片
+ */
 HeapRegion* G1CollectedHeap::new_mutator_alloc_region(size_t word_size,
                                                       bool force) {
   assert_heap_locked_or_at_safepoint(true /* should_be_vm_thread */);
   assert(!force || g1_policy()->can_expand_young_list(),
          "if force is true we should be able to expand the young list");
+
   bool young_list_full = g1_policy()->is_young_list_full();
   if (force || !young_list_full) {
     HeapRegion* new_alloc_region = new_region(word_size,
@@ -6018,6 +6155,7 @@ HeapRegion* G1CollectedHeap::new_mutator_alloc_region(size_t word_size,
       return new_alloc_region;
     }
   }
+
   return NULL;
 }
 
@@ -6035,6 +6173,9 @@ void G1CollectedHeap::retire_mutator_alloc_region(HeapRegion* alloc_region,
   g1mm()->update_eden_size();
 }
 
+/**
+ * 为年青代的Eden区申请一个内存片
+ */
 HeapRegion* MutatorAllocRegion::allocate_new_region(size_t word_size,
                                                     bool force) {
   return _g1h->new_mutator_alloc_region(word_size, force);

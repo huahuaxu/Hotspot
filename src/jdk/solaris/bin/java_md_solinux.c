@@ -218,8 +218,7 @@ GetArchPath(int nbits)
 }
 
 #ifdef SETENV_REQUIRED
-static jboolean
-JvmExists(const char *path) {
+static jboolean JvmExists(const char *path) {
     char tmp[PATH_MAX + 1];
     struct stat statbuf;
     JLI_Snprintf(tmp, PATH_MAX, "%s/%s", path, JVM_DLL);
@@ -341,8 +340,10 @@ RequiresSetenv(int wanted, const char *jvmpath) {
 }
 #endif /* SETENV_REQUIRED */
 
-void
-CreateExecutionEnvironment(int *pargc, char ***pargv,
+/**
+ * 获取JRE及JVM的安装路径
+ */
+void CreateExecutionEnvironment(int *pargc, char ***pargv,
                            char jrepath[], jint so_jrepath,
                            char jvmpath[], jint so_jvmpath,
                            char jvmcfg[],  jint so_jvmcfg) {
@@ -366,7 +367,7 @@ CreateExecutionEnvironment(int *pargc, char ***pargv,
       char * jvmtype    = NULL;
       int  argc         = *pargc;
       char **argv       = *pargv;
-      int running       = CURRENT_DATA_MODEL;
+      int running       = CURRENT_DATA_MODEL;	//当前操作系统的机器位数(32位/64位)
 
       int wanted        = running;      /* What data mode is being
                                            asked for? Current model is
@@ -402,8 +403,9 @@ CreateExecutionEnvironment(int *pargc, char ***pargv,
         newargv = (char **)JLI_MemAlloc((argc+1) * sizeof(char*));
         newargv[newargc++] = argv[0];
 
-        /* scan for data model arguments and remove from argument list;
-           last occurrence determines desired data model */
+        /**
+         * 确定用户配置的机器位数
+         */
         for (i=1; i < argc; i++) {
 
           if (JLI_StrCmp(argv[i], "-J-d64") == 0 || JLI_StrCmp(argv[i], "-d64") == 0) {
@@ -417,16 +419,17 @@ CreateExecutionEnvironment(int *pargc, char ***pargv,
 
           newargv[newargc++] = argv[i];
 
-          if (IsJavaArgs()) {
+          if (IsJavaArgs()) {	//java程序参数
             if (argv[i][0] != '-') continue;
-          } else {
+          } else {	//JVM参数
             if (JLI_StrCmp(argv[i], "-classpath") == 0 || JLI_StrCmp(argv[i], "-cp") == 0) {
               i++;
               if (i >= argc) break;
               newargv[newargc++] = argv[i];
               continue;
             }
-            if (argv[i][0] != '-') { i++; break; }
+
+            if (argv[i][0] != '-') { i++; break; }	//已扫描完了所有的JVM参数
           }
 
         }
@@ -445,18 +448,19 @@ CreateExecutionEnvironment(int *pargc, char ***pargv,
         argv = newargv;
       }
 
-      /* If the data model is not changing, it is an error if the
-         jvmpath does not exist */
+      /**
+       * 当前系统的机器位数与用户配置的匹配
+        */
       if (wanted == running) {
         /* Find out where the JRE is that we will be using. */
-    	printf("%s[%d] [tid: %lu]: 试图获取java主程序执行的jre环境..\n", __FILE__, __LINE__, pthread_self());
+    	printf("%s[%d] [tid: %lu]: 试图获取java主程序执行的jre路径..\n", __FILE__, __LINE__, pthread_self());
         if (!GetJREPath(jrepath, so_jrepath, arch, JNI_FALSE) ) {
           JLI_ReportErrorMessage(JRE_ERROR1);
           exit(2);
         }
         JLI_Snprintf(jvmcfg, so_jvmcfg, "%s%slib%s%s%sjvm.cfg", jrepath, FILESEP, FILESEP,  arch, FILESEP);
 
-        printf("%s[%d] [tid: %lu]: java主程序执行的jre环境[%s]; JVM的配置文件路径[%s].\n", __FILE__, __LINE__, pthread_self(), jrepath, jvmcfg);
+        printf("%s[%d] [tid: %lu]: 当前java主程序执行的jre环境[%s]; JVM的配置文件路径[%s].\n", __FILE__, __LINE__, pthread_self(), jrepath, jvmcfg);
 
         /* Find the specified JVM type */
         printf("%s[%d] [tid: %lu]: 试图获取java主程序执行的JVM类型..\n", __FILE__, __LINE__, pthread_self());
@@ -767,15 +771,41 @@ CreateExecutionEnvironment(int *pargc, char ***pargv,
 }
 
 /*
- * On Solaris VM choosing is done by the launcher (java.c),
- * bitsWanted is used by MacOSX,  on Solaris and Linux this.
- * parameter is unused.
+ * 根据jre的安装目录获取jvm实现的动态链接库
+ *
+ * 函数原型:	int stat(const char * file_name, struct stat *buf);
+ * 函数说明:	用来将参数file_name所指的文件状态复制到参数buf所指的结构中
+ * 参数说明:	struct stat{
+ * 			    dev_t st_dev; //文件的设备编号
+ * 			    ino_t st_ino; //文件的i-node
+ * 			    mode_t st_mode; //文件的类型和存取的权限
+ * 			    nlink_t st_nlink; //连到该文件的硬连接数目,刚建立的文件值为1.
+ * 			    uid_t st_uid; //文件所有者的用户识别码
+ * 			    gid_t st_gid; //文件所有者的组识别码
+ * 			    dev_t st_rdev; //若此文件为装置设备文件, 则为其设备编号
+ * 			    off_t st_size; //文件大小, 以字节计算
+ * 			    unsigned long st_blksize; //文件系统的I/O缓冲区大小.
+ * 			    unsigned long st_blocks; //占用文件区块的个数, 每一区块大小为512 个字节.
+ * 			    time_t st_atime;  //文件最近一次被存取或被执行的时间, 一般只有在用mknod/utime/read/write/tructate时改变.
+ * 			    time_t st_mtime; //文件最后一次被修改的时间, 一般只有在用mknod/utime/write 时才会改变
+ * 			    time_t st_ctime; // 最近一次被更改的时间, 此参数会在文件所有者、组、权限被更改时更新
+ * 			 };
+ * 函数返回:	执行成功则返回0;失败返回-1.错误代码存于errno:
+ * 				ENOENT 参数file_name指定的文件不存在
+ * 				ENOTDIR 路径中的目录存在但却非真正的目录
+ * 				ELOOP 欲打开的文件有过多符号连接问题, 上限为16 符号连接
+ * 				EFAULT 参数buf 为无效指针, 指向无法存在的内存空间
+ * 				EACCESS 存取文件时被拒绝
+ * 				ENOMEM 核心内存不足
+ * 				ENAMETOOLONG 参数file_name 的路径名称太长
+ *
  */
-static jboolean
-GetJVMPath(const char *jrepath, const char *jvmtype,
+static jboolean GetJVMPath(const char *jrepath, const char *jvmtype,
            char *jvmpath, jint jvmpathsize, const char * arch, int bitsWanted)
 {
     struct stat s;
+
+    printf("%s[%d] [tid: %lu]: 试图根据jre的安装目录获取jvm实现的动态链接库路径..\n", __FILE__, __LINE__, pthread_self());
 
     if (JLI_StrChr(jvmtype, '/')) {
         JLI_Snprintf(jvmpath, jvmpathsize, "%s/" JVM_DLL, jvmtype);
@@ -786,27 +816,54 @@ GetJVMPath(const char *jrepath, const char *jvmtype,
     JLI_TraceLauncher("Does `%s' exist ... ", jvmpath);
 
     if (stat(jvmpath, &s) == 0) {
+    	printf("%s[%d] [tid: %lu]: 当前jre的jvm实现动态链接库路径: %s.\n", __FILE__, __LINE__, pthread_self(), jvmpath);
+
         JLI_TraceLauncher("yes.\n");
         return JNI_TRUE;
     } else {
+    	printf("%s[%d] [tid: %lu]: 无法找到当前jre的jvm实现动态链接库路径: %s.\n", __FILE__, __LINE__, pthread_self(), jvmpath);
+
         JLI_TraceLauncher("no.\n");
         return JNI_FALSE;
     }
 }
 
 /*
- * Find path to JRE based on .exe's location or registry settings.
+ * 根据当前进程的启动命令获取jre的安装目录
+ *
+ * 函数原型:	int access(const char *pathname, int mode);
+ * 函数说明:	检查调用进程是否可以对指定的文件执行某种操作
+ * 参数说明:	pathname: 需要测试的文件路径名
+ * 			mode: 需要测试的操作模式,可能值是一个或多个R_OK(可读),W_OK(可写),
+ * 				  X_OK(可执行)或F_OK(文件存在)组合体
+ * 函数返回:	成功执行时,返回0;失败返回-1. errno:
+ * 				EINVAL:	模式值无效
+ * 				EACCES:	文件或路径名中包含的目录不可访问
+ * 				ELOOP:	解释路径名过程中存在太多的符号连接
+ * 				ENAMETOOLONG:	路径名太长
+ * 				ENOENT:	路径名中的目录不存在或是无效的符号连接
+ * 				ENOTDIR:	路径名中当作目录的组件并非目录
+ * 				EROFS:	文件系统只读
+ * 				EFAULT:	路径名指向可访问的空间外
+ * 				EIO:	输入输出错误
+ * 				ENOMEM:	不能获取足够的内核内存
+ * 				ETXTBSY:	对程序写入出错
+ *
  */
-static jboolean
-GetJREPath(char *path, jint pathsize, const char * arch, jboolean speculative)
+static jboolean GetJREPath(char *path, jint pathsize, const char * arch, jboolean speculative)
 {
     char libjava[MAXPATHLEN];
+
+    printf("%s[%d] [tid: %lu]: 试图根据当前进程的启动命令获取jre的安装目录..\n", __FILE__, __LINE__, pthread_self());
 
     if (GetApplicationHome(path, pathsize)) {
         /* Is JRE co-located with the application? */
         JLI_Snprintf(libjava, sizeof(libjava), "%s/lib/%s/" JAVA_DLL, path, arch);
         if (access(libjava, F_OK) == 0) {
             JLI_TraceLauncher("JRE path is %s\n", path);
+
+            printf("%s[%d] [tid: %lu]: 当前jre的安装目录: %s..\n", __FILE__, __LINE__, pthread_self(), path);
+
             return JNI_TRUE;
         }
 
@@ -815,24 +872,28 @@ GetJREPath(char *path, jint pathsize, const char * arch, jboolean speculative)
         if (access(libjava, F_OK) == 0) {
             JLI_StrCat(path, "/jre");
             JLI_TraceLauncher("JRE path is %s\n", path);
+
+            printf("%s[%d] [tid: %lu]: 当前jre的安装目录: %s..\n", __FILE__, __LINE__, pthread_self(), path);
+
             return JNI_TRUE;
         }
     }
 
     if (!speculative)
       JLI_ReportErrorMessage(JRE_ERROR8 JAVA_DLL);
+
     return JNI_FALSE;
 }
 
 /**
- * 加载JVM的实现所在的动态连接库
+ * 加载JVM的实现所在的动态连接库(三个入口函数指针)
  */
 jboolean LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
 {
     Dl_info dlinfo;
     void *libjvm;
 
-    printf("%s[%d] [tid: %lu]: 开始加载JVM的实现所在的动态连接库...\n", __FILE__, __LINE__, pthread_self());
+    printf("%s[%d] [tid: %lu]: 开始加载JVM的实现所在的动态连接库[%s]...\n", __FILE__, __LINE__, pthread_self(), jvmpath);
 
     JLI_TraceLauncher("JVM path is %s\n", jvmpath);
 
@@ -894,6 +955,8 @@ jboolean LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
     printf("%s[%d] [tid: %lu]: 获取动态连接库[%s]中函数[JNI_CreateJavaVM]的指针..\n", __FILE__, __LINE__, pthread_self(), jvmpath);
     ifn->CreateJavaVM = (CreateJavaVM_t) dlsym(libjvm, "JNI_CreateJavaVM");
     if (ifn->CreateJavaVM == NULL) {
+    	printf("%s[%d] [tid: %lu]: 无法从动态连接库[%s]中加载函数[JNI_CreateJavaVM].\n", __FILE__, __LINE__, pthread_self(), jvmpath);
+
         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
         return JNI_FALSE;
     }
@@ -901,6 +964,8 @@ jboolean LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
     printf("%s[%d] [tid: %lu]: 获取动态连接库[%s]中函数[JNI_GetDefaultJavaVMInitArgs]的指针..\n", __FILE__, __LINE__, pthread_self(), jvmpath);
     ifn->GetDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs_t) dlsym(libjvm, "JNI_GetDefaultJavaVMInitArgs");
     if (ifn->GetDefaultJavaVMInitArgs == NULL) {
+    	printf("%s[%d] [tid: %lu]: 无法从动态连接库[%s]中加载函数[JNI_GetDefaultJavaVMInitArgs].\n", __FILE__, __LINE__, pthread_self(), jvmpath);
+
         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
         return JNI_FALSE;
     }
@@ -908,6 +973,8 @@ jboolean LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
     printf("%s[%d] [tid: %lu]: 获取动态连接库[%s]中函数[JNI_GetCreatedJavaVMs]的指针..\n", __FILE__, __LINE__, pthread_self(), jvmpath);
     ifn->GetCreatedJavaVMs = (GetCreatedJavaVMs_t) dlsym(libjvm, "JNI_GetCreatedJavaVMs");
     if (ifn->GetCreatedJavaVMs == NULL) {
+    	printf("%s[%d] [tid: %lu]: 无法从动态连接库[%s]中加载函数[JNI_GetCreatedJavaVMs].\n", __FILE__, __LINE__, pthread_self(), jvmpath);
+
         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
         return JNI_FALSE;
     }
@@ -916,20 +983,27 @@ jboolean LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
 }
 
 /*
- * Compute the name of the executable
+ * 获取启动当前进程命令的绝对路径
  *
- * In order to re-exec securely we need the absolute path of the
- * executable. On Solaris getexecname(3c) may not return an absolute
- * path so we use dladdr to get the filename of the executable and
- * then use realpath to derive an absolute path. From Solaris 9
- * onwards the filename returned in DL_info structure from dladdr is
- * an absolute pathname so technically realpath isn't required.
- * On Linux we read the executable name from /proc/self/exe.
- * As a fallback, and for platforms other than Solaris and Linux,
- * we use FindExecName to compute the executable name.
+ * 在Linux系统中,可以通过读取符号链接文件/proc/self/exe来获取当前进程对应之静态映像文件的绝对路径
+ *
+ * 函数原型:	ssize_t readlink(const char *path, char *buf, size_t bufsiz);
+ * 函数说明:	将参数path的符号链接内容存储到参数buf所指的内存空间,返回的内容不是以'\0'作字符串结尾,
+ * 			但会将字符串的字符数返回，这使得添加'\0'变得简单.若参数bufsiz小于符号连接的内容长度,
+ * 			过长的内容会被截断,如果 readlink第一个参数指向一个文件而不是符号链接时,readlink设
+ * 			置errno为 EINVAL,并返回 -1
+ * 参数说明:
+ * 函数返回:	执行成功则返回字符串的字符数;失败返回-1,错误代码存于errno:
+ * 				EACCESS 取文件时被拒绝,权限不够
+ * 				EINVAL 参数bufsiz为负数
+ * 				EIO 存取错误
+ * 				ELOOP 欲打开的文件有过多符号连接问题
+ * 				ENAMETOOLONG 参数path的路径名称太长
+ * 				ENOENT 参数path所指定的文件不存在
+ * 				ENOMEM 核心内存不足
+ * 				ENOTDIR 参数path路径中的目录存在但却非真正的目录
  */
-const char*
-SetExecname(char **argv)
+const char* SetExecname(char **argv)
 {
     char* exec_path = NULL;
 #if defined(__solaris__)
@@ -973,6 +1047,7 @@ SetExecname(char **argv)
         exec_path = FindExecName(argv[0]);
     }
     execname = exec_path;
+
     return exec_path;
 }
 
@@ -1066,13 +1141,16 @@ void SetJavaLauncherPlatformProps() {
 #endif /* __linux__ */
 }
 
-int
-JVMInit(InvocationFunctions* ifn, jlong threadStackSize,
+/**
+ * 启动新线程来开启JVM
+ */
+int JVMInit(InvocationFunctions* ifn, jlong threadStackSize,
         int argc, char **argv,
         int mode, char *what, int ret)
 {
 
-    ShowSplashScreen();
+    ShowSplashScreen();	//展示启动画面
+
     return ContinueInNewThread(ifn, threadStackSize, argc, argv, mode, what, ret);
 }
 

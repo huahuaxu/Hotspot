@@ -57,6 +57,7 @@ inline Handle::Handle(oop obj) {
 #ifndef ASSERT
 inline Handle::Handle(Thread* thread, oop obj) {
   assert(thread == Thread::current(), "sanity check");
+
   if (obj == NULL) {
     _handle = NULL;
   } else {

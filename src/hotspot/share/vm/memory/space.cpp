@@ -692,8 +692,12 @@ void ContiguousSpace::object_iterate_mem(MemRegion mr, UpwardsObjectClosure* cl)
 #undef ContigSpace_PAR_OOP_ITERATE_DEFN
 #endif // SERIALGC
 
+/**
+* 遍历当前内存片中的所有对象
+*/
 void ContiguousSpace::oop_iterate(OopClosure* blk) {
   if (is_empty()) return;
+
   HeapWord* obj_addr = bottom();
   HeapWord* t = top();
   // Could call objects iterate, but this is easier.

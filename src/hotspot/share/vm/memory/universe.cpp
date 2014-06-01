@@ -798,8 +798,7 @@ jint universe_init() {
     if (mapinfo->initialize()) {
       FileMapInfo::set_current_info(mapinfo);
     } else {
-      assert(!mapinfo->is_open() && !UseSharedSpaces,
-             "archive file not closed or shared spaces not disabled.");
+      assert(!mapinfo->is_open() && !UseSharedSpaces, "archive file not closed or shared spaces not disabled.");
     }
   }
 
@@ -827,7 +826,7 @@ jint universe_init() {
     mapinfo->close();
 
   } else {
-	printf("%s[%d] [tid: %lu]: 开始创建符号表/字符串常量表/包信息表...\n", __FILE__, __LINE__, pthread_self());
+	printf("%s[%d] [tid: %lu]: 开始创建符号表/字符串常量表/类包哈希表...\n", __FILE__, __LINE__, pthread_self());
     SymbolTable::create_table();
     StringTable::create_table();
     ClassLoader::create_package_info_table();
@@ -934,7 +933,8 @@ jint Universe::initialize_heap() {
 
   } else if (UseG1GC) {
 #ifndef SERIALGC
-    G1CollectorPolicy* g1p = new G1CollectorPolicy();
+	printf("%s[%d] [tid: %lu]: 试图创建GC策略(G1CollectorPolicy)...\n", __FILE__, __LINE__, pthread_self());
+	G1CollectorPolicy* g1p = new G1CollectorPolicy();
 
     printf("%s[%d] [tid: %lu]: 试图创建内存堆管理器(G1CollectedHeap)...\n", __FILE__, __LINE__, pthread_self());
     G1CollectedHeap* g1h = new G1CollectedHeap(g1p);
@@ -947,19 +947,23 @@ jint Universe::initialize_heap() {
     GenCollectorPolicy *gc_policy;
 
     if (UseSerialGC) {
-      gc_policy = new MarkSweepPolicy();
+    	printf("%s[%d] [tid: %lu]: 试图创建GC策略(MarkSweepPolicy)...\n", __FILE__, __LINE__, pthread_self());
+    	gc_policy = new MarkSweepPolicy();
     } else if (UseConcMarkSweepGC) {
 #ifndef SERIALGC
       if (UseAdaptiveSizePolicy) {
-        gc_policy = new ASConcurrentMarkSweepPolicy();
+    	  printf("%s[%d] [tid: %lu]: 试图创建GC策略(ASConcurrentMarkSweepPolicy)...\n", __FILE__, __LINE__, pthread_self());
+    	  gc_policy = new ASConcurrentMarkSweepPolicy();
       } else {
-        gc_policy = new ConcurrentMarkSweepPolicy();
+    	  printf("%s[%d] [tid: %lu]: 试图创建GC策略(ConcurrentMarkSweepPolicy)...\n", __FILE__, __LINE__, pthread_self());
+    	  gc_policy = new ConcurrentMarkSweepPolicy();
       }
 #else   // SERIALGC
     fatal("UseConcMarkSweepGC not supported in java kernel vm.");
 #endif // SERIALGC
     } else { // default old generation
-      gc_policy = new MarkSweepPolicy();
+    	printf("%s[%d] [tid: %lu]: 试图创建GC策略(MarkSweepPolicy)...\n", __FILE__, __LINE__, pthread_self());
+    	gc_policy = new MarkSweepPolicy();
     }
 
     printf("%s[%d] [tid: %lu]: 试图创建内存堆管理器(GenCollectedHeap)...\n", __FILE__, __LINE__, pthread_self());
@@ -1066,21 +1070,12 @@ void universe2_init() {
 // This function is defined in JVM.cpp
 extern void initialize_converter_functions();
 
-/**
- * 创建常用的异常/错误对象实例:
- * 	1.java.lang.OutOfMemoryError
- * 	2.java.lang.NullPointerException
- * 	3.java.lang.ArithmeticException
- * 	4.java.lang.VirtualMachineError
- */
 bool universe_post_init() {
   assert(!is_init_completed(), "Error: initialization not yet completed!");
   Universe::_fully_initialized = true;
-
   EXCEPTION_MARK;
   { ResourceMark rm;
     Interpreter::initialize();      // needed for interpreter entry points
-
     if (!UseSharedSpaces) {
       KlassHandle ok_h(THREAD, SystemDictionary::Object_klass());
       Universe::reinitialize_vtable_of(ok_h, CHECK_false);
@@ -1093,14 +1088,14 @@ bool universe_post_init() {
   if (!UseSharedSpaces) {
     // Setup preallocated empty java.lang.Class array
     Universe::_the_empty_class_klass_array = oopFactory::new_objArray(SystemDictionary::Class_klass(), 0, CHECK_false);
-
     // Setup preallocated OutOfMemoryError errors
     k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_OutOfMemoryError(), true, CHECK_false);
     k_h = instanceKlassHandle(THREAD, k);
     Universe::_out_of_memory_error_java_heap = k_h->allocate_permanent_instance(CHECK_false);
     Universe::_out_of_memory_error_perm_gen = k_h->allocate_permanent_instance(CHECK_false);
     Universe::_out_of_memory_error_array_size = k_h->allocate_permanent_instance(CHECK_false);
-    Universe::_out_of_memory_error_gc_overhead_limit = k_h->allocate_permanent_instance(CHECK_false);
+    Universe::_out_of_memory_error_gc_overhead_limit =
+      k_h->allocate_permanent_instance(CHECK_false);
 
     // Setup preallocated NullPointerException
     // (this is currently used for a cheap & dirty solution in compiler exception handling)
@@ -1110,9 +1105,9 @@ bool universe_post_init() {
     // (this is currently used for a cheap & dirty solution in compiler exception handling)
     k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_ArithmeticException(), true, CHECK_false);
     Universe::_arithmetic_exception_instance = instanceKlass::cast(k)->allocate_permanent_instance(CHECK_false);
-
     // Virtual Machine Error for when we get into a situation we can't resolve
-    k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_VirtualMachineError(), true, CHECK_false);
+    k = SystemDictionary::resolve_or_fail(
+      vmSymbols::java_lang_VirtualMachineError(), true, CHECK_false);
     bool linked = instanceKlass::cast(k)->link_class_or_fail(CHECK_false);
     if (!linked) {
       tty->print_cr("Unable to link/verify VirtualMachineError class");

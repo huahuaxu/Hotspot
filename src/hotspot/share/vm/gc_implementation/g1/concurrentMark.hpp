@@ -746,6 +746,7 @@ public:
   // Returns true if there are any aborted memory regions.
   bool has_aborted_regions();
 
+  //根内存区
   CMRootRegions* root_regions() { return &_root_regions; }
 
   bool concurrent_marking_in_progress() {

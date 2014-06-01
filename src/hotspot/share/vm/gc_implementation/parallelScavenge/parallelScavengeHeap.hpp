@@ -60,7 +60,7 @@ class ParallelScavengeHeap : public CollectedHeap {
   size_t _young_gen_alignment;
   size_t _old_gen_alignment;
 
-  GenerationSizer* _collector_policy;
+  GenerationSizer* _collector_policy;	//垃圾回收策略器(主要用于确定各内存代的大小)
 
   inline size_t set_alignment(size_t& var, size_t val);
 

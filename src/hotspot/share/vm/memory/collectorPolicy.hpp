@@ -107,9 +107,6 @@ class CollectorPolicy : public CHeapObj {
   void set_max_alignment(size_t align)         { _max_alignment = align; }
   size_t max_alignment()                       { return _max_alignment; }
 
-  /**
-   * 内存堆的初始大小
-   */
   size_t initial_heap_byte_size() { return _initial_heap_byte_size; }
   void set_initial_heap_byte_size(size_t v) { _initial_heap_byte_size = v; }
   size_t max_heap_byte_size()     { return _max_heap_byte_size; }

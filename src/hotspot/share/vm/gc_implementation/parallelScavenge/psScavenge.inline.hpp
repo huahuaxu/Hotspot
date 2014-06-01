@@ -36,6 +36,11 @@ inline void PSScavenge::save_to_space_top_before_gc() {
   _to_space_top_before_gc = heap->young_gen()->to_space()->top();
 }
 
+/**
+ * 是否应该清理指定的对象(&):
+ * 	1.非空
+ * 	2.存储在年青代
+ */
 template <class T> inline bool PSScavenge::should_scavenge(T* p) {
   T heap_oop = oopDesc::load_heap_oop(p);
   if (oopDesc::is_null(heap_oop)) return false;
@@ -105,7 +110,13 @@ class PSRootsClosure: public OopClosure {
   void do_oop(narrowOop* p) { PSRootsClosure::do_oop_work(p); }
 };
 
+/**
+ * 移动复制指定的对象及其引用对象(对象升级需要特定的条件)
+ */
 typedef PSRootsClosure</*promote_immediately=*/false> PSScavengeRootsClosure;
+/**
+ * 移动复制指定的对象及其引用对象(直接升级对象)
+ */
 typedef PSRootsClosure</*promote_immediately=*/true> PSPromoteRootsClosure;
 
 #endif // SHARE_VM_GC_IMPLEMENTATION_PARALLELSCAVENGE_PSSCAVENGE_INLINE_HPP

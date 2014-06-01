@@ -67,9 +67,9 @@ class Linux {
  protected:
 
   static julong _physical_memory;
-  static pthread_t _main_thread;
+  static pthread_t _main_thread;	//JVM主线程
   static Mutex* _createThread_lock;
-  static int _page_size;
+  static int _page_size;	//系统内存页大小
 
   static julong available_memory();
   static julong physical_memory() { return _physical_memory; }
@@ -178,6 +178,9 @@ class Linux {
   // fast POSIX clocks support
   static void fast_thread_clock_init(void);
 
+  /**
+   * 系统是否支持CLOCK_MONOTONIC相对时间
+   */
   static bool supports_monotonic_clock() {
     return _clock_gettime != NULL;
   }

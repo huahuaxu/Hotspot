@@ -322,9 +322,6 @@ public:
     return perm_gen()->is_in(p);
   }
 
-  /**
-   * 从永久代中分配指定大小的内存块
-   */
   HeapWord* permanent_mem_allocate(size_t size) {
     assert(perm_gen(), "NULL perm gen");
     return _perm_gen->mem_allocate(size);

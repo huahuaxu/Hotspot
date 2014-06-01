@@ -90,6 +90,7 @@ bool VM_G1IncCollectionPause::doit_prologue() {
 
 void VM_G1IncCollectionPause::doit() {
   G1CollectedHeap* g1h = G1CollectedHeap::heap();
+
   assert(!_should_initiate_conc_mark ||
   ((_gc_cause == GCCause::_gc_locker && GCLockerInvokesConcurrent) ||
    (_gc_cause == GCCause::_java_lang_system_gc && ExplicitGCInvokesConcurrent) ||
@@ -147,8 +148,9 @@ void VM_G1IncCollectionPause::doit() {
     }
   }
 
-  _pause_succeeded =
-    g1h->do_collection_pause_at_safepoint(_target_pause_time_ms);
+  //执行一次Minor Gc
+  _pause_succeeded = g1h->do_collection_pause_at_safepoint(_target_pause_time_ms);
+
   if (_pause_succeeded && _word_size > 0) {
     // An allocation had been requested.
     _result = g1h->attempt_allocation_at_safepoint(_word_size,

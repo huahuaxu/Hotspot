@@ -279,6 +279,7 @@ void GenCollectorPolicy::initialize_flags() {
      // make sure there room for eden and two survivor spaces
     vm_exit_during_initialization("Too small new size specified");
   }
+
   if (SurvivorRatio < 1 || NewRatio < 1) {
     vm_exit_during_initialization("Invalid heap ratio specified");
   }
@@ -288,8 +289,11 @@ void GenCollectorPolicy::initialize_flags() {
  * 检查/调整永久代+新生代+旧生代+内存堆的内存配置
  */
 void TwoGenerationCollectorPolicy::initialize_flags() {
+
+  //检查/调整永久代+新生代的内存配置
   GenCollectorPolicy::initialize_flags();
 
+  //检查/调整旧生代+内存堆的内存配置
   OldSize = align_size_down(OldSize, min_alignment());
   if (NewSize + OldSize > MaxHeapSize) {
     MaxHeapSize = NewSize + OldSize;
@@ -467,6 +471,7 @@ bool TwoGenerationCollectorPolicy::adjust_gen0_sizes(size_t* gen0_size_ptr,
                        min_alignment());
     }
   }
+
   return result;
 }
 
@@ -491,20 +496,22 @@ void TwoGenerationCollectorPolicy::initialize_size_info() {
   _max_gen1_size = MAX2((uintx)align_size_down(_max_gen1_size, min_alignment()),
          min_alignment());
 
-  // If no explicit command line flag has been set for the
-  // gen1 size, use what is left for gen1.
+  //旧生代没有配置，或配置错误,则通过内存堆及新生代的配置来计算配置旧生代
   if (FLAG_IS_DEFAULT(OldSize) || FLAG_IS_ERGO(OldSize)) {
     // The user has not specified any value or ergonomics
     // has chosen a value (which may or may not be consistent
     // with the overall heap size).  In either case make
     // the minimum, maximum and initial sizes consistent
     // with the gen0 sizes and the overall heap sizes.
-    assert(min_heap_byte_size() > _min_gen0_size,
-      "gen0 has an unexpected minimum size");
+    assert(min_heap_byte_size() > _min_gen0_size, "gen0 has an unexpected minimum size");
+
+    //旧生代最小值
     set_min_gen1_size(min_heap_byte_size() - min_gen0_size());
     set_min_gen1_size(
       MAX2((uintx)align_size_down(_min_gen1_size, min_alignment()),
            min_alignment()));
+
+    //旧生代初始值
     set_initial_gen1_size(initial_heap_byte_size() - initial_gen0_size());
     set_initial_gen1_size(
       MAX2((uintx)align_size_down(_initial_gen1_size, min_alignment()),
@@ -526,12 +533,14 @@ void TwoGenerationCollectorPolicy::initialize_size_info() {
           "generation sizes: using minimum heap = " SIZE_FORMAT,
           min_heap_byte_size());
     }
+
     if ((OldSize > _max_gen1_size)) {
       warning("Inconsistency between maximum heap size and maximum "
           "generation sizes: using maximum heap = " SIZE_FORMAT
           " -XX:OldSize flag is being ignored",
           max_heap_byte_size());
     }
+
     // If there is an inconsistency between the OldSize and the minimum and/or
     // initial size of gen0, since OldSize was explicitly set, OldSize wins.
     if (adjust_gen0_sizes(&_min_gen0_size, &_min_gen1_size,
@@ -542,6 +551,7 @@ void TwoGenerationCollectorPolicy::initialize_size_info() {
               min_gen0_size(), initial_gen0_size(), max_gen0_size());
       }
     }
+
     // Initial size
     if (adjust_gen0_sizes(&_initial_gen0_size, &_initial_gen1_size,
                          initial_heap_byte_size(), OldSize)) {
@@ -552,6 +562,7 @@ void TwoGenerationCollectorPolicy::initialize_size_info() {
       }
     }
   }
+
   // Enforce the maximum gen1 size.
   set_min_gen1_size(MIN2(_min_gen1_size, _max_gen1_size));
 

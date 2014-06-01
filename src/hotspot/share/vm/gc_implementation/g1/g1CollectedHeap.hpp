@@ -189,7 +189,7 @@ public:
 class RefineCardTableEntryClosure;
 
 /**
- * G1内存堆管理器
+ * 基于内存分片的内存堆管理器
  */
 class G1CollectedHeap : public SharedHeap {
   friend class VM_G1CollectForAllocation;
@@ -234,18 +234,16 @@ private:
   // The part of _g1_storage that is currently committed.
   MemRegion _g1_committed;
 
-  // The master free list. It will satisfy all new region allocations.
+  //一级空闲内存片列表
   MasterFreeRegionList      _free_list;
 
-  // The secondary free list which contains regions that have been
-  // freed up during the cleanup process. This will be appended to the
-  // master free list when appropriate.
+  //二级空闲内存片列表(来自释放的内存片)
   SecondaryFreeRegionList   _secondary_free_list;
 
   // It keeps track of the old regions.
   MasterOldRegionSet        _old_set;
 
-  // It keeps track of the humongous regions.
+  //大内存片集合
   MasterHumongousRegionSet  _humongous_set;
 
   // The number of regions we could create by expansion.
@@ -273,15 +271,13 @@ private:
   // The sequence of all heap regions in the heap.
   HeapRegionSeq _hrs;
 
-  // Alloc region used to satisfy mutator allocation requests.
+  //年青代Eden区分配器
   MutatorAllocRegion _mutator_alloc_region;
 
-  // Alloc region used to satisfy allocation requests by the GC for
-  // survivor objects.
+  //年青代幸存区分配器(用于Gc)
   SurvivorGCAllocRegion _survivor_gc_alloc_region;
 
-  // Alloc region used to satisfy allocation requests by the GC for
-  // old objects.
+  //旧生代分配器(用于Gc)
   OldGCAllocRegion _old_gc_alloc_region;
 
   // The last old region we allocated to during the last GC.
@@ -1159,10 +1155,12 @@ public:
     _secondary_free_list.add_as_tail(list);
   }
 
+  //将二级空闲内存片都添加到一级空闲内存片列表的头部(无锁式)
   void append_secondary_free_list() {
     _free_list.add_as_head(&_secondary_free_list);
   }
 
+  //将二级空闲内存片都添加到一级空闲内存片列表的头部(有锁式)
   void append_secondary_free_list_if_not_empty_with_lock() {
     // If the secondary free list looks empty there's no reason to
     // take the lock and then try to append it.
@@ -1647,9 +1645,7 @@ public:
     else return is_obj_ill(obj, hr);
   }
 
-  // The following is just to alert the verification code
-  // that a full collection has occurred and that the
-  // remembered sets are no longer up to date.
+  //记录当前是否正在进行Full Gc
   bool _full_collection;
   void set_full_collection() { _full_collection = true;}
   void clear_full_collection() {_full_collection = false;}

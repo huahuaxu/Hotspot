@@ -77,7 +77,7 @@ void PSMarkSweep::initialize() {
 // are being taken to free space.
 
 /**
- * 执行Full Gc
+ * 执行Full Gc,如果配置了ScavengeBeforeFullGC,则在执行Full Gc之前先试图执行一次Minor Gc
  */
 void PSMarkSweep::invoke(bool maximum_heap_compaction) {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
@@ -103,6 +103,9 @@ void PSMarkSweep::invoke(bool maximum_heap_compaction) {
 
 // This method contains no policy. You should probably
 // be calling invoke() instead.
+/**
+ * 试图执行一次Full Gc
+ */
 bool PSMarkSweep::invoke_no_policy(bool clear_all_softrefs) {
   assert(SafepointSynchronize::is_at_safepoint(), "must be at a safepoint");
   assert(ref_processor() != NULL, "Sanity");

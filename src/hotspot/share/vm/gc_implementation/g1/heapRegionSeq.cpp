@@ -196,6 +196,7 @@ void HeapRegionSeq::iterate_from(HeapRegion* hr, HeapRegionClosure* blk) const {
       return;
     }
   }
+
   for (size_t i = 0; i < hr_index; i += 1) {
     bool res = blk->doHeapRegion(at(i));
     if (res) {

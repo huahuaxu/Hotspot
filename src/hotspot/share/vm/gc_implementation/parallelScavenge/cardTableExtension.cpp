@@ -258,6 +258,7 @@ void CardTableExtension::scavenge_contents_parallel(ObjectStartArray* start_arra
     if (!start_array->object_starts_in_range(slice_start, slice_end)) {
       continue;
     }
+
     // Update our beginning addr
     HeapWord* first_object = start_array->object_start(slice_start);
     debug_only(oop* first_object_within_slice = (oop*) first_object;)
@@ -319,7 +320,9 @@ void CardTableExtension::scavenge_contents_parallel(ObjectStartArray* start_arra
             current_card = ending_card_of_last_object;
           }
         }
-      }
+
+      }//while
+
       jbyte* following_clean_card = current_card;
 
       if (first_unclean_card < worker_end_card) {

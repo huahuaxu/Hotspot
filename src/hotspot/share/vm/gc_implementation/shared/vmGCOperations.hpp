@@ -66,9 +66,7 @@
 //   - these operations preform full collection of heaps of
 //     different kind
 //
-/**
- * Gc类型的JVM操作
- */
+
 class VM_GC_Operation: public VM_Operation {
  protected:
   BasicLock     _pending_list_basic_lock; // for refs pending list notification (PLL)

@@ -77,6 +77,10 @@
  */
 #ifdef JAVAW
 
+/**
+ *
+ * Win系统
+ */
 char **__initenv;
 
 int WINAPI
@@ -98,6 +102,7 @@ int	main(int argc, char ** argv)
     char** margv;
     const jboolean const_javaw = JNI_FALSE;
 
+    //命令行启动入参
     margc = argc;
     margv = argv;
 #endif /* JAVAW */

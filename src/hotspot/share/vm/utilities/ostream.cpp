@@ -812,6 +812,9 @@ void ttyLocker::break_tty_lock_for_safepoint(intx holder) {
   // (else there was no lock to break)
 }
 
+/**
+ * 创建默认的输出流
+ */
 void ostream_init() {
   if (defaultStream::instance == NULL) {
     defaultStream::instance = new(ResourceObj::C_HEAP) defaultStream();
@@ -833,7 +836,7 @@ void ostream_init_log() {
   // Note : this must be called AFTER ostream_init()
 
   gclog_or_tty = tty; // default to tty
-  if (Arguments::gc_log_filename() != NULL) {
+  if (Arguments::gc_log_filename() != NULL) {	//启动JVM时,把GC信息输出到指定的文件
 	printf("%s[%d] [tid: %lu]: 试图打开Gc日志输出文件[%s]...\n", __FILE__, __LINE__, pthread_self(), Arguments::gc_log_filename());
     fileStream * gclog  = UseGCLogFileRotation ?
                           new(ResourceObj::C_HEAP)

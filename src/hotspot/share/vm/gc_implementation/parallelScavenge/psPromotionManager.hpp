@@ -49,6 +49,9 @@ class MutableSpace;
 class PSOldGen;
 class ParCompactionManager;
 
+/**
+ * 对象升级管理器
+ */
 class PSPromotionManager : public CHeapObj {
   friend class PSScavenge;
   friend class PSRefProcTaskExecutor;

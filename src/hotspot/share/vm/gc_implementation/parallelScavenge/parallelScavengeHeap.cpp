@@ -46,11 +46,14 @@ PSYoungGen*  ParallelScavengeHeap::_young_gen = NULL;	//年青代内存管理器
 PSOldGen*    ParallelScavengeHeap::_old_gen = NULL;     //旧生代内存管理器
 PSPermGen*   ParallelScavengeHeap::_perm_gen = NULL;    //持久代内存管理器
 
-PSAdaptiveSizePolicy* ParallelScavengeHeap::_size_policy = NULL;
+PSAdaptiveSizePolicy* ParallelScavengeHeap::_size_policy = NULL;		//内存代大小调整器
 PSGCAdaptivePolicyCounters* ParallelScavengeHeap::_gc_policy_counters = NULL;
 ParallelScavengeHeap* ParallelScavengeHeap::_psh = NULL;
 GCTaskManager* ParallelScavengeHeap::_gc_task_manager = NULL;
 
+/**
+ * 打印内存堆中各内存代的大小信息
+ */
 static void trace_gen_sizes(const char* const str,
                             size_t pg_min, size_t pg_max,
                             size_t og_min, size_t og_max,
@@ -112,10 +115,13 @@ jint ParallelScavengeHeap::initialize() {
   // NEEDS_CLEANUP.  The default TwoGenerationCollectorPolicy uses NewRatio; it
   // should check UseAdaptiveSizePolicy.  Changes from generationSizer could
   // move to the common code.
+
+  /**
+   * 根据内存对齐的需求重新调整各内存代的大小
+   */
   yg_min_size = align_size_up(yg_min_size, yg_align);
   yg_max_size = align_size_up(yg_max_size, yg_align);
-  size_t yg_cur_size =
-    align_size_up(_collector_policy->young_gen_size(), yg_align);
+  size_t yg_cur_size = align_size_up(_collector_policy->young_gen_size(), yg_align);
   yg_cur_size = MAX2(yg_cur_size, yg_min_size);
 
   og_min_size = align_size_up(og_min_size, og_align);
@@ -123,8 +129,7 @@ jint ParallelScavengeHeap::initialize() {
   assert(og_align == yg_align, "sanity");
   og_max_size = align_size_down(og_max_size, og_align);
   og_max_size = MAX2(og_max_size, og_min_size);
-  size_t og_cur_size =
-    align_size_down(_collector_policy->old_gen_size(), og_align);
+  size_t og_cur_size = align_size_down(_collector_policy->old_gen_size(), og_align);
   og_cur_size = MAX2(og_cur_size, og_min_size);
 
   pg_min_size = align_size_up(pg_min_size, pg_align);
@@ -592,6 +597,12 @@ HeapWord* ParallelScavengeHeap::mem_allocate_old_gen(size_t size) {
 // and when to attempt collections, but no collection specific policy.
 /**
  * 处理一次内存分配失败
+ * 	1.如果可以进行一次Full Gc则执行一次Gc
+ * 	2.从年青代分配
+ * 	3.从年青代分配失败并且没有之前没有进行Gc,则执行一次Gc之后再从年青代分配
+ * 	4.试图从年老代分配
+ * 	5.执行一次Gc之后再从年青代分配
+ * 	6.从年老代分配
  */
 HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
@@ -640,7 +651,7 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
 }
 
 /**
- * 从永久代上分配指定的内存空间
+ * 从永久代上分配指定大小的内存空间
  */
 HeapWord* ParallelScavengeHeap::permanent_mem_allocate(size_t size) {
   assert(!SafepointSynchronize::is_at_safepoint(), "should not be at safepoint");
@@ -767,6 +778,13 @@ HeapWord* ParallelScavengeHeap::permanent_mem_allocate(size_t size) {
 // and require a collection. Note that just as in failed_mem_allocate,
 // we do not set collection policy, only where & when to allocate and
 // collect.
+/**
+ * 处理永久代分配失败:
+ * 	1.执行一次Full Gc
+ * 	2.从永久代分配
+ * 	3.执行一次Full Gc
+ * 	4.从永久代分配
+ */
 HeapWord* ParallelScavengeHeap::failed_permanent_mem_allocate(size_t size) {
   assert(SafepointSynchronize::is_at_safepoint(), "should be at safepoint");
   assert(Thread::current() == (Thread*)VMThread::vm_thread(), "should be in vm thread");

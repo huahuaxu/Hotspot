@@ -1942,13 +1942,13 @@ run:
           UPDATE_PC_AND_TOS_AND_CONTINUE(3, count);
         }
 
-      CASE(_new): {
-        u2 index = Bytes::get_Java_u2(pc+1);
+      CASE(_new): {	//new 一个对象的指令
+        u2 index = Bytes::get_Java_u2(pc+1);	//对象类型的常量池索引
         constantPoolOop constants = istate->method()->constants();
         if (!constants->tag_at(index).is_unresolved_klass()) {
           // Make sure klass is initialized and doesn't have a finalizer
           oop entry = constants->slot_at(index).get_oop();
-          assert(entry->is_klass(), "Should be resolved klass");
+          assert(entry->is_klass(), "Should be resolved klass");	//java类型描述对象
           klassOop k_entry = (klassOop) entry;
           assert(k_entry->klass_part()->oop_is_instance(), "Should be instanceKlass");
           instanceKlass* ik = (instanceKlass*) k_entry->klass_part();
@@ -1994,6 +1994,7 @@ run:
             }
           }
         }
+
         // Slow case allocation
         CALL_VM(InterpreterRuntime::_new(THREAD, METHOD->constants(), index),
                 handle_exception);

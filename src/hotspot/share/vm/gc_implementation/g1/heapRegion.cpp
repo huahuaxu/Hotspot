@@ -35,8 +35,8 @@
 
 int    HeapRegion::LogOfHRGrainBytes = 0;
 int    HeapRegion::LogOfHRGrainWords = 0;
-size_t HeapRegion::GrainBytes        = 0;
-size_t HeapRegion::GrainWords        = 0;
+size_t HeapRegion::GrainBytes        = 0;		//内存片的大小(单位:Byte)
+size_t HeapRegion::GrainWords        = 0;		//内存片的大小(单位:字)
 size_t HeapRegion::CardsPerRegion    = 0;
 
 HeapRegionDCTOC::HeapRegionDCTOC(G1CollectedHeap* g1,
@@ -290,9 +290,12 @@ void HeapRegionDCTOC::walk_mem_region_with_cl(MemRegion mr,
 #define TARGET_REGION_NUMBER          2048
 
 void HeapRegion::setup_heap_region_size(uintx min_heap_size) {
+
+  printf("%s[%d] [tid: %lu]: 开始计算一个内存片的标准大小...\n", __FILE__, __LINE__, pthread_self());
+
   // region_size in bytes
   uintx region_size = G1HeapRegionSize;
-  if (FLAG_IS_DEFAULT(G1HeapRegionSize)) {
+  if (FLAG_IS_DEFAULT(G1HeapRegionSize)) {	//默认值
     // We base the automatic calculation on the min heap size. This
     // can be problematic if the spread between min and max is quite
     // wide, imagine -Xms128m -Xmx32g. But, if we decided it based on
@@ -304,6 +307,7 @@ void HeapRegion::setup_heap_region_size(uintx min_heap_size) {
                        (uintx) MIN_REGION_SIZE);
   }
 
+  //调整内存片的大小,以确保其值是2的平方
   int region_size_log = log2_long((jlong) region_size);
   // Recalculate the region size to make sure it's a power of
   // 2. This means that region_size is the largest power of 2 that's
@@ -312,9 +316,9 @@ void HeapRegion::setup_heap_region_size(uintx min_heap_size) {
 
   // Now make sure that we don't go over or under our limits.
   if (region_size < MIN_REGION_SIZE) {
-    region_size = MIN_REGION_SIZE;
+    region_size = MIN_REGION_SIZE;	//1MB
   } else if (region_size > MAX_REGION_SIZE) {
-    region_size = MAX_REGION_SIZE;
+    region_size = MAX_REGION_SIZE;	//32MB
   }
 
   // And recalculate the log.
@@ -338,6 +342,9 @@ void HeapRegion::setup_heap_region_size(uintx min_heap_size) {
 
   guarantee(CardsPerRegion == 0, "we should only set it once");
   CardsPerRegion = GrainBytes >> CardTableModRefBS::card_shift;
+
+  printf("%s[%d] [tid: %lu]: 一个内存片的标准大小: %lu Bytes.\n", __FILE__, __LINE__, pthread_self(), GrainBytes);
+
 }
 
 void HeapRegion::reset_after_compaction() {
