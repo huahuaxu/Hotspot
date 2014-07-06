@@ -91,6 +91,9 @@ PerfCounter*    ClassLoadingService::_shared_classbytes_loaded = NULL;
 PerfCounter*    ClassLoadingService::_shared_classbytes_unloaded = NULL;
 PerfVariable*   ClassLoadingService::_class_methods_size = NULL;
 
+/**
+ *	创建java类加载等相关计数器(从JVM性能统计数据内存区中分配计数器所需内存)
+ */
 void ClassLoadingService::init() {
   EXCEPTION_MARK;
 

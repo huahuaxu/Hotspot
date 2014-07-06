@@ -88,6 +88,7 @@ class PeriodicTask: public CHeapObj {
   // several-shot tasks may be implemented this way.
   void disenroll();
 
+  //根据延迟时间计算当前是否应该执行本次任务
   void execute_if_pending(size_t delay_time) {
     _counter += delay_time;
     if (_counter >= _interval) {
@@ -96,15 +97,14 @@ class PeriodicTask: public CHeapObj {
     }
   }
 
-  // Returns how long (time in milliseconds) before the next time we should
-  // execute this task.
+  //下次执行当前任务的时间间隔
   size_t time_to_next_interval() const {
     assert(_interval > _counter,  "task counter greater than interval?");
     return _interval - _counter;
   }
 
   /**
-   * 距最近那个周期性任务触发的时间
+   * 计算距最近那个周期性任务触发的时间
    */
   static size_t time_to_wait() {
     if (_num_tasks == 0) {
@@ -120,7 +120,7 @@ class PeriodicTask: public CHeapObj {
     return delay;
   }
 
-  // The task to perform at each period
+  //任务的核心工作
   virtual void task() = 0;
 };
 

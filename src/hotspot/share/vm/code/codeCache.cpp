@@ -107,9 +107,9 @@ class CodeBlob_sizes {
 };
 
 
-// CodeCache implementation
-
+//代码缓存堆
 CodeHeap * CodeCache::_heap = new CodeHeap();
+
 int CodeCache::_number_of_blobs = 0;
 int CodeCache::_number_of_adapters = 0;
 int CodeCache::_number_of_nmethods = 0;
@@ -162,23 +162,32 @@ nmethod* CodeCache::next_nmethod (CodeBlob* cb) {
   return (nmethod*)cb;
 }
 
+/**
+ * 从代码缓存堆中分配指定大小的内存块
+ */
 CodeBlob* CodeCache::allocate(int size) {
   // Do not seize the CodeCache lock here--if the caller has not
   // already done so, we are going to lose bigtime, since the code
   // cache will contain a garbage CodeBlob until the caller can
   // run the constructor for the CodeBlob subclass he is busy
   // instantiating.
+  printf("%s[%d] [tid: %lu]: 开始从代码缓存堆中分配 %lu bytes 的内存块...\n", __FILE__, __LINE__, pthread_self(), size);
+
   guarantee(size >= 0, "allocation request must be reasonable");
   assert_locked_or_safepoint(CodeCache_lock);
   CodeBlob* cb = NULL;
   _number_of_blobs++;
+
   while (true) {
     cb = (CodeBlob*)_heap->allocate(size);
     if (cb != NULL) break;
+
+    printf("%s[%d] [tid: %lu]: 分配失败,试图扩展代码缓存堆的容量再分配...\n", __FILE__, __LINE__, pthread_self());
     if (!_heap->expand_by(CodeCacheExpansionSize)) {
       // Expansion failed
       return NULL;
     }
+
     if (PrintCodeCacheExtension) {
       ResourceMark rm;
       tty->print_cr("code cache extended to [" INTPTR_FORMAT ", " INTPTR_FORMAT "] (%d bytes)",
@@ -186,6 +195,7 @@ CodeBlob* CodeCache::allocate(int size) {
                     (address)_heap->end() - (address)_heap->begin());
     }
   }
+
   verify_if_often();
   print_trace("allocation", cb, size);
   return cb;
@@ -202,9 +212,11 @@ void CodeCache::free(CodeBlob* cb) {
       _number_of_nmethods_with_dependencies--;
     }
   }
+
   if (cb->is_adapter_blob()) {
     _number_of_adapters--;
   }
+
   _number_of_blobs--;
 
   _heap->deallocate(cb);
@@ -578,11 +590,16 @@ address CodeCache::last_address() {
 
 void icache_init();
 
+/**
+ * 创建/初始化代码缓存器
+ */
 void CodeCache::initialize() {
   assert(CodeCacheSegmentSize >= (uintx)CodeEntryAlignment, "CodeCacheSegmentSize must be large enough to align entry points");
+
 #ifdef COMPILER2
   assert(CodeCacheSegmentSize >= (uintx)OptoLoopAlignment,  "CodeCacheSegmentSize must be large enough to align inner loops");
 #endif
+
   assert(CodeCacheSegmentSize >= sizeof(jdouble),    "CodeCacheSegmentSize must be large enough to align constants");
   // This was originally just a check of the alignment, causing failure, instead, round
   // the code cache to the page size.  In particular, Solaris is moving to a larger
@@ -590,10 +607,13 @@ void CodeCache::initialize() {
   CodeCacheExpansionSize = round_to(CodeCacheExpansionSize, os::vm_page_size());
   InitialCodeCacheSize = round_to(InitialCodeCacheSize, os::vm_page_size());
   ReservedCodeCacheSize = round_to(ReservedCodeCacheSize, os::vm_page_size());
+
+  printf("%s[%d] [tid: %lu]: 试图为代码缓存器申请 %lu  bytes 内存空间...\n", __FILE__, __LINE__, pthread_self(), ReservedCodeCacheSize);
   if (!_heap->reserve(ReservedCodeCacheSize, InitialCodeCacheSize, CodeCacheSegmentSize)) {
     vm_exit_during_initialization("Could not reserve enough space for code cache");
   }
 
+  //向JVM内存管理/监控器注册代码内存堆
   MemoryService::add_code_heap_memory_pool(_heap);
 
   // Initialize ICache flush mechanism
@@ -606,8 +626,11 @@ void CodeCache::initialize() {
   os::register_code_area(_heap->low_boundary(), _heap->high_boundary());
 }
 
-
+/**
+ * 初始化代码缓存器
+ */
 void codeCache_init() {
+  printf("%s[%d] [tid: %lu]: 开始创建/初始化代码缓存器..\n", __FILE__, __LINE__, pthread_self());
   CodeCache::initialize();
 }
 

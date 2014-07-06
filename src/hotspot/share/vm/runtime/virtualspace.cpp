@@ -250,17 +250,17 @@ ReservedSpace::ReservedSpace(const size_t prefix_size,
   _noaccess_prefix = noaccess_prefix;
 }
 
+/**
+ * 向操作系统预定内存空间
+ */
 void ReservedSpace::initialize(size_t size, size_t alignment, bool large,
                                char* requested_address,
                                const size_t noaccess_prefix,
                                bool executable) {
   const size_t granularity = os::vm_allocation_granularity();
-  assert((size & (granularity - 1)) == 0,
-         "size not aligned to os::vm_allocation_granularity()");
-  assert((alignment & (granularity - 1)) == 0,
-         "alignment not aligned to os::vm_allocation_granularity()");
-  assert(alignment == 0 || is_power_of_2((intptr_t)alignment),
-         "not a power of 2");
+  assert((size & (granularity - 1)) == 0, "size not aligned to os::vm_allocation_granularity()");
+  assert((alignment & (granularity - 1)) == 0, "alignment not aligned to os::vm_allocation_granularity()");
+  assert(alignment == 0 || is_power_of_2((intptr_t)alignment), "not a power of 2");
 
   alignment = MAX2(alignment, (size_t)os::vm_page_size());
 
@@ -290,6 +290,7 @@ void ReservedSpace::initialize(size_t size, size_t alignment, bool large,
 
   if (special) {
 
+	//向操作系统申请指定大小的内存，并映射到用户指定的内存空间中
     base = os::reserve_memory_special(size, requested_address, executable);
 
     if (base != NULL) {
@@ -298,8 +299,7 @@ void ReservedSpace::initialize(size_t size, size_t alignment, bool large,
         return;
       }
       // Check alignment constraints
-      assert((uintptr_t) base % alignment == 0,
-             "Large pages returned a non-aligned address");
+      assert((uintptr_t) base % alignment == 0, "Large pages returned a non-aligned address");
       _special = true;
     } else {
       // failed; try to reserve regular memory below
@@ -539,7 +539,9 @@ VirtualSpace::VirtualSpace() {
   _executable             = false;
 }
 
-
+/**
+ * 初始化虚拟内存空间
+ */
 bool VirtualSpace::initialize(ReservedSpace rs, size_t committed_size) {
   if(!rs.is_reserved()) return false;  // allocation failed.
 

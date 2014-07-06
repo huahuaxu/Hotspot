@@ -77,6 +77,9 @@ class FreeBlock: public HeapBlock {
   void set_link(FreeBlock* link)             { _link = link; }
 };
 
+/**
+ * 代码缓存堆
+ */
 class CodeHeap : public CHeapObj {
   friend class VMStructs;
  private:

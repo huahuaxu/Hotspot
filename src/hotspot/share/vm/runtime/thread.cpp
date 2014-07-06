@@ -1171,6 +1171,7 @@ WatcherThread::WatcherThread() : Thread() {
     // If the VMThread's priority is not lower than the WatcherThread profiling
     // will be inaccurate.
     os::set_priority(this, MaxPriority);
+
     if (!DisableStartThread) {
       os::start_thread(this);
     }
@@ -1180,7 +1181,7 @@ WatcherThread::WatcherThread() : Thread() {
 void WatcherThread::run() {
   assert(this == watcher_thread(), "just checking");
 
-  printf("%s[%d] [tid: %lu]: 线程[%s]正式执行(核心功能)...\n", __FILE__, __LINE__, pthread_self(), name());
+  printf("%s[%d] [tid: %lu]: 线程[%s]正式执行(核心功能),负责执行所有的周期性(定时)任务...\n", __FILE__, __LINE__, pthread_self(), name());
 
   this->record_stack_base_and_size();
 
@@ -1192,12 +1193,10 @@ void WatcherThread::run() {
     assert(watcher_thread() == Thread::current(),  "thread consistency check");
     assert(watcher_thread() == this,  "thread consistency check");
 
-    // Calculate how long it'll be until the next PeriodicTask work
-    // should be done, and sleep that amount of time.
+    //计算下一个最近的定时任务距当前的时间间隔(ms)
     size_t time_to_wait = PeriodicTask::time_to_wait();
 
-    // we expect this to timeout - we only ever get unparked when
-    // we should terminate
+    //等待一定时间，已执行下一个最近的定时任务
     {
       OSThreadWaitState osts(this->osthread(), false /* not Object.wait() */);
 
@@ -1209,12 +1208,12 @@ void WatcherThread::run() {
         // spurious wakeup of some kind
         jlong now = os::javaTimeNanos();
         time_to_wait -= (now - prev_time) / 1000000;
-        if (time_to_wait <= 0) break;
+        if (time_to_wait <= 0) break;	//时间已到
         prev_time = now;
       }
     }
 
-    if (is_error_reported()) {
+    if (is_error_reported()) {	//当前发生错误
       // A fatal error has happened, the error handler(VMError::report_and_die)
       // should abort JVM after creating an error log file. However in some
       // rare cases, the error handler itself might deadlock. Here we try to
@@ -1230,6 +1229,7 @@ void WatcherThread::run() {
              os::sleep(this, 2 * 60 * 1000, false);
              fdStream err(defaultStream::output_fd());
              err.print_raw_cr("# [ timer expired, abort... ]");
+
              // skip atexit/vm_exit/vm_abort hooks
              os::die();
         }
@@ -1240,13 +1240,16 @@ void WatcherThread::run() {
       }//for
     }
 
+    printf("%s[%d] [tid: %lu]: 线程[%s]开始执行当前需要被执行的定时任务...\n", __FILE__, __LINE__, pthread_self(), name());
     PeriodicTask::real_time_tick(time_to_wait);
 
     // If we have no more tasks left due to dynamic disenrollment,
     // shut down the thread since we don't currently support dynamic enrollment
     if (PeriodicTask::num_tasks() == 0) {
+      printf("%s[%d] [tid: %lu]: 当前没有周期性(定时)任务,线程[%s]准备退出...\n", __FILE__, __LINE__, pthread_self(), name());
       _should_terminate = true;
     }
+
   }
 
   // Signal that it is terminated
@@ -1271,6 +1274,9 @@ void WatcherThread::start() {
 }
 
 void WatcherThread::stop() {
+
+  printf("%s[%d] [tid: %lu]: 开始终止线程[%s]...\n", __FILE__, __LINE__, pthread_self(), name());
+
   // it is ok to take late safepoints here, if needed
   MutexLocker mu(Terminator_lock);
   _should_terminate = true;
@@ -1280,6 +1286,7 @@ void WatcherThread::stop() {
   if (watcher != NULL)
     watcher->_SleepEvent->unpark();
 
+  printf("%s[%d] [tid: %lu]: 开始等待线程[%s]完全终止...\n", __FILE__, __LINE__, pthread_self(), name());
   while(watcher_thread() != NULL) {
     // This wait should make safepoint checks, wait without a timeout,
     // and wait as a suspend-equivalent condition.
@@ -3528,7 +3535,7 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
   // Notify JVMTI agents that VM initialization is complete - nop if no agents.
   JvmtiExport::post_vm_initialized();
 
-  if (CleanChunkPoolAsync) {
+  if (CleanChunkPoolAsync) {	//异步清理内存块缓存池
     Chunk::start_chunk_pool_cleaner_task();
   }
 

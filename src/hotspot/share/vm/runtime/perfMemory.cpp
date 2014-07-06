@@ -49,6 +49,9 @@ size_t                   PerfMemory::_capacity = 0;
 jint                     PerfMemory::_initialized = false;
 PerfDataPrologue*        PerfMemory::_prologue = NULL;
 
+/**
+ * 创建并初始化JVM性能统计数据区
+ */
 void perfMemory_init() {
 
   if (!UsePerfData) return;
@@ -95,7 +98,9 @@ void PerfMemory::initialize() {
                capacity);
   }
 
-  // allocate PerfData memory region
+  printf("%s[%d] [tid: %lu]: 试图创建JVM性能统计内存区(%lu bytes)...\n", __FILE__, __LINE__, pthread_self(), capacity);
+
+  //向操作系统申请JVM性能数据内存存储区
   create_memory_region(capacity);
 
   if (_start == NULL) {
@@ -198,11 +203,12 @@ void PerfMemory::destroy() {
   _capacity = 0;
 }
 
-// allocate an aligned block of memory from the PerfData memory
-// region. This method assumes that the PerfData memory region
-// was aligned on a double word boundary when created.
-//
+/**
+ * 从JVM性能统计内存区中分配一块内存
+ */
 char* PerfMemory::alloc(size_t size) {
+
+  printf("%s[%d] [tid: %lu]: 试图从JVM性能统计内存区中分配一块内存(%lu bytes)...\n", __FILE__, __LINE__, pthread_self(), size);
 
   if (!UsePerfData) return NULL;
 
@@ -236,8 +242,9 @@ void PerfMemory::mark_updated() {
   _prologue->mod_time_stamp = os::elapsed_counter();
 }
 
-// Returns the complete path including the file name of performance data file.
-// Caller is expected to release the allocated memory.
+/**
+ * 获取当前JVM性能统计数据的存储文件
+ */
 char* PerfMemory::get_perfdata_file_path() {
   char* dest_file = NULL;
 
@@ -256,6 +263,7 @@ char* PerfMemory::get_perfdata_file_path() {
       return dest_file;
     }
   }
+
   // create the name of the file for retaining the instrumentation memory.
   dest_file = NEW_C_HEAP_ARRAY(char, PERFDATA_FILENAME_LEN);
   jio_snprintf(dest_file, PERFDATA_FILENAME_LEN,

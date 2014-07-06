@@ -398,6 +398,7 @@ void ClassLoader::setup_meta_index() {
     GrowableArray<char*> boot_class_path_packages(10);
     char package_name[256];
     bool skipCurrentJar = false;
+
     while (fgets(package_name, sizeof(package_name), file) != NULL) {
       ++line_no;
       // Remove trailing newline
@@ -1112,7 +1113,7 @@ void ClassLoader::initialize() {
   //加载zip链接库
   load_zip_library();
 
-  //添加类加载路径
+  //添加类搜索路径
   setup_bootstrap_search_path();
 
   if (LazyBootClassLoader) {
@@ -1161,7 +1162,7 @@ int ClassLoader::compute_Object_vtable() {
 }
 
 /**
- * 初始化类装载器
+ * 初始化启动类装载器(根转载器)
  */
 void classLoader_init() {
   ClassLoader::initialize();

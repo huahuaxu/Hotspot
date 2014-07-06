@@ -93,9 +93,10 @@ void CodeHeap::on_code_mapping(char* base, size_t size) {
 #endif
 }
 
-
-bool CodeHeap::reserve(size_t reserved_size, size_t committed_size,
-                       size_t segment_size) {
+/**
+ * 向操作系统申请(预定)空间
+ */
+bool CodeHeap::reserve(size_t reserved_size, size_t committed_size, size_t segment_size) {
   assert(reserved_size >= committed_size, "reserved < committed");
   assert(segment_size >= sizeof(FreeBlock), "segment size is too small");
   assert(is_power_of_2(segment_size), "segment_size must be a power of 2");
@@ -105,8 +106,8 @@ bool CodeHeap::reserve(size_t reserved_size, size_t committed_size,
 
   // Reserve and initialize space for _memory.
   const size_t page_size = os::can_execute_large_page_memory() ?
-          os::page_size_for_region(committed_size, reserved_size, 8) :
-          os::vm_page_size();
+          os::page_size_for_region(committed_size, reserved_size, 8) : os::vm_page_size();
+
   const size_t granularity = os::vm_allocation_granularity();
   const size_t r_align = MAX2(page_size, granularity);
   const size_t r_size = align_size_up(reserved_size, r_align);
@@ -114,9 +115,11 @@ bool CodeHeap::reserve(size_t reserved_size, size_t committed_size,
 
   const size_t rs_align = page_size == (size_t) os::vm_page_size() ? 0 :
     MAX2(page_size, granularity);
+
+  //向操作系统申请内存空间
   ReservedCodeSpace rs(r_size, rs_align, rs_align > 0);
-  os::trace_page_sizes("code heap", committed_size, reserved_size, page_size,
-                       rs.base(), rs.size());
+
+  os::trace_page_sizes("code heap", committed_size, reserved_size, page_size, rs.base(), rs.size());
   if (!_memory.initialize(rs, c_size)) {
     return false;
   }
@@ -124,6 +127,7 @@ bool CodeHeap::reserve(size_t reserved_size, size_t committed_size,
   on_code_mapping(_memory.low(), _memory.committed_size());
   _number_of_committed_segments = number_of_segments(_memory.committed_size());
   _number_of_reserved_segments  = number_of_segments(_memory.reserved_size());
+
   assert(_number_of_reserved_segments >= _number_of_committed_segments, "just checking");
 
   // reserve space for _segmap
@@ -136,6 +140,7 @@ bool CodeHeap::reserve(size_t reserved_size, size_t committed_size,
 
   // initialize remaining instance variables
   clear();
+
   return true;
 }
 

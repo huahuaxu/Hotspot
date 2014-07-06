@@ -142,10 +142,14 @@ void StubRoutines::initialize1() {
   if (_code1 == NULL) {
     ResourceMark rm;
     TraceTime timer("StubRoutines generation 1", TraceStartupTime);
+
+    printf("%s[%d] [tid: %lu]: 试图从代码缓存器中申请 %lu bytes 的代码缓存快...\n", __FILE__, __LINE__, pthread_self(), code_size1);
+
     _code1 = BufferBlob::create("StubRoutines (1)", code_size1);
     if (_code1 == NULL) {
       vm_exit_out_of_memory(code_size1, "CodeCache: no room for StubRoutines (1)");
     }
+
     CodeBuffer buffer(_code1);
     StubGenerator_generate(&buffer, false);
   }
@@ -280,8 +284,11 @@ void StubRoutines::initialize2() {
 #endif
 }
 
-
+/**
+ * 第一次初始化执行引擎
+ */
 void stubRoutines_init1() { StubRoutines::initialize1(); }
+
 void stubRoutines_init2() { StubRoutines::initialize2(); }
 
 //

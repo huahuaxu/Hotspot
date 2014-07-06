@@ -45,6 +45,9 @@ PerfCounter*  RuntimeService::_thread_interrupt_signaled_count = NULL;
 PerfCounter*  RuntimeService::_interrupted_before_count = NULL;
 PerfCounter*  RuntimeService::_interrupted_during_count = NULL;
 
+/**
+ * 创建安全点/线程中断等相关计数器(从JVM性能统计数据内存区中分配计数器所需内存)
+ */
 void RuntimeService::init() {
   // Make sure the VM version is initialized
   Abstract_VM_Version::initialize();

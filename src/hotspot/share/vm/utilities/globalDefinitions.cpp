@@ -55,6 +55,9 @@ void basic_fatal(const char* msg) {
 
 // Something to help porters sleep at night
 
+/**
+ * 初始化基本数据类型
+ */
 void basic_types_init() {
 #ifdef ASSERT
 #ifdef _LP64
@@ -158,7 +161,7 @@ void basic_types_init() {
 
   // Set the size of basic types here (after argument parsing but before
   // stub generation).
-  if (UseCompressedOops) {
+  if (UseCompressedOops) {	//对象指针压缩
     // Size info for oops within java objects is fixed
     heapOopSize        = jintSize;
     LogBytesPerHeapOop = LogBytesPerInt;
@@ -177,10 +180,10 @@ void basic_types_init() {
 }
 
 
-// Map BasicType to signature character
+//基本类型对应的签名简称映射
 char type2char_tab[T_CONFLICT+1]={ 0, 0, 0, 0, 'Z', 'C', 'F', 'D', 'B', 'S', 'I', 'J', 'L', '[', 'V', 0, 0, 0};
 
-// Map BasicType to Java type name
+//基本类型对应的java类型名称映射
 const char* type2name_tab[T_CONFLICT+1] = {
   NULL, NULL, NULL, NULL,
   "boolean",
@@ -211,6 +214,7 @@ BasicType name2type(const char* name) {
 
 
 // Map BasicType to size in words
+//基本类型的大小映射(单位:字)
 int type2size[T_CONFLICT+1]={ -1, 0, 0, 0, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 0, 1, 1, -1};
 
 BasicType type2field[T_CONFLICT+1] = {

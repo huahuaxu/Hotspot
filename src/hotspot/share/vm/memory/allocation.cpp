@@ -184,10 +184,13 @@ bool warn_new_operator = false; // see vm_main
 
 // MT-safe pool of chunks to reduce malloc/free thrashing
 // NB: not using Mutex because pools are used before Threads are initialized
+/**
+ * 内存块缓存池(内存块直接来源于操作系统)
+ */
 class ChunkPool {
   Chunk*       _first;        // first cached Chunk; its first word points to next chunk
-  size_t       _num_chunks;   // number of unused chunks in pool
-  size_t       _num_used;     // number of chunks currently checked out
+  size_t       _num_chunks;   // 缓存池中空闲的内存块数量
+  size_t       _num_used;     // 被使用的内存块数量
   const size_t _size;         // size of each chunk (must be uniform)
 
   // Our three static pools
@@ -195,7 +198,7 @@ class ChunkPool {
   static ChunkPool* _medium_pool;
   static ChunkPool* _small_pool;
 
-  // return first element or null
+  //从当前缓存池中获取一个内存块
   void* get_first() {
     Chunk* c = _first;
     if (_first) {
@@ -209,24 +212,27 @@ class ChunkPool {
   // All chunks in a ChunkPool has the same size
    ChunkPool(size_t size) : _size(size) { _first = NULL; _num_chunks = _num_used = 0; }
 
-  // Allocate a new chunk from the pool (might expand the pool)
+  //优先从缓存池中获取一块内存,失败则向操作系统申请
   void* allocate(size_t bytes) {
     assert(bytes == _size, "bad size");
     void* p = NULL;
+
     { ThreadCritical tc;
       _num_used++;
       p = get_first();
       if (p == NULL) p = os::malloc(bytes);
     }
+
     if (p == NULL)
       vm_exit_out_of_memory(bytes, "ChunkPool::allocate");
 
     return p;
   }
 
-  // Return a chunk to the pool
+  //释放一块内存至缓存池中
   void free(Chunk* chunk) {
     assert(chunk->length() + Chunk::aligned_overhead_size() == _size, "bad size");
+
     ThreadCritical tc;
     _num_used--;
 
@@ -236,7 +242,7 @@ class ChunkPool {
     _num_chunks++;
   }
 
-  // Prune the pool
+  //释放缓存池中多余的内存块
   void free_all_but(size_t n) {
     // if we have more than n chunks, free all of them
     ThreadCritical tc;
@@ -266,30 +272,39 @@ class ChunkPool {
   static ChunkPool* medium_pool() { assert(_medium_pool != NULL, "must be initialized"); return _medium_pool; }
   static ChunkPool* small_pool()  { assert(_small_pool  != NULL, "must be initialized"); return _small_pool;  }
 
+  /**
+   * 初始化三个内存块缓存池
+   */
   static void initialize() {
     _large_pool  = new ChunkPool(Chunk::size        + Chunk::aligned_overhead_size());
     _medium_pool = new ChunkPool(Chunk::medium_size + Chunk::aligned_overhead_size());
     _small_pool  = new ChunkPool(Chunk::init_size   + Chunk::aligned_overhead_size());
   }
 
+  /**
+   * 清理三个内存块缓存池中多余的内存块
+   */
   static void clean() {
     enum { BlocksToKeep = 5 };
+
      _small_pool->free_all_but(BlocksToKeep);
      _medium_pool->free_all_but(BlocksToKeep);
      _large_pool->free_all_but(BlocksToKeep);
   }
 };
 
+//大内存块缓存池
 ChunkPool* ChunkPool::_large_pool  = NULL;
+//中等内存块缓存池
 ChunkPool* ChunkPool::_medium_pool = NULL;
+//小内存块缓存池
 ChunkPool* ChunkPool::_small_pool  = NULL;
 
 void chunkpool_init() {
   ChunkPool::initialize();
 }
 
-void
-Chunk::clean_chunk_pool() {
+void Chunk::clean_chunk_pool() {
   ChunkPool::clean();
 }
 
@@ -298,11 +313,16 @@ Chunk::clean_chunk_pool() {
 // ChunkPoolCleaner implementation
 //
 
+/**
+ * 周期性清理三个内存块缓存池任务
+ */
 class ChunkPoolCleaner : public PeriodicTask {
   enum { CleaningInterval = 5000 };      // cleaning interval in ms
 
  public:
    ChunkPoolCleaner() : PeriodicTask(CleaningInterval) {}
+
+   //执行一次清理任务
    void task() {
      ChunkPool::clean();
    }
@@ -311,6 +331,9 @@ class ChunkPoolCleaner : public PeriodicTask {
 //--------------------------------------------------------------------------------------
 // Chunk implementation
 
+/**
+ * 从分级缓存池中获取内存块
+ */
 void* Chunk::operator new(size_t requested_size, size_t length) {
   // requested_size is equal to sizeof(Chunk) but in order for the arena
   // allocations to come out aligned as expected the size must be aligned
@@ -331,6 +354,9 @@ void* Chunk::operator new(size_t requested_size, size_t length) {
   }
 }
 
+/**
+ * 将内存块释放到分级缓存池中
+ */
 void Chunk::operator delete(void* p) {
   Chunk* c = (Chunk*)p;
   switch (c->length()) {

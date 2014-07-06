@@ -81,11 +81,12 @@ void ostream_exit();
 
 /**
  * 初始化全局数据结构
- * 	1.Java基本类型系统
- * 	2.全局时间缓冲区(事件队列)
- * 	3.全局锁
- * 	4.初始化ChunkPool
- * 	5.JVM性能统计数据区
+ * 	1.检查ThreadShadow类的_pending_exception属性是否被子类Thread覆盖
+ * 	2.Java基本类型系统
+ * 	3.全局事件缓冲区(事件队列)
+ * 	4.全局锁
+ * 	5.内存块缓存池ChunkPool
+ * 	6.JVM性能统计数据区
  */
 void vm_init_globals() {
   check_ThreadShadow();
@@ -98,15 +99,20 @@ void vm_init_globals() {
 
 /**
  * 初始化JVM的全局组件：
- * 1).各类管理器
+ * 1).各类管理API的计数器
  * 2).JVM的操作码(指令集)
  * 3).启动类装载器
- * 4)
+ * 4).初始化代码缓存器
+ * 5).JVM版本初始化
+ * 6).操作系统抽象层初始化
+ * 7).JVM执行引擎第一次初始化
+ * 8).初始化内存堆管理器
+ * 9).
  */
 jint init_globals() {
   HandleMark hm;
 
-  //初始化各类管理器
+  //初始化各类管理器的计数器
   management_init();
 
   //初始化JVM的操作码(指令集)
@@ -118,11 +124,13 @@ jint init_globals() {
   //初始化代码缓存器
   codeCache_init();
 
+  //JVM版本初始化
   VM_Version_init();
 
+  //操作系统抽象层初始化(当前版本是个空方法)
   os_init_globals();
 
-  //初始化JVM执行引擎
+  //JVM执行引擎第一次初始化
   stubRoutines_init1();
 
   //初始化内存堆管理器
@@ -151,6 +159,7 @@ jint init_globals() {
   //初始化引用(软引用/弱引用/虚引用)管理器
   referenceProcessor_init();
   jni_handles_init();
+
 #ifndef VM_STRUCTS_KERNEL
   vmStructs_init();
 #endif // VM_STRUCTS_KERNEL
@@ -168,6 +177,7 @@ jint init_globals() {
 
   javaClasses_init();   // must happen after vtable initialization
 
+  //JVM执行引擎第一次初始化
   stubRoutines_init2(); // note: StubRoutines need 2-phase init
 
   // Although we'd like to, we can't easily do a heap verify

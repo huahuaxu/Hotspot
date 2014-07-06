@@ -61,6 +61,7 @@ void PeriodicTask::print_intervals() {
 }
 #endif
 
+//开始执行当前应该被执行的定时任务
 void PeriodicTask::real_time_tick(size_t delay_time) {
 #ifndef PRODUCT
   if (ProfilerCheckIntervals) {
@@ -73,6 +74,7 @@ void PeriodicTask::real_time_tick(size_t delay_time) {
     _intervalHistogram[ms]++;
   }
 #endif
+
   int orig_num_tasks = _num_tasks;
   for(int index = 0; index < _num_tasks; index++) {
     _tasks[index]->execute_if_pending(delay_time);
@@ -81,6 +83,7 @@ void PeriodicTask::real_time_tick(size_t delay_time) {
       orig_num_tasks = _num_tasks;
     }
   }
+
 }
 
 
@@ -98,20 +101,32 @@ PeriodicTask::~PeriodicTask() {
     disenroll();
 }
 
+/**
+ * 判断当前定时任务是否已在(全局)定时任务队列中
+ */
 bool PeriodicTask::is_enrolled() const {
   for(int index = 0; index < _num_tasks; index++)
     if (_tasks[index] == this) return true;
   return false;
 }
 
+/**
+ * 将当前定时任务加入(全局)定时任务队列中,如果定时任务已满,则出错
+ */
 void PeriodicTask::enroll() {
   assert(WatcherThread::watcher_thread() == NULL, "dynamic enrollment of tasks not yet supported");
 
-  if (_num_tasks == PeriodicTask::max_tasks)
+  if (_num_tasks == PeriodicTask::max_tasks){
+	printf("%s[%d] [tid: %lu]: 定时任务队列已满...\n", __FILE__, __LINE__, pthread_self());
     fatal("Overflow in PeriodicTask table");
+  }
+
   _tasks[_num_tasks++] = this;
 }
 
+/**
+ * 从(全局)定时任务队列中删除当前定时任务
+ */
 void PeriodicTask::disenroll() {
   assert(WatcherThread::watcher_thread() == NULL ||
          Thread::current() == WatcherThread::watcher_thread(),
@@ -119,7 +134,8 @@ void PeriodicTask::disenroll() {
 
   int index;
   for(index = 0; index < _num_tasks && _tasks[index] != this; index++);
-  if (index == _num_tasks) return;
+  if (index == _num_tasks) return;	//当前定时任务不在定时任务队列中
+
   _num_tasks--;
   for (; index < _num_tasks; index++) {
     _tasks[index] = _tasks[index+1];

@@ -87,6 +87,7 @@ void ServiceThread::service_thread_entry(JavaThread* jt, TRAPS) {
     bool has_jvmti_events = false;
     bool has_gc_notification_event = false;
     JvmtiDeferredEvent jvmti_event;
+
     {
       // Need state transition ThreadBlockInVM so that this thread
       // will be handled by safepoint correctly when this thread is

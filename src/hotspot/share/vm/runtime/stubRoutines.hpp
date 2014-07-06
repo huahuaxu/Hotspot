@@ -99,6 +99,7 @@ class StubRoutines: AllStatic {
 
   // Dependencies
   friend class StubGenerator;
+
 #ifdef TARGET_ARCH_MODEL_x86_32
 # include "stubRoutines_x86_32.hpp"
 #endif

@@ -77,6 +77,7 @@ void Abstract_VM_Version::initialize() {
   if (_initialized) {
     return;
   }
+
   char* vm_version = os::strdup(HOTSPOT_RELEASE_VERSION);
 
   // Expecting the next vm_version format:

@@ -134,7 +134,9 @@ public:
                     char* requested_address);
 };
 
-// Class encapsulating behavior specific memory space for Code
+/**
+ * 代码段预定物理内存空间
+ */
 class ReservedCodeSpace : public ReservedSpace {
  public:
   // Constructor

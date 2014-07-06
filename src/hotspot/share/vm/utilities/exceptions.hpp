@@ -57,6 +57,9 @@ class JavaCallArguments;
 // field of the Thread class w/o having access to the Thread's interface (for
 // include hierachy reasons).
 
+/**
+ * Thread类的父类,用于存储线程当前正在/未处理的异常
+ */
 class ThreadShadow: public CHeapObj {
   friend class VMStructs;
 

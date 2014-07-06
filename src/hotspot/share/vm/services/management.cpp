@@ -71,13 +71,22 @@ klassOop Management::_gcInfo_klass = NULL;
 jmmOptionalSupport Management::_optional_support = {0};
 TimeStamp Management::_stamp;
 
+/**
+ * 管理API的计数器
+ */
 void management_init() {
   Management::init();
+
   ThreadService::init();
+
   RuntimeService::init();
+
   ClassLoadingService::init();
 }
 
+/**
+ * 创建JVM创建时间/功能支持等相关计数器(从JVM性能统计数据内存区中分配计数器所需内存)
+ */
 void Management::init() {
   EXCEPTION_MARK;
 
@@ -85,20 +94,18 @@ void Management::init() {
   // They are created even if -XX:-UsePerfData is set and in
   // that case, they will be allocated on C heap.
 
-  _begin_vm_creation_time =
-            PerfDataManager::create_variable(SUN_RT, "createVmBeginTime",
+  _begin_vm_creation_time = PerfDataManager::create_variable(SUN_RT, "createVmBeginTime",
                                              PerfData::U_None, CHECK);
 
-  _end_vm_creation_time =
-            PerfDataManager::create_variable(SUN_RT, "createVmEndTime",
+  _end_vm_creation_time = PerfDataManager::create_variable(SUN_RT, "createVmEndTime",
                                              PerfData::U_None, CHECK);
 
-  _vm_init_done_time =
-            PerfDataManager::create_variable(SUN_RT, "vmInitDoneTime",
+  _vm_init_done_time = PerfDataManager::create_variable(SUN_RT, "vmInitDoneTime",
                                              PerfData::U_None, CHECK);
 
   // Initialize optional support
-  _optional_support.isLowMemoryDetectionSupported = 1;
+  _optional_support.isLowMemoryDetectionSupported = 1;	//支持低内存检测
+
   _optional_support.isCompilationTimeMonitoringSupported = 1;
   _optional_support.isThreadContentionMonitoringSupported = 1;
 
@@ -112,10 +119,12 @@ void Management::init() {
 
   _optional_support.isBootClassPathSupported = 1;
   _optional_support.isObjectMonitorUsageSupported = 1;
+
 #ifndef SERVICES_KERNEL
   // This depends on the heap inspector
   _optional_support.isSynchronizerUsageSupported = 1;
 #endif // SERVICES_KERNEL
+
   _optional_support.isThreadAllocatedMemorySupported = 1;
 
   // Registration of the diagnostic commands
@@ -125,7 +134,7 @@ void Management::init() {
 
 void Management::initialize(TRAPS) {
   // Start the service thread
-  printf("%s[%d] [tid: %lu]: 试图创建[Service Thread]线程...\n", __FILE__, __LINE__, pthread_self());
+  printf("%s[%d] [tid: %lu]: 试图创建低内存检测线程[Service Thread]...\n", __FILE__, __LINE__, pthread_self());
   ServiceThread::initialize();
 
   if (ManagementServer) {
@@ -137,6 +146,8 @@ void Management::initialize(TRAPS) {
     Handle loader = Handle(THREAD, SystemDictionary::java_system_loader());
     klassOop k = SystemDictionary::resolve_or_fail(vmSymbols::sun_management_Agent(), loader, Handle(), true, CHECK);
     instanceKlassHandle ik (THREAD, k);
+
+    printf("%s[%d] [tid: %lu]: 试图执行方法sun.management.Agent.startAgent()...\n", __FILE__, __LINE__, pthread_self());
 
     JavaValue result(T_VOID);
     JavaCalls::call_static(&result,

@@ -102,9 +102,11 @@ class os: AllStatic {
  public:
   static void init(void);                      // Called before command line parsing
   static jint init_2(void);                    // Called after command line parsing
+
   static void init_globals(void) {             // Called from init_globals() in init.cpp
     init_globals_ext();
   }
+
   static void init_3(void);                    // Called at the end of vm init
 
   // File names are case-insensitive on windows only

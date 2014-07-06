@@ -1661,6 +1661,12 @@ void os::abort(bool dump_core) {
 }
 
 // Die immediately, no exit hook, no abort hook, no cleanup.
+/**
+ *
+ * 函数原型:	void abort(void);
+ * 函数说明:	异常终止一个进程.中止当前进程,返回一个错误代码.错误代码的缺省值是3.
+ * 			该函数产生SIGABRT信号并发送给自己,默认情况下导致程序终止不成功的终止错误代码返回到主机环境.
+ */
 void os::die() {
   // _exit() on LinuxThreads only kills current thread
   ::abort();
@@ -2551,12 +2557,14 @@ bool os::commit_memory(char* addr, size_t size, bool exec) {
   int prot = exec ? PROT_READ|PROT_WRITE|PROT_EXEC : PROT_READ|PROT_WRITE;
   uintptr_t res = (uintptr_t) ::mmap(addr, size, prot,
                                    MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0);
+
   if (res != (uintptr_t) MAP_FAILED) {
     if (UseNUMAInterleaving) {
       numa_make_global(addr, size);
     }
     return true;
   }
+
   return false;
 }
 
@@ -2751,6 +2759,7 @@ bool os::Linux::libnuma_init() {
       }
     }
   }
+
   return false;
 }
 
@@ -2916,7 +2925,7 @@ static address _highest_vm_reserved_address = NULL;
  *
  * 函数原型: void *mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset);
  * 函数说明:
- * 返回值:   成功执行时，返回被映射区的指针;失败时)返回MAP_FAILED[其值为(void *)-1].errno被设为以下的某个值:
+ * 返回值:   成功执行时,返回被映射区的指针;失败时,返回MAP_FAILED[其值为(void *)-1].errno被设为以下的某个值:
  * 				EACCES：访问出错
  * 				EAGAIN：文件已被锁定，或者太多的内存已被锁定
  * 				EBADF：fd不是有效的文件描述词
@@ -2928,14 +2937,14 @@ static address _highest_vm_reserved_address = NULL;
  * 				ETXTBSY：已写的方式打开文件，同时指定MAP_DENYWRITE标志
  * 				SIGSEGV：试着向只读区写入
  * 				SIGBUS：试着访问不属于进程的内存区
- * 参数说明:  start：映射区的开始地址，设置为0时表示由系统决定映射区的起始地址。
- * 			 length：映射区的长度。长度单位是以内存页为单位
- * 			 prot：期望的内存保护标志，不能与文件的打开模式冲突。是以下的某个值，可以通过or运算合理地组合在一起
+ * 参数说明:   start：映射区的开始地址，设置为0时表示由系统决定映射区的起始地址。
+ * 			length：映射区的长度。长度单位是以内存页为单位
+ * 			prot：期望的内存保护标志，不能与文件的打开模式冲突。是以下的某个值，可以通过or运算合理地组合在一起
  * 			 		PROT_EXEC //页内容可以被执行
  * 			 		PROT_READ //页内容可以被读取
  * 			 		PROT_WRITE //页可以被写入
  * 			 		PROT_NONE //页不可访问
- * 			 flags：指定映射对象的类型，映射选项和映射页是否可以共享。它的值可以是一个或者多个以下位的组合体
+ * 			flags：指定映射对象的类型，映射选项和映射页是否可以共享。它的值可以是一个或者多个以下位的组合体
  * 			 		MAP_FIXED 		//使用指定的映射起始地址，如果由start和len参数指定的内存区重叠于现存的映射空间，
  * 			 						重叠部分将会被丢弃。如果指定的起始地址不可用，操作将会失败。并且起始地址必须落在页的边界上。
  * 			 		MAP_SHARED 		//与其它所有映射这个对象的进程共享映射空间。对共享区的写入，相当于输出到文件。

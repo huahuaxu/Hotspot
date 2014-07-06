@@ -108,7 +108,9 @@ void AbstractInterpreter::print() {
   tty->cr();
 }
 
-
+/**
+ * 初始化字节码解释器
+ */
 void interpreter_init() {
 
   printf("%s[%d] [tid: %lu]: 开始初始化JVM的字节码解释器..\n", __FILE__, __LINE__, pthread_self());

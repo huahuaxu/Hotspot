@@ -703,7 +703,9 @@ public:
   uint id() const                       { return _id; }
 };
 
-// A single WatcherThread is used for simulating timer interrupts.
+/**
+ * 定时(周期)任务执行线程,用来执行JVM中的定时(周期)任务
+ */
 class WatcherThread: public Thread {
   friend class VMStructs;
  public:
@@ -712,7 +714,8 @@ class WatcherThread: public Thread {
  private:
   static WatcherThread* _watcher_thread;
 
-  volatile static bool _should_terminate; // updated without holding lock
+  volatile static bool _should_terminate; //当前线程是否应该终止
+
  public:
   enum SomeConstants {
     delay_interval = 10                          // interrupt delay in milliseconds
@@ -726,6 +729,7 @@ class WatcherThread: public Thread {
 
   // Printing
   char* name() const { return (char*)"VM Periodic Task Thread"; }
+
   void print_on(outputStream* st) const;
   void print() const { print_on(tty); }
 

@@ -215,6 +215,7 @@ BufferBlob* BufferBlob::create(const char* name, int buffer_size) {
     MutexLockerEx mu(CodeCache_lock, Mutex::_no_safepoint_check_flag);
     blob = new (size) BufferBlob(name, size);
   }
+
   // Track memory usage statistic after releasing CodeCache_lock
   MemoryService::track_code_cache_memory_usage();
 
@@ -242,7 +243,7 @@ BufferBlob* BufferBlob::create(const char* name, CodeBuffer* cb) {
   return blob;
 }
 
-
+//从代码缓存器中申请内存
 void* BufferBlob::operator new(size_t s, unsigned size) {
   void* p = CodeCache::allocate(size);
   return p;

@@ -59,6 +59,9 @@ ThreadDumpResult* ThreadService::_threaddump_list = NULL;
 
 static const int INITIAL_ARRAY_SIZE = 10;
 
+/**
+ * 初始化各类Java线程数计数器(从JVM性能统计数据内存区中分配计数器所需内存)
+ */
 void ThreadService::init() {
   EXCEPTION_MARK;
 
@@ -66,20 +69,16 @@ void ThreadService::init() {
   // They are created even if -XX:-UsePerfData is set and in
   // that case, they will be allocated on C heap.
 
-  _total_threads_count =
-                PerfDataManager::create_counter(JAVA_THREADS, "started",
+  _total_threads_count = PerfDataManager::create_counter(JAVA_THREADS, "started",
                                                 PerfData::U_Events, CHECK);
 
-  _live_threads_count =
-                PerfDataManager::create_variable(JAVA_THREADS, "live",
+  _live_threads_count = PerfDataManager::create_variable(JAVA_THREADS, "live",
                                                  PerfData::U_None, CHECK);
 
-  _peak_threads_count =
-                PerfDataManager::create_variable(JAVA_THREADS, "livePeak",
+  _peak_threads_count = PerfDataManager::create_variable(JAVA_THREADS, "livePeak",
                                                  PerfData::U_None, CHECK);
 
-  _daemon_threads_count =
-                PerfDataManager::create_variable(JAVA_THREADS, "daemon",
+  _daemon_threads_count = PerfDataManager::create_variable(JAVA_THREADS, "daemon",
                                                  PerfData::U_None, CHECK);
 
   if (os::is_thread_cpu_time_supported()) {
@@ -98,8 +97,7 @@ void ThreadService::reset_peak_thread_count() {
 
 void ThreadService::add_thread(JavaThread* thread, bool daemon) {
   // Do not count VM internal or JVMTI agent threads
-  if (thread->is_hidden_from_external_view() ||
-      thread->is_jvmti_agent_thread()) {
+  if (thread->is_hidden_from_external_view() || thread->is_jvmti_agent_thread()) {
     return;
   }
 

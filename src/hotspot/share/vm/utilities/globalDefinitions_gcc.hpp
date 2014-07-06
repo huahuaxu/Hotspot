@@ -304,6 +304,8 @@ inline int wcslen(const jchar* x) { return wcslen((const wchar_t*)x); }
 #ifdef offsetof
 # undef offsetof
 #endif
+
+//计算某一个对象属性的存储偏移位置
 #define offsetof(klass,field) offset_of(klass,field)
 
 #endif // SHARE_VM_UTILITIES_GLOBALDEFINITIONS_GCC_HPP

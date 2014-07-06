@@ -926,15 +926,12 @@ static void mmap_attach_shared(const char* user, int vmid, PerfMemory::PerfMemor
 
 
 
-// create the PerfData memory region
-//
-// This method creates the memory region used to store performance
-// data for the JVM. The memory may be created in standard or
-// shared memory.
-//
+/**
+ * 向操作系统申请JVM性能数据内存存储区
+ */
 void PerfMemory::create_memory_region(size_t size) {
 
-  if (PerfDisableSharedMem) {
+  if (PerfDisableSharedMem) {	//非共享内存方式
     // do not share the memory for the performance data.
     _start = create_standard_memory(size);
   }
@@ -948,6 +945,7 @@ void PerfMemory::create_memory_region(size_t size) {
       if (PrintMiscellaneous && Verbose) {
         warning("Reverting to non-shared PerfMemory region.\n");
       }
+
       PerfDisableSharedMem = true;
       _start = create_standard_memory(size);
     }
