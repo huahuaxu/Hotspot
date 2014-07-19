@@ -1532,6 +1532,9 @@ address AbstractInterpreterGenerator::generate_method_entry(AbstractInterpreter:
 
 // These should never be compiled since the interpreter will prefer
 // the compiled version to the intrinsic version.
+/**
+ * 数学方法由解释器负责本地编译,即时编译器应该放弃这些方法的编译
+ */
 bool AbstractInterpreter::can_be_compiled(methodHandle m) {
   switch (method_kind(m)) {
     case Interpreter::java_lang_math_sin     : // fall thru

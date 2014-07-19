@@ -33,7 +33,7 @@
 # define __ _masm->
 
 void TemplateInterpreter::initialize() {
-  if (_code != NULL) return;
+  if (_code != NULL) return;	//解释器已经初始化
 
   // assertions
   assert((int)Bytecodes::number_of_codes <= (int)DispatchTable::length, "dispatch table too small");
@@ -41,15 +41,19 @@ void TemplateInterpreter::initialize() {
   //
   AbstractInterpreter::initialize();
 
-  //初始化字节操作码的定义表
+  //初始化字节操作码的模板表
   TemplateTable::initialize();
 
   // generate interpreter
   { ResourceMark rm;
     TraceTime timer("Interpreter generation", TraceStartupTime);
+
     int code_size = InterpreterCodeSize;
     NOT_PRODUCT(code_size *= 4;)  // debug uses extra interpreter code space
+
+    printf("%s[%d] [tid: %lu]:试图创建桩代码队列(存储所有java字节码对应机器码指令段)..\n", __FILE__, __LINE__, pthread_self());
     _code = new StubQueue(new InterpreterCodeletInterface, code_size, NULL, "Interpreter");
+
     InterpreterGenerator g(_code);
     if (PrintInterpreter) print();
   }

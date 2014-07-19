@@ -220,6 +220,7 @@ class CompilationLog : public StringEventLog {
   }
 };
 
+//即时编译日志记录器
 static CompilationLog* _compilation_log = NULL;
 
 void compileBroker_init() {
@@ -748,6 +749,7 @@ void CompileBroker::compilation_init() {
 
   // Start the CompilerThreads
   init_compiler_threads(c1_count, c2_count);
+
   // totalTime performance counter is always created as it is required
   // by the implementation of java.lang.management.CompilationMBean.
   {
@@ -757,7 +759,7 @@ void CompileBroker::compilation_init() {
                                                  PerfData::U_Ticks, CHECK);
   }
 
-
+  //与即时编译器相关的性能统计数据
   if (UsePerfData) {
 
     EXCEPTION_MARK;
@@ -857,9 +859,9 @@ void CompileBroker::compilation_init() {
 CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQueue* queue, CompilerCounters* counters, TRAPS) {
   CompilerThread* compiler_thread = NULL;
 
-  klassOop k =
-    SystemDictionary::resolve_or_fail(vmSymbols::java_lang_Thread(),
+  klassOop k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_Thread(),
                                       true, CHECK_0);
+
   instanceKlassHandle klass (THREAD, k);
   instanceHandle thread_oop = klass->allocate_instance_handle(CHECK_0);
   Handle string = java_lang_String::create_from_str(name, CHECK_0);
@@ -877,7 +879,8 @@ CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQue
 
   {
     MutexLocker mu(Threads_lock, THREAD);
-    printf("%s[%d] [tid: %lu]: 开始创建[%s]线程...\n", __FILE__, __LINE__, pthread_self(), name);
+
+    printf("%s[%d] [tid: %lu]: 开始创建编译线程[%s]...\n", __FILE__, __LINE__, pthread_self(), name);
     compiler_thread = new CompilerThread(queue, counters);
     // At this point the new CompilerThread data-races with this startup
     // thread (which I believe is the primoridal thread and NOT the VM
@@ -937,11 +940,17 @@ CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQue
 // CompileBroker::init_compiler_threads
 //
 // Initialize the compilation queue
+/**
+ * 初始化编译器工作线程及对应的任务队列
+ */
 void CompileBroker::init_compiler_threads(int c1_compiler_count, int c2_compiler_count) {
   EXCEPTION_MARK;
 #if !defined(ZERO) && !defined(SHARK)
   assert(c2_compiler_count > 0 || c1_compiler_count > 0, "No compilers?");
 #endif // !ZERO && !SHARK
+
+  printf("%s[%d] [tid: %lu]: 开始创建C1/C2编译器的工作线程(C1:%d, C2: %d)及任务队列...\n", __FILE__, __LINE__, pthread_self(), c1_compiler_count, c2_compiler_count);
+
   if (c2_compiler_count > 0) {
     _c2_method_queue  = new CompileQueue("C2MethodQueue",  MethodCompileQueue_lock);
   }
@@ -1162,7 +1171,9 @@ void CompileBroker::compile_method_base(methodHandle method,
   }
 }
 
-
+/**
+ * 本地化编译一个方法
+ */
 nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
                                        int comp_level,
                                        methodHandle hot_method, int hot_count,
@@ -1512,6 +1523,9 @@ void CompileBroker::wait_for_completion(CompileTask* task) {
 // CompileBroker::compiler_thread_loop
 //
 // The main loop run by a CompilerThread.
+/**
+ * 编译线程的核心工作逻辑
+ */
 void CompileBroker::compiler_thread_loop() {
   CompilerThread* thread = CompilerThread::current();
   CompileQueue* queue = thread->queue();
@@ -1534,6 +1548,7 @@ void CompileBroker::compiler_thread_loop() {
   if (LogCompilation) {
     init_compiler_thread_log();
   }
+
   CompileLog* log = thread->log();
   if (log != NULL) {
     log->begin_elem("start_compile_thread thread='" UINTX_FORMAT "' process='%d'",
@@ -1556,6 +1571,7 @@ void CompileBroker::compiler_thread_loop() {
         NMethodSweeper::handle_full_code_cache(false);
       }
 
+      //从队列中获取一个编译任务
       CompileTask* task = queue->get();
 
       // Give compiler threads an extra quanta.  They tend to be bursty and

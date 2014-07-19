@@ -138,6 +138,11 @@ double (* StubRoutines::_intrinsic_tan   )(double) = NULL;
 
 extern void StubGenerator_generate(CodeBuffer* code, bool all); // only interface to generators
 
+/**
+ * 第一次初始化执行引擎:
+ * 	(1).创建1号代码缓存器
+ * 	(2).生成基本函数代码段,并存储到号代码缓存器中
+ */
 void StubRoutines::initialize1() {
   if (_code1 == NULL) {
     ResourceMark rm;

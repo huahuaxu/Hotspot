@@ -262,7 +262,9 @@ static MethodMatcher* add_predicate(OracleCommand command,
   assert(command != OptionCommand, "must use add_option_string");
   if (command == LogCommand && !LogCompilation && lists[LogCommand] == NULL)
     tty->print_cr("Warning:  +LogCompilation must be enabled in order for individual methods to be logged.");
+
   lists[command] = new MethodMatcher(class_name, c_mode, method_name, m_mode, signature, lists[command]);
+
   return lists[command];
 }
 
@@ -442,7 +444,7 @@ static bool scan_line(const char * line,
 
 void CompilerOracle::parse_from_line(char* line) {
   if (line[0] == '\0') return;
-  if (line[0] == '#')  return;
+  if (line[0] == '#')  return;	//这一行被注释
 
   bool have_colon = (strstr(line, "::") != NULL);
   for (char* lp = line; *lp != '\0'; lp++) {
@@ -467,6 +469,7 @@ void CompilerOracle::parse_from_line(char* line) {
 
   char* original_line = line;
   int bytes_read;
+  //解析编译命令
   OracleCommand command = parse_command_name(line, &bytes_read);
   line += bytes_read;
 
@@ -497,8 +500,8 @@ void CompilerOracle::parse_from_line(char* line) {
 
   if (scan_line(line, class_name, &c_match, method_name, &m_match, &bytes_read, error_msg)) {
     EXCEPTION_MARK;
-    Symbol* c_name = SymbolTable::new_symbol(class_name, CHECK);
-    Symbol* m_name = SymbolTable::new_symbol(method_name, CHECK);
+    Symbol* c_name = SymbolTable::new_symbol(class_name, CHECK);	//方法所在的类全限定名
+    Symbol* m_name = SymbolTable::new_symbol(method_name, CHECK);	//方法名
     Symbol* signature = NULL;
 
     line += bytes_read;
@@ -567,8 +570,20 @@ bool CompilerOracle::has_command_file() {
 
 bool CompilerOracle::_quiet = false;
 
+/**
+ * 从文件中解析编译命令
+ *
+ * ****************************************************************************
+ * 函数原型:	FILE* fopen(const char *path, const char *mode);
+ * 函数说明:	打开一个文件
+ * 函数返回:	文件顺利打开后,指向该流的文件指针就会被返回.如果文件打开失败则返回NULL,并把错误代码存在errno中
+ * 参数说明:
+ */
 void CompilerOracle::parse_from_file() {
   assert(has_command_file(), "command file must be specified");
+
+  printf("%s[%d] [tid: %lu]: 开始解析编译命令文件: %s...\n", __FILE__, __LINE__, pthread_self(), cc_file());
+
   FILE* stream = fopen(cc_file(), "rt");
   if (stream == NULL) return;
 
@@ -597,7 +612,7 @@ void CompilerOracle::parse_from_string(const char* str, void (*parse_line)(char*
   const char* sp = str;
   int  c = *sp++;
   while (c != '\0') {
-    if (c == '\n') {
+    if (c == '\n') {	//抽出一行解析
       token[pos++] = '\0';
       parse_line(token);
       pos = 0;
@@ -606,8 +621,9 @@ void CompilerOracle::parse_from_string(const char* str, void (*parse_line)(char*
     }
     c = *sp++;
   }
+
   token[pos++] = '\0';
-  parse_line(token);
+  parse_line(token);	//解析最后一行
 }
 
 void CompilerOracle::append_comment_to_file(const char* message) {
@@ -633,10 +649,17 @@ void CompilerOracle::append_exclude_to_file(methodHandle method) {
   stream.cr();
 }
 
-
+/**
+ * 从JVM启动命令行加载特殊方法的本地化编译命令
+ */
 void compilerOracle_init() {
+
+  printf("%s[%d] [tid: %lu]: 解析编译命令,从 CompileCommand=%s...\n", __FILE__, __LINE__, pthread_self(), CompileCommand);
   CompilerOracle::parse_from_string(CompileCommand, CompilerOracle::parse_from_line);
+
+  printf("%s[%d] [tid: %lu]: 解析编译命令,从 CompileOnly=%s...\n", __FILE__, __LINE__, pthread_self(), CompileOnly);
   CompilerOracle::parse_from_string(CompileOnly, CompilerOracle::parse_compile_only);
+
   if (CompilerOracle::has_command_file()) {
     CompilerOracle::parse_from_file();
   } else {
@@ -647,6 +670,7 @@ void compilerOracle_init() {
               default_cc_file, default_cc_file);
     }
   }
+
   if (lists[PrintCommand] != NULL) {
     if (PrintAssembly) {
       warning("CompileCommand and/or %s file contains 'print' commands, but PrintAssembly is also enabled", default_cc_file);

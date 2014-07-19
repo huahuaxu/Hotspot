@@ -65,6 +65,8 @@
 StubQueue::StubQueue(StubInterface* stub_interface, int buffer_size,
                      Mutex* lock, const char* name) : _mutex(lock) {
   intptr_t size = round_to(buffer_size, 2*BytesPerWord);
+
+  printf("%s[%d] [tid: %lu]: 试图为桩代码队列[%s]申请 %lu bytes的存储空间..\n", __FILE__, __LINE__, pthread_self(), name, size);
   BufferBlob* blob = BufferBlob::create(name, size);
 
   if( blob == NULL) {
@@ -78,6 +80,7 @@ StubQueue::StubQueue(StubInterface* stub_interface, int buffer_size,
   _queue_begin     = 0;
   _queue_end       = 0;
   _number_of_stubs = 0;
+
   register_queue(this);
 }
 

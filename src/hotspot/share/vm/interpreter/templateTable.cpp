@@ -50,7 +50,9 @@ void Template::initialize(int flags, TosState tos_in, TosState tos_out, generato
 
 Bytecodes::Code Template::bytecode() const {
   int i = this - TemplateTable::_template_table;
-  if (i < 0 || i >= Bytecodes::number_of_codes) i = this - TemplateTable::_template_table_wide;
+
+  if (i < 0 || i >= Bytecodes::number_of_codes)
+	  i = this - TemplateTable::_template_table_wide;
   return Bytecodes::cast(i);
 }
 
@@ -59,6 +61,7 @@ void Template::generate(InterpreterMacroAssembler* masm) {
   // parameter passing
   TemplateTable::_desc = this;
   TemplateTable::_masm = masm;
+
   // code generation
   _gen(_arg);
   masm->flush();
@@ -187,6 +190,7 @@ void TemplateTable::def(Bytecodes::Code code, int flags, TosState in, TosState o
   const int disp = 1 << Template::does_dispatch_bit;
   const int clvm = 1 << Template::calls_vm_bit;
   const int iswd = 1 << Template::wide_bit;
+
   // determine which table to use
   bool is_wide = (flags & iswd) != 0;
   // make sure that wide instructions have a vtos entry point
@@ -195,8 +199,10 @@ void TemplateTable::def(Bytecodes::Code code, int flags, TosState in, TosState o
   // they all go with one table)
   assert(in == vtos || !is_wide, "wide instructions have vtos entry point only");
   Template* t = is_wide ? template_for_wide(code) : template_for(code);
+
   // setup entry
   t->initialize(flags, in, out, gen, arg);
+
   assert(t->bytecode() == code, "just checkin'");
 }
 
@@ -239,10 +245,13 @@ void TemplateTable::def(Bytecodes::Code code, int flags, TosState in, TosState o
   #define astore TemplateTable::astore
 #endif // TEMPLATE_TABLE_BUG
 
+/**
+ * 初始化模板表
+ */
 void TemplateTable::initialize() {
   if (_is_initialized) return;
 
-  printf("%s[%d] [tid: %lu]: 开始初始化JVM的字节码定义表..\n", __FILE__, __LINE__, pthread_self());
+  printf("%s[%d] [tid: %lu]: 开始初始化JVM的字节码模板表..\n", __FILE__, __LINE__, pthread_self());
 
   // Initialize table
   TraceTime timer("TemplateTable initialization", TraceStartupTime);
@@ -252,10 +261,14 @@ void TemplateTable::initialize() {
   // For better readability
   const char _    = ' ';
   const int  ____ = 0;
+
   const int  ubcp = 1 << Template::uses_bcp_bit;
   const int  disp = 1 << Template::does_dispatch_bit;
   const int  clvm = 1 << Template::calls_vm_bit;
   const int  iswd = 1 << Template::wide_bit;
+
+  printf("%s[%d] [tid: %lu]: 开始初始化所有java字节码的机器码生成模板..\n", __FILE__, __LINE__, pthread_self());
+
   //                                    interpr. templates
   // Java spec bytecodes                ubcp|disp|clvm|iswd  in    out   generator             argument
   def(Bytecodes::_nop                 , ____|____|____|____, vtos, vtos, nop                 ,  _           );
@@ -516,7 +529,7 @@ void TemplateTable::initialize() {
 
   def(Bytecodes::_shouldnotreachhere   , ____|____|____|____, vtos, vtos, shouldnotreachhere ,  _           );
 
-  // platform specific bytecodes
+  //初始化与平台相关的java字节码对应的机器码生成模板
   pd_initialize();
 
   _is_initialized = true;

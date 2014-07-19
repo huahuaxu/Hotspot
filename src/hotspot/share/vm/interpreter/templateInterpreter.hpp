@@ -79,6 +79,9 @@ class DispatchTable VALUE_OBJ_CLASS_SPEC {
   bool operator == (DispatchTable& y);                // for debugging only
 };
 
+/**
+ * 一种字节码解释器实现:	模板解释器(默认解释器)
+ */
 class TemplateInterpreter: public AbstractInterpreter {
   friend class VMStructs;
   friend class InterpreterMacroAssembler;

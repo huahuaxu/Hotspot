@@ -122,8 +122,11 @@ void InlineCacheBuffer::init_next_stub() {
 
 void InlineCacheBuffer::initialize() {
   if (_buffer != NULL) return; // already initialized
+
+  printf("%s[%d] [tid: %lu]: 开始创建编译桩代码队列[InlineCacheBuffer]...\n", __FILE__, __LINE__, pthread_self();
   _buffer = new StubQueue(new ICStubInterface, 10*K, InlineCacheBuffer_lock, "InlineCacheBuffer");
   assert (_buffer != NULL, "cannot allocate InlineCacheBuffer");
+
   init_next_stub();
 }
 
@@ -148,6 +151,7 @@ ICStub* InlineCacheBuffer::new_ic_stub() {
       Thread::send_async_exception(JavaThread::current()->threadObj(), exception);
     }
   }
+
   ShouldNotReachHere();
   return NULL;
 }

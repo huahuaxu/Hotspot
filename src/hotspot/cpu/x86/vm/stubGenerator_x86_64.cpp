@@ -3032,6 +3032,9 @@ class StubGenerator: public StubCodeGenerator {
   }
 
   // Initialization
+  /**
+   *生成基本函数的代码
+   */
   void generate_initial() {
     // Generates all stubs and initializes the entry points
 
@@ -3061,8 +3064,7 @@ class StubGenerator: public StubCodeGenerator {
     StubRoutines::_atomic_add_ptr_entry      = generate_atomic_add_ptr();
     StubRoutines::_fence_entry               = generate_orderaccess_fence();
 
-    StubRoutines::_handler_for_unsafe_access_entry =
-      generate_handler_for_unsafe_access();
+    StubRoutines::_handler_for_unsafe_access_entry = generate_handler_for_unsafe_access();
 
     // platform dependent
     StubRoutines::x86::_get_previous_fp_entry = generate_get_previous_fp();

@@ -3089,12 +3089,16 @@ klassOop JavaThread::security_get_caller_class(int depth) {
   return NULL;
 }
 
+/**
+ * 编译线程的核心工作方法入口
+ */
 static void compiler_thread_entry(JavaThread* thread, TRAPS) {
   assert(thread->is_Compiler_thread(), "must be compiler thread");
   CompileBroker::compiler_thread_loop();
 }
 
 // Create a CompilerThread
+//即时编译线程
 CompilerThread::CompilerThread(CompileQueue* queue, CompilerCounters* counters)
 : JavaThread(&compiler_thread_entry) {
   _env   = NULL;

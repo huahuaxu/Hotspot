@@ -189,6 +189,9 @@ VtableStub* VtableStubs::stub_containing(address pc) {
 }
 
 void vtableStubs_init() {
+
+  printf("%s[%d] [tid: %lu]: 开始初始化虚函数表...\n", __FILE__, __LINE__, pthread_self());
+
   VtableStubs::initialize();
 }
 

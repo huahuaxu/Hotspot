@@ -81,6 +81,7 @@ void AccessFlags::print_on(outputStream* st) const {
 
 #endif
 
+//检查(属性,方法)访问标记的位长
 void accessFlags_init() {
   assert(sizeof(AccessFlags) == sizeof(jint), "just checking size of flags");
 }

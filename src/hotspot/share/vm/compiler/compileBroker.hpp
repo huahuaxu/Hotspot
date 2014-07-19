@@ -36,6 +36,9 @@ class nmethodLocker;
 //
 // An entry in the compile queue.  It represents a pending or current
 // compilation.
+/**
+ * 编译任务
+ */
 class CompileTask : public CHeapObj {
   friend class VMStructs;
 
@@ -175,6 +178,9 @@ class CompilerCounters : public CHeapObj {
 // CompileQueue
 //
 // A list of CompileTasks.
+/**
+ * 编译任务队列
+ */
 class CompileQueue : public CHeapObj {
  private:
   const char* _name;
@@ -223,6 +229,9 @@ public:
 // Compilation
 //
 // The broker for all compilation requests.
+/**
+ * 编译请求收发器
+ */
 class CompileBroker: AllStatic {
  friend class Threads;
   friend class CompileTaskWrapper;
@@ -258,7 +267,7 @@ class CompileBroker: AllStatic {
   static CompileQueue* _c1_method_queue;
   static CompileTask* _task_free_list;
 
-  static GrowableArray<CompilerThread*>* _method_threads;
+  static GrowableArray<CompilerThread*>* _method_threads;	//编译线程集合
 
   // performance counters
   static PerfCounter* _perf_total_compilation;

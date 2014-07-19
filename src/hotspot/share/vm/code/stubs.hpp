@@ -152,6 +152,9 @@ class StubInterface: public CHeapObj {
 // A StubQueue maintains a queue of stubs.
 // Note: All sizes (spaces) are given in bytes.
 
+/**
+ * 桩代码队列:	内存区,存储了每一个java字节码对应的机器码指令段
+ */
 class StubQueue: public CHeapObj {
   friend class VMStructs;
  private:

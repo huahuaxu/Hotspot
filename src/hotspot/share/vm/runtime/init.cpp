@@ -107,7 +107,7 @@ void vm_init_globals() {
  * 6).操作系统抽象层初始化
  * 7).JVM执行引擎第一次初始化
  * 8).初始化内存堆管理器
- * 9).
+ * 9).初始化JVM字节码解释器
  */
 jint init_globals() {
   HandleMark hm;
@@ -142,31 +142,42 @@ jint init_globals() {
   //初始化JVM字节码解释器
   interpreter_init();  // before any methods loaded
 
+  //初始化调用计数器
   invocationCounter_init();  // before any methods loaded
 
+  //初始化标记清理器
   marksweep_init();
 
+  //检查(属性,方法)访问标记的表示位长
   accessFlags_init();
 
-  //
+  //初始化模板表
   templateTable_init();
 
   InterfaceSupport_init();
+
   SharedRuntime::generate_stubs();
 
   universe2_init();  // dependent on codeCache_init and stubRoutines_init1
 
   //初始化引用(软引用/弱引用/虚引用)管理器
   referenceProcessor_init();
+
   jni_handles_init();
 
 #ifndef VM_STRUCTS_KERNEL
   vmStructs_init();
 #endif // VM_STRUCTS_KERNEL
 
+  //初始化虚函数表
   vtableStubs_init();
+
+  //初始化编译桩代码队列
   InlineCacheBuffer_init();
+
+  //加载特殊方法的即时编译命令
   compilerOracle_init();
+  //确定即时编译策略
   compilationPolicy_init();
   compileBroker_init();
   VMRegImpl::set_regName();
@@ -177,7 +188,7 @@ jint init_globals() {
 
   javaClasses_init();   // must happen after vtable initialization
 
-  //JVM执行引擎第一次初始化
+  //JVM执行引擎第二次初始化
   stubRoutines_init2(); // note: StubRoutines need 2-phase init
 
   // Although we'd like to, we can't easily do a heap verify

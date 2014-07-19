@@ -78,7 +78,9 @@ void InterpreterCodelet::print_on(outputStream* st) const {
 
 //------------------------------------------------------------------------------------------------------------------------
 // Implementation of  platform independent aspects of Interpreter
-
+/**
+ * 初始化相关计数器
+ */
 void AbstractInterpreter::initialize() {
   if (_code != NULL) return;
 

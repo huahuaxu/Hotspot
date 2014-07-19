@@ -56,26 +56,30 @@ void compilationPolicy_init() {
 
   switch(CompilationPolicyChoice) {
   case 0:
+	printf("%s[%d] [tid: %lu]: 即时编译器策略: SimpleCompPolicy...\n", __FILE__, __LINE__, pthread_self());
     CompilationPolicy::set_policy(new SimpleCompPolicy());
     break;
 
   case 1:
 #ifdef COMPILER2
-    CompilationPolicy::set_policy(new StackWalkCompPolicy());
+	  printf("%s[%d] [tid: %lu]: 即时编译器策略: StackWalkCompPolicy...\n", __FILE__, __LINE__, pthread_self());
+	  CompilationPolicy::set_policy(new StackWalkCompPolicy());
 #else
     Unimplemented();
 #endif
     break;
   case 2:
 #ifdef TIERED
-    CompilationPolicy::set_policy(new SimpleThresholdPolicy());
+	  printf("%s[%d] [tid: %lu]: 即时编译器策略: SimpleThresholdPolicy...\n", __FILE__, __LINE__, pthread_self());
+	  CompilationPolicy::set_policy(new SimpleThresholdPolicy());
 #else
     Unimplemented();
 #endif
     break;
   case 3:
 #ifdef TIERED
-    CompilationPolicy::set_policy(new AdvancedThresholdPolicy());
+	  printf("%s[%d] [tid: %lu]: 即时编译器策略: AdvancedThresholdPolicy...\n", __FILE__, __LINE__, pthread_self());
+	  CompilationPolicy::set_policy(new AdvancedThresholdPolicy());
 #else
     Unimplemented();
 #endif
@@ -83,6 +87,7 @@ void compilationPolicy_init() {
   default:
     fatal("CompilationPolicyChoice must be in the range: [0-3]");
   }
+
   CompilationPolicy::policy()->initialize();
 }
 
@@ -105,8 +110,13 @@ bool CompilationPolicy::must_be_compiled(methodHandle m, int comp_level) {
 }
 
 // Returns true if m is allowed to be compiled
+/**
+ * 方法是否能够编译成本地机器码
+ */
 bool CompilationPolicy::can_be_compiled(methodHandle m, int comp_level) {
-  if (m->is_abstract()) return false;
+  if (m->is_abstract()) return false;	//抽象方法
+
+  //配置了不编译长方法,所以方法代码太长,放弃本地编译
   if (DontCompileHugeMethods && m->code_size() > HugeMethodLimit) return false;
 
   // Math intrinsics should never be compiled as this can lead to
@@ -115,9 +125,11 @@ bool CompilationPolicy::can_be_compiled(methodHandle m, int comp_level) {
   // production because the invocation counter can't be incremented
   // but we shouldn't expose the system to this problem in testing
   // modes.
-  if (!AbstractInterpreter::can_be_compiled(m)) {
+  if (!AbstractInterpreter::can_be_compiled(m)) {	//方法由解释器负责编译
     return false;
   }
+
+  //判断方法是否禁止了该编译级别
   if (comp_level == CompLevel_all) {
     return !m->is_not_compilable(CompLevel_simple) && !m->is_not_compilable(CompLevel_full_optimization);
   } else {
@@ -125,6 +137,9 @@ bool CompilationPolicy::can_be_compiled(methodHandle m, int comp_level) {
   }
 }
 
+/**
+ * 是否开启本地编译器
+ */
 bool CompilationPolicy::is_compilation_enabled() {
   // NOTE: CompileBroker::should_compile_new_jobs() checks for UseCompiler
   return !delay_compilation_during_startup() && CompileBroker::should_compile_new_jobs();

@@ -57,22 +57,24 @@
 // A Template describes the properties of a code template for a given bytecode
 // and provides a generator to generate the code template.
 
+/**
+ * 模板数据结构
+ */
 class Template VALUE_OBJ_CLASS_SPEC {
  private:
   enum Flags {
-    uses_bcp_bit,                                // set if template needs the bcp pointing to bytecode
-    does_dispatch_bit,                           // set if template dispatches on its own
-    calls_vm_bit,                                // set if template calls the vm
-    wide_bit                                     // set if template belongs to a wide instruction
+    uses_bcp_bit,                                // 是否需要bcp指针
+    does_dispatch_bit,                           // 是否在模板范围内进行转发
+    calls_vm_bit,                                // 是否需要调用JVM函数
+    wide_bit                                     // 是否wide指令
   };
 
   typedef void (*generator)(int arg);
 
-  int       _flags;                              // describes interpreter template properties (bcp unknown)
-  TosState  _tos_in;                             // tos cache state before template execution
-  TosState  _tos_out;                            // tos cache state after  template execution
-  generator _gen;                                // template code generator
-  int       _arg;                                // argument for template code generator
+  int       _flags;                              // 标记位
+  TosState  _tos_in;                             // 模板执行后栈顶状态
+  generator _gen;                                // 模板生成器(核心组件,是一个函数，定义了如何为特定的java机器字节码生成机器码的汇编指令模板)
+  int       _arg;                                // 模板生成器参数
 
   void      initialize(int flags, TosState tos_in, TosState tos_out, generator gen, int arg);
 
@@ -94,6 +96,9 @@ class Template VALUE_OBJ_CLASS_SPEC {
 // The TemplateTable defines all Templates and provides accessor functions
 // to get the template for a given bytecode.
 
+/**
+ * 模板表
+ */
 class TemplateTable: AllStatic {
  public:
   enum Operation { add, sub, mul, div, rem, _and, _or, _xor, shl, shr, ushr };

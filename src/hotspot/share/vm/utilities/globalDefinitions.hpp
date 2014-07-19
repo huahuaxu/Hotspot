@@ -751,14 +751,17 @@ enum MethodCompilation {
 };
 
 // Enumeration to distinguish tiers of compilation
+/**
+ * 多级编译器
+ */
 enum CompLevel {
   CompLevel_any               = -1,
   CompLevel_all               = -1,
-  CompLevel_none              = 0,         // Interpreter
-  CompLevel_simple            = 1,         // C1
-  CompLevel_limited_profile   = 2,         // C1, invocation & backedge counters
-  CompLevel_full_profile      = 3,         // C1, invocation & backedge counters + mdo
-  CompLevel_full_optimization = 4,         // C2 or Shark
+  CompLevel_none              = 0,         // 采用解释器解释执行,不采集性能数据,可以升级到CompLevel_simple
+  CompLevel_simple            = 1,         // 采用C1编译器,会把热点代码迅速的编译成本地代码,如果需要可以采集性能数据
+  CompLevel_limited_profile   = 2,         // 采用C2编译器,进行更耗时的优化,甚至可能根据第一级采集的性能数据采取激进的优化措施
+  CompLevel_full_profile      = 3,         // 采用C1编译器,采集性能数据进行优化
+  CompLevel_full_optimization = 4,         // 采用C2编译器,进行完全的优化
 
 #if defined(COMPILER2) || defined(SHARK)
   CompLevel_highest_tier      = CompLevel_full_optimization,  // pure C2 and tiered
