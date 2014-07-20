@@ -1693,7 +1693,12 @@ size_t os::lasterror(char *buf, size_t len) {
   return n;
 }
 
-intx os::current_thread_id() { return (intx)pthread_self(); }
+//获取当前线程id
+intx os::current_thread_id() {
+	return (intx)pthread_self();
+}
+
+//获取当前进程id
 int os::current_process_id() {
 
   // Under the old linux thread library, linux gives each thread
@@ -1723,6 +1728,7 @@ const char* os::dll_file_extension() { return ".so"; }
 // directory not the java application's temp directory, ala java.io.tmpdir.
 const char* os::get_temp_directory() { return "/tmp"; }
 
+//判断一个文件或目录是否存在
 static bool file_exists(const char* filename) {
   struct stat statbuf;
   if (filename == NULL || strlen(filename) == 0) {
@@ -1771,6 +1777,16 @@ void os::dll_build_name(char* buffer, size_t buflen,
   }
 }
 
+/**
+ *
+ *
+ * 函数原型:	char* getcwd(char *buffer ,size_t size);
+ * 函数说明:	获得当前工作目录,将工作目录保存在调用者提供的字符串中,字符串大小由用户分配
+ * 函数返回:	errno含义:
+ * 				EINVAL:size参数为0或者buffer 不是空指针
+ * 				ERANGE:size 参数小于当前工作目录长度
+ * 				EACCES:权限不够
+ */
 const char* os::get_current_directory(char *buf, int buflen) {
   return getcwd(buf, buflen);
 }

@@ -349,7 +349,9 @@ int methodOopDesc::extra_stack_words() {
   return extra_stack_entries() * Interpreter::stackElementSize;
 }
 
-
+/**
+ * 计算方法的入参所占空间的大小: 参数列表+[this]
+ */
 void methodOopDesc::compute_size_of_parameters(Thread *thread) {
   ArgumentSizeComputer asc(signature());
   set_size_of_parameters(asc.size() + (is_static() ? 0 : 1));
@@ -369,7 +371,9 @@ BasicType methodOopDesc::result_type() const {
   return rtf.type();
 }
 
-
+/**
+ * 判断方法是不是空方法(只有return指令)
+ */
 bool methodOopDesc::is_empty_method() const {
   return  code_size() == 1 && *code_base() == Bytecodes::_return;
 }
@@ -634,24 +638,31 @@ void methodOopDesc::set_signature_handler(address handler) {
   *signature_handler = handler;
 }
 
-
+/**
+ * 判断该方法当前是否不能被指定的编译器本地化编译
+ */
 bool methodOopDesc::is_not_compilable(int comp_level) const {
   if (is_method_handle_invoke()) {
     // compilers must recognize this method specially, or not at all
     return true;
   }
+
   if (number_of_breakpoints() > 0) {
     return true;
   }
+
   if (comp_level == CompLevel_any) {
     return is_not_c1_compilable() || is_not_c2_compilable();
   }
+
   if (is_c1_compile(comp_level)) {
     return is_not_c1_compilable();
   }
+
   if (is_c2_compile(comp_level)) {
     return is_not_c2_compilable();
   }
+
   return false;
 }
 
@@ -1496,6 +1507,9 @@ void methodOopDesc::set_orig_bytecode_at(int bci, Bytecodes::Code code) {
   }
 }
 
+/**
+ * 给方法中的某一条指令设置断点
+ */
 void methodOopDesc::set_breakpoint(int bci) {
   instanceKlass* ik = instanceKlass::cast(method_holder());
   BreakpointInfo *bp = new BreakpointInfo(this, bci);

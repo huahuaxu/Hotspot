@@ -358,6 +358,7 @@ class CompileBroker: AllStatic {
     standard_entry_bci = InvocationEntryBci
   };
 
+  //根据编译级别,获取对应的编译器:C1编译器/C2编译器
   static AbstractCompiler* compiler(int comp_level) {
     if (is_c2_compile(comp_level)) return _compilers[1]; // C2
     if (is_c1_compile(comp_level)) return _compilers[0]; // C1
@@ -396,7 +397,13 @@ class CompileBroker: AllStatic {
     run_compilation  = 1
   };
 
-  static bool should_compile_new_jobs() { return UseCompiler && (_should_compile_new_jobs == run_compilation); }
+  /**
+   * 当前是否应该本地化编译新的Java方法
+   */
+  static bool should_compile_new_jobs() {
+	  return UseCompiler && (_should_compile_new_jobs == run_compilation);
+  }
+
   static bool set_should_compile_new_jobs(jint new_state) {
     // Return success if the current caller set it
     jint old = Atomic::cmpxchg(new_state, &_should_compile_new_jobs, 1-new_state);

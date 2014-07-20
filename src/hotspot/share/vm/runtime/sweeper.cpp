@@ -475,6 +475,9 @@ void NMethodSweeper::handle_full_code_cache(bool is_full) {
   _rescan = true;
 }
 
+/**
+ * 代码缓存堆的内存不足,清理部分Java方法的本地代码缓存
+ */
 void NMethodSweeper::speculative_disconnect_nmethods(bool is_full) {
   // If there was a race in detecting full code cache, only run
   // one vm op for it or keep the compiler shut off
@@ -521,6 +524,7 @@ void NMethodSweeper::speculative_disconnect_nmethods(bool is_full) {
         _highest_marked = curr_comp_id;
       }
     }
+
     nm = CodeCache::alive_nmethod(CodeCache::next(nm));
   }
 

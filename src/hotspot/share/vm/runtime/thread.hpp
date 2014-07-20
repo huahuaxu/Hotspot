@@ -1677,7 +1677,7 @@ public:
 # include "thread_bsd_zero.hpp"
 #endif
 
-
+//设置当前线程是否阻塞在等待方法的编译完成上
  public:
   void set_blocked_on_compilation(bool value) {
     _blocked_on_compilation = value;
@@ -1754,15 +1754,17 @@ inline size_t JavaThread::stack_available(address cur_sp) {
 }
 
 // A thread used for Compilation.
+/**
+ * Java方法本地化编译线程
+ */
 class CompilerThread : public JavaThread {
   friend class VMStructs;
  private:
-  CompilerCounters* _counters;
+  CompilerCounters* _counters;	//计数器
 
-  ciEnv*        _env;
-  CompileLog*   _log;
-  CompileTask*  _task;
-  CompileQueue* _queue;
+  CompileLog*   _log;	//日志记录器
+  CompileTask*  _task;	//当前编译线程正在处理的任务
+  CompileQueue* _queue;	//编译任务队列
   BufferBlob*   _buffer_blob;
 
   nmethod*      _scanned_nmethod;  // nmethod being scanned by the sweeper

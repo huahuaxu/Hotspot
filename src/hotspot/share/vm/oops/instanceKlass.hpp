@@ -255,7 +255,7 @@ class instanceKlass: public Klass {
   int*            _methods_cached_itable_indices;  // itable_index cache for JNI invoke corresponding to methods idnum, or NULL
   nmethodBucket*  _dependencies;         // list of dependent nmethods
   nmethod*        _osr_nmethods_head;    // Head of list of on-stack replacement nmethods for this class
-  BreakpointInfo* _breakpoints;          // bpt lists, managed by methodOop
+  BreakpointInfo* _breakpoints;          // 方法内的断点集合
   int             _nof_implementors;     // No of implementors of this interface (zero if not an interface)
   // Array of interesting part(s) of the previous version(s) of this
   // instanceKlass. See PreviousVersionWalker below.

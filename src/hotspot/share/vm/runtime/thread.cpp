@@ -3114,6 +3114,9 @@ CompilerThread::CompilerThread(CompileQueue* queue, CompilerCounters* counters)
 #endif
 }
 
+/**
+ * Gc时扫描标记根对象
+ */
 void CompilerThread::oops_do(OopClosure* f, CodeBlobClosure* cf) {
   JavaThread::oops_do(f, cf);
   if (_scanned_nmethod != NULL && cf != NULL) {

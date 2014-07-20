@@ -992,6 +992,9 @@ void CodeCache::log_state(outputStream* st) {
             unallocated_capacity(), largest_free_block());
 }
 
+/**
+ * 本地化代码缓存的当前空闲空间大小
+ */
 size_t CodeCache::largest_free_block() {
   // This is called both with and without CodeCache_lock held so
   // handle both cases.

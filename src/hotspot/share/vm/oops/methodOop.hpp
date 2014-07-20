@@ -691,7 +691,7 @@ class methodOopDesc : public oopDesc {
   bool is_not_c2_compilable() const           { return access_flags().is_not_c2_compilable(); }
   void set_not_c2_compilable()                { _access_flags.set_not_c2_compilable();        }
 
-  // Background compilation support
+  //通过访问标记位来判断方法是否已经在本地化编译队列中
   bool queued_for_compilation() const  { return access_flags().queued_for_compilation(); }
   void set_queued_for_compilation()    { _access_flags.set_queued_for_compilation();     }
   void clear_queued_for_compilation()  { _access_flags.clear_queued_for_compilation();   }

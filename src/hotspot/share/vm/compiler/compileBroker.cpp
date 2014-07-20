@@ -1011,6 +1011,9 @@ bool CompileBroker::is_idle() {
 // CompileBroker::compile_method
 //
 // Request compilation of a method.
+/**
+ * 向即时编译器代理请求一个Java方法本地化编译任务
+ */
 void CompileBroker::compile_method_base(methodHandle method,
                                         int osr_bci,
                                         int comp_level,
@@ -1019,11 +1022,11 @@ void CompileBroker::compile_method_base(methodHandle method,
                                         const char* comment,
                                         Thread* thread) {
   // do nothing if compiler thread(s) is not available
-  if (!_initialized ) {
+  if (!_initialized ) {	//即时编译器代理还没有被初始化
     return;
   }
 
-  guarantee(!method->is_abstract(), "cannot compile abstract methods");
+  guarantee(!method->is_abstract(), "cannot compile abstract methods");	//非抽象方法
   assert(method->method_holder()->klass_part()->oop_is_instance(),
          "sanity check");
   assert(!instanceKlass::cast(method->method_holder())->is_not_initialized(),
@@ -1098,27 +1101,28 @@ void CompileBroker::compile_method_base(methodHandle method,
     // Make sure the method has not slipped into the queues since
     // last we checked; note that those checks were "fast bail-outs".
     // Here we need to be more careful, see 14012000 below.
-    if (compilation_is_in_queue(method, osr_bci)) {
+    if (compilation_is_in_queue(method, osr_bci)) {	//该方法正在被编译
       return;
     }
 
     // We need to check again to see if the compilation has
     // completed.  A previous compilation may have registered
     // some result.
-    if (compilation_is_complete(method, osr_bci, comp_level)) {
+    if (compilation_is_complete(method, osr_bci, comp_level)) {	//该方法之前已经被编译成功
       return;
     }
 
     // We now know that this compilation is not pending, complete,
     // or prohibited.  Assign a compile_id to this compilation
     // and check to see if it is in our [Start..Stop) range.
-    uint compile_id = assign_compile_id(method, osr_bci);
+    uint compile_id = assign_compile_id(method, osr_bci);	//分配一个编译id
     if (compile_id == 0) {
       // The compilation falls outside the allowed range.
       return;
     }
 
     // Should this thread wait for completion of the compile?
+    //当前线程是否等待该java方法被编译完成才返回
     blocking = is_compile_blocking(method, osr_bci);
 
     // We will enter the compilation in the queue.
@@ -1166,7 +1170,7 @@ void CompileBroker::compile_method_base(methodHandle method,
                                blocking);
   }
 
-  if (blocking) {
+  if (blocking) {	//等待java方法被编译完成
     wait_for_completion(task);
   }
 }
@@ -1335,6 +1339,9 @@ bool CompileBroker::compilation_is_complete(methodHandle method,
 // will block a normal compilation from entering the queue (and vice
 // versa).  This can be remedied by a full queue search to disambiguate
 // cases.  If it is deemed profitible, this may be done.
+/**
+ * 检查指定的方法是否已经在本地化编译队列中
+ */
 bool CompileBroker::compilation_is_in_queue(methodHandle method,
                                             int          osr_bci) {
   return method->queued_for_compilation();
@@ -1487,6 +1494,9 @@ void CompileBroker::free_task(CompileTask* task) {
 // CompileBroker::wait_for_completion
 //
 // Wait for the given method CompileTask to complete.
+/**
+ * 等待指定的编译任务被完成
+ */
 void CompileBroker::wait_for_completion(CompileTask* task) {
   if (CIPrintCompileQueue) {
     tty->print_cr("BLOCKING FOR COMPILE");
@@ -1497,14 +1507,15 @@ void CompileBroker::wait_for_completion(CompileTask* task) {
   JavaThread *thread = JavaThread::current();
   thread->set_blocked_on_compilation(true);
 
-  methodHandle method(thread,
-                      (methodOop)JNIHandles::resolve(task->method_handle()));
+  methodHandle method(thread, (methodOop)JNIHandles::resolve(task->method_handle()));
   {
     MutexLocker waiter(task->lock(), thread);
 
+    printf("%s[%d] [tid: %lu]: 当前线程开始等待编译任务被完成...\n", __FILE__, __LINE__, pthread_self());
     while (!task->is_complete())
       task->lock()->wait();
   }
+
   // It is harmless to check this status without the lock, because
   // completion is a stable property (until the task object is recycled).
   assert(task->is_complete(), "Compilation should have completed");
@@ -1544,7 +1555,7 @@ void CompileBroker::compiler_thread_loop() {
     }
   }
 
-  // Open a log.
+  // 启动JVM时设置了输出编译日志
   if (LogCompilation) {
     init_compiler_thread_log();
   }
@@ -1558,13 +1569,18 @@ void CompileBroker::compiler_thread_loop() {
     log->end_elem();
   }
 
+  printf("%s[%d] [tid: %lu]: 即时编译线程[%s]开始处理Java方法的本地编译任务...\n", __FILE__, __LINE__, pthread_self(), thread->name());
+
   while (true) {
     {
       // We need this HandleMark to avoid leaking VM handles.
       HandleMark hm(thread);
 
-      if (CodeCache::largest_free_block() < CodeCacheMinimumFreeSpace) {
+      size_t _free_size;
+
+      if ((_free_size = CodeCache::largest_free_block()) < CodeCacheMinimumFreeSpace) {
         // the code cache is really full
+    	printf("%s[%d] [tid: %lu]: 当前本地化代码缓存的空闲不足(free=%lu < CodeCacheMinimumFreeSpace=%lu)...\n", __FILE__, __LINE__, pthread_self(), _free_size, CodeCacheMinimumFreeSpace);
         handle_full_code_cache();
       } else if (UseCodeCacheFlushing && CodeCache::needs_flushing()) {
         // Attempt to start cleaning the code cache while there is still a little headroom
@@ -1588,11 +1604,13 @@ void CompileBroker::compiler_thread_loop() {
       CompileTaskWrapper ctw(task);
       nmethodLocker result_handle;  // (handle for the nmethod produced by this task)
       task->set_code_handle(&result_handle);
+
       methodHandle method(thread,
                      (methodOop)JNIHandles::resolve(task->method_handle()));
 
       // Never compile a method if breakpoints are present in it
-      if (method()->number_of_breakpoints() == 0) {
+
+      if (method()->number_of_breakpoints() == 0) {	//方法内无断点
         // Compile the method.
         if ((UseCompiler || AlwaysCompileLoopMethods) && CompileBroker::should_compile_new_jobs()) {
 #ifdef COMPILER1
@@ -1611,9 +1629,12 @@ void CompileBroker::compiler_thread_loop() {
             }
           }
 #endif /* COMPILER1 */
+          printf("%s[%d] [tid: %lu]: 试图本地化编译Java方法:%s...\n", __FILE__, __LINE__, pthread_self(), method->name_and_sig_as_C_string());
+
           invoke_compiler_on_method(task);
         } else {
           // After compilation is disabled, remove remaining methods from queue
+          printf("%s[%d] [tid: %lu]: 放弃本地化编译Java方法:%s!!!\n", __FILE__, __LINE__, pthread_self(), method->name_and_sig_as_C_string());
           method->clear_queued_for_compilation();
         }
       }
@@ -1626,14 +1647,20 @@ void CompileBroker::compiler_thread_loop() {
 // CompileBroker::init_compiler_thread_log
 //
 // Set up state required by +LogCompilation.
+/**
+ * 初始化即时编译线程的日志记录器
+ */
 void CompileBroker::init_compiler_thread_log() {
     CompilerThread* thread = CompilerThread::current();
     char  fileBuf[4*K];
     FILE* fp = NULL;
     char* file = NULL;
-    intx thread_id = os::current_thread_id();
+
+    intx thread_id = os::current_thread_id();	//当前线程id
+
     for (int try_temp_dir = 1; try_temp_dir >= 0; try_temp_dir--) {
       const char* dir = (try_temp_dir ? os::get_temp_directory() : NULL);
+
       if (dir == NULL) {
         jio_snprintf(fileBuf, sizeof(fileBuf), "hs_c" UINTX_FORMAT "_pid%u.log",
                      thread_id, os::current_process_id());
@@ -1642,6 +1669,8 @@ void CompileBroker::init_compiler_thread_log() {
                      "%s%shs_c" UINTX_FORMAT "_pid%u.log", dir,
                      os::file_separator(), thread_id, os::current_process_id());
       }
+
+      printf("%s[%d] [tid: %lu]: 试图以追加写的方式打开文本文件: %s...\n", __FILE__, __LINE__, pthread_self(), fileBuf);
       fp = fopen(fileBuf, "at");
       if (fp != NULL) {
         file = NEW_C_HEAP_ARRAY(char, strlen(fileBuf)+1);
@@ -1649,11 +1678,14 @@ void CompileBroker::init_compiler_thread_log() {
         break;
       }
     }
+
     if (fp == NULL) {
       warning("Cannot open log file: %s", fileBuf);
     } else {
       if (LogCompilation && Verbose)
         tty->print_cr("Opening compilation log %s", file);
+
+      //给当前的即时编译线程配置日志记录器
       CompileLog* log = new(ResourceObj::C_HEAP) CompileLog(file, fp, thread_id);
       thread->init_log(log);
 
@@ -1701,6 +1733,9 @@ void CompileBroker::maybe_block() {
 //
 // Compile a method.
 //
+/**
+ * 根据编译级别调用合适的编译器(C1编译器/C2编译器)来本地化编译一个Java方法
+ */
 void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
   if (PrintCompilation) {
     ResourceMark rm;
@@ -1708,10 +1743,10 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
   }
   elapsedTimer time;
 
-  CompilerThread* thread = CompilerThread::current();
+  CompilerThread* thread = CompilerThread::current();	//当前编译线程
   ResourceMark rm(thread);
 
-  if (LogEvents) {
+  if (LogEvents) {	//记录编译日志
     _compilation_log->log_compile(thread, task);
   }
 
@@ -1774,6 +1809,7 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
 
     TraceTime t1("compilation", &time);
 
+    //调用合适的编译器(C1编译器/C2编译器)来本地化编译该Java方法
     compiler(task->comp_level())->compile_method(&ci_env, target, osr_bci);
 
     if (!ci_env.failing() && task->code() == NULL) {
@@ -1786,7 +1822,7 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
     // Copy this bit to the enclosing block:
     compilable = ci_env.compilable();
 
-    if (ci_env.failing()) {
+    if (ci_env.failing()) {	//编译失败
       const char* retry_message = ci_env.retry_message();
       if (_compilation_log != NULL) {
         _compilation_log->log_failure(thread, task, ci_env.failure_reason(), retry_message);
@@ -1798,7 +1834,7 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
         }
         tty->cr();
       }
-    } else {
+    } else {	//编译成功
       task->mark_success();
       task->set_num_inlined_bytecodes(ci_env.num_inlined_bytecodes());
       if (_compilation_log != NULL) {
@@ -1809,6 +1845,7 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
       }
     }
   }
+
   pop_jni_handle_block();
 
   methodHandle method(thread,
@@ -1816,6 +1853,7 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
 
   DTRACE_METHOD_COMPILE_END_PROBE(compiler(task->comp_level()), method, task->is_success());
 
+  //收集统计信息
   collect_statistics(thread, time, task);
 
   if (PrintCompilation && PrintCompilation2) {
@@ -1860,8 +1898,12 @@ void CompileBroker::invoke_compiler_on_method(CompileTask* task) {
 //
 // The CodeCache is full.  Print out warning and disable compilation or
 // try code cache cleaning so compilation can continue later.
+/**
+ * 当前本地化代码缓存的空闲不足的处理
+ */
 void CompileBroker::handle_full_code_cache() {
   UseInterpreter = true;
+
   if (UseCompiler || AlwaysCompileLoopMethods ) {
     if (xtty != NULL) {
       stringStream s;
@@ -1875,23 +1917,33 @@ void CompileBroker::handle_full_code_cache() {
       xtty->stamp();
       xtty->end_elem();
     }
+
     warning("CodeCache is full. Compiler has been disabled.");
     warning("Try increasing the code cache size using -XX:ReservedCodeCacheSize=");
     CodeCache::print_bounds(tty);
+
 #ifndef PRODUCT
     if (CompileTheWorld || ExitOnFullCodeCache) {
+
+      printf("%s[%d] [tid: %lu]: 当前本地化代码缓存的空闲不足,所以开始终止当前JVM线程...\n", __FILE__, __LINE__, pthread_self());
+
       before_exit(JavaThread::current());
       exit_globals(); // will delete tty
       vm_direct_exit(CompileTheWorld ? 0 : 1);
     }
 #endif
+
     if (UseCodeCacheFlushing) {
+      printf("%s[%d] [tid: %lu]: 当前本地化代码缓存的空闲不足,所以开始从缓存中清理部分Java方法的本地化编译代码...\n", __FILE__, __LINE__, pthread_self());
       NMethodSweeper::handle_full_code_cache(true);
     } else {
       UseCompiler               = false;
       AlwaysCompileLoopMethods  = false;
+
+      printf("%s[%d] [tid: %lu]: 当前本地化代码缓存的空闲不足,所以开始禁止Java方法的本地化编译...\n", __FILE__, __LINE__, pthread_self());
     }
   }
+
 }
 
 // ------------------------------------------------------------------

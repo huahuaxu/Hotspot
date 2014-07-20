@@ -35,9 +35,12 @@ class ciSymbol;
 // An open stream for logging information about activities in a
 // compiler thread.  There is exactly one per CompilerThread,
 // if the +LogCompilation switch is enabled.
+/**
+ * Java方法编译日志记录器
+ */
 class CompileLog : public xmlStream {
  private:
-  const char*   _file;           // name of file where XML goes
+  const char*   _file;           // 日志输出存储文件名
   julong        _file_end;       // last good end of file
   intx          _thread_id;      // which compile thread
 
