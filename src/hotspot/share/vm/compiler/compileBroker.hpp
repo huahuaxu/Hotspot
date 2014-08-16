@@ -347,11 +347,14 @@ class CompileBroker: AllStatic {
                                   int hot_count,
                                   const char* comment,
                                   Thread* thread);
+
+  //根据指定的编译级别获取对应的编译器任务队列(待处理)
   static CompileQueue* compile_queue(int comp_level) {
     if (is_c2_compile(comp_level)) return _c2_method_queue;
     if (is_c1_compile(comp_level)) return _c1_method_queue;
     return NULL;
   }
+
  public:
   enum {
     // The entry bci used for non-OSR compilations.
@@ -393,8 +396,8 @@ class CompileBroker: AllStatic {
 
   enum {
     // Flags for toggling compiler activity
-    stop_compilation = 0,
-    run_compilation  = 1
+    stop_compilation = 0,	//当前禁止对Java方法本地化编译
+    run_compilation  = 1	//当前允许对Java方法本地化编译
   };
 
   /**

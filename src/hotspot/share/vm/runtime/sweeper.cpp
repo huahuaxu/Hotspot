@@ -247,6 +247,7 @@ void NMethodSweeper::sweep_code_cache() {
     sweep_start = os::javaTimeMillis();
   }
 #endif
+
   if (PrintMethodFlushing && Verbose) {
     tty->print_cr("### Sweep at %d out of %d. Invocations left: %d", _seen, CodeCache::nof_nmethods(), _invocations);
   }

@@ -708,6 +708,7 @@ void methodOopDesc::clear_code() {
   } else {
     _from_compiled_entry    = _adapter->get_c2i_entry();
   }
+
   OrderAccess::storestore();
   _from_interpreted_entry = _i2i_entry;
   OrderAccess::storestore();
@@ -746,10 +747,13 @@ void methodOopDesc::link_method(methodHandle h_method, TRAPS) {
 
   // Setup interpreter entrypoint
   assert(this == h_method(), "wrong h_method()" );
+
   address entry = Interpreter::entry_for_method(h_method);
   assert(entry != NULL, "interpreter entry must be non-null");
+
   // Sets both _i2i_entry and _from_interpreted_entry
   set_interpreter_entry(entry);
+
   if (is_native() && !is_method_handle_invoke()) {
     set_native_function(
       SharedRuntime::native_method_throw_unsatisfied_link_error_entry(),
@@ -817,6 +821,9 @@ bool methodOopDesc::check_code() const {
 }
 
 // Install compiled code.  Instantly it can execute.
+/**
+ * 设置Java方法的本地化编译代码
+ */
 void methodOopDesc::set_code(methodHandle mh, nmethod *code) {
   assert( code, "use clear_code to remove code" );
   assert( mh->check_code(), "" );

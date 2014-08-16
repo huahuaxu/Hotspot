@@ -31,8 +31,12 @@
 #ifdef CC_INTERP
 # define __ _masm->
 
+
 void CppInterpreter::initialize() {
   if (_code != NULL) return;
+
+  printf("%s[%d] [tid: %lu]: 开始初始化C++解释器...\n", __FILE__, __LINE__, pthread_self());
+
   AbstractInterpreter::initialize();
 
   // generate interpreter
@@ -83,6 +87,7 @@ void CppInterpreterGenerator::generate_all() {
     // The various result converter stublets.
     int is_generated[Interpreter::number_of_result_handlers];
     memset(is_generated, 0, sizeof(is_generated));
+
     int _tosca_to_stack_is_generated[Interpreter::number_of_result_handlers];
     int _stack_to_stack_is_generated[Interpreter::number_of_result_handlers];
     int _stack_to_native_abi_is_generated[Interpreter::number_of_result_handlers];
@@ -90,6 +95,7 @@ void CppInterpreterGenerator::generate_all() {
     memset(_tosca_to_stack_is_generated, 0, sizeof(_tosca_to_stack_is_generated));
     memset(_stack_to_stack_is_generated, 0, sizeof(_stack_to_stack_is_generated));
     memset(_stack_to_native_abi_is_generated, 0, sizeof(_stack_to_native_abi_is_generated));
+
     for (int i = 0; i < Interpreter::number_of_result_handlers; i++) {
       BasicType type = types[i];
       if (!is_generated[Interpreter::BasicType_as_index(type)]++) {
@@ -107,6 +113,7 @@ void CppInterpreterGenerator::generate_all() {
     }
   }
 
+  printf("%s[%d] [tid: %lu]: 开始初始化C++解释器...\n", __FILE__, __LINE__, pthread_self());
 
 #define method_entry(kind) Interpreter::_entry_table[Interpreter::kind] = generate_method_entry(Interpreter::kind)
 

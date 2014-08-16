@@ -388,8 +388,10 @@ class methodOopDesc : public oopDesc {
 
   // interpreter entry
   address interpreter_entry() const              { return _i2i_entry; }
+
   // Only used when first initialize so we can set _i2i_entry and _from_interpreted_entry
   void set_interpreter_entry(address entry)      { _i2i_entry = entry;  _from_interpreted_entry = entry; }
+
   int  interpreter_kind(void) {
      return constMethod()->interpreter_kind();
   }

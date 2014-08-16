@@ -325,9 +325,13 @@ void JavaCalls::call(JavaValue* result, methodHandle method, JavaCallArguments* 
   os::os_exception_wrapper(call_helper, result, &method, args, THREAD);
 }
 
+/**
+ * 执行指定的java方法
+ */
 void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArguments* args, TRAPS) {
   methodHandle method = *m;
   JavaThread* thread = (JavaThread*)THREAD;
+
   assert(thread->is_Java_thread(), "must be called by a java thread");
   assert(method.not_null(), "must have a method to call");
   assert(!SafepointSynchronize::is_at_safepoint(), "call to Java code during VM operation");
@@ -360,7 +364,7 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
 
 
   assert(!thread->is_Compiler_thread(), "cannot compile from the compiler");
-  if (CompilationPolicy::must_be_compiled(method)) {	//方法必须被编译
+  if (CompilationPolicy::must_be_compiled(method)) {	//方法必须被本地化编译
     CompileBroker::compile_method(method, InvocationEntryBci,
                                   CompilationPolicy::policy()->initial_compile_level(),
                                   methodHandle(), 0, "must_be_compiled", CHECK);
@@ -369,7 +373,7 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
   // Since the call stub sets up like the interpreter we call the from_interpreted_entry
   // so we can go compiled via a i2c. Otherwise initial entry method will always
   // run interpreted.
-  address entry_point = method->from_interpreted_entry();
+  address entry_point = method->from_interpreted_entry();	//方法入口地址
   if (JvmtiExport::can_post_interpreter_events() && thread->is_interp_only_mode()) {
     entry_point = method->interpreter_entry();
   }

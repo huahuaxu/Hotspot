@@ -134,6 +134,7 @@ class AbstractInterpreter: AllStatic {
 
   // method entry points
   static address    _entry_table[number_of_method_entries];     // entry points for a given method
+
   static address    _native_abi_to_tosca[number_of_result_handlers];  // for native method result handlers
   static address    _slow_signature_handler;                              // the native method generic (slow) signature handler
 

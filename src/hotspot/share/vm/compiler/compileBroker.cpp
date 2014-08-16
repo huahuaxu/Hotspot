@@ -131,7 +131,7 @@ bool CompileBroker::_initialized = false;
 volatile bool CompileBroker::_should_block = false;
 volatile jint CompileBroker::_should_compile_new_jobs = run_compilation;
 
-// The installed compiler(s)
+//C1/C2即时编译器
 AbstractCompiler* CompileBroker::_compilers[2];
 
 // These counters are used for assigning id's to each compilation
@@ -185,7 +185,7 @@ int CompileBroker::_sum_nmethod_code_size        = 0;
 
 CompileQueue* CompileBroker::_c2_method_queue   = NULL;
 CompileQueue* CompileBroker::_c1_method_queue   = NULL;
-CompileTask*  CompileBroker::_task_free_list = NULL;
+CompileTask*  CompileBroker::_task_free_list = NULL;	//编译任务空闲池
 
 GrowableArray<CompilerThread*>* CompileBroker::_method_threads = NULL;
 
@@ -307,6 +307,7 @@ nmethod* CompileTask::code() const {
   if (_code_handle == NULL)  return NULL;
   return _code_handle->code();
 }
+
 void CompileTask::set_code(nmethod* nm) {
   if (_code_handle == NULL && nm == NULL)  return;
   guarantee(_code_handle != NULL, "");
@@ -322,6 +323,7 @@ void CompileTask::free() {
   if (_hot_method != NULL && _hot_method != _method) {
     JNIHandles::destroy_global(_hot_method);
   }
+
   JNIHandles::destroy_global(_method);
 }
 
@@ -585,7 +587,7 @@ void CompileQueue::add(CompileTask* task) {
   task->set_next(NULL);
   task->set_prev(NULL);
 
-  if (_last == NULL) {
+  if (_last == NULL) {	//当前编译任务队列为空
     // The compile queue is empty.
     assert(_first == NULL, "queue is empty");
     _first = task;
@@ -597,9 +599,10 @@ void CompileQueue::add(CompileTask* task) {
     task->set_prev(_last);
     _last = task;
   }
+
   ++_size;
 
-  // Mark the method as being in the compile queue.
+  //在访问标记位中标记该方法正在本地编译队列中
   ((methodOop)JNIHandles::resolve(task->method_handle()))->set_queued_for_compilation();
 
   if (CIPrintCompileQueue) {
@@ -618,13 +621,18 @@ void CompileQueue::add(CompileTask* task) {
 // CompileQueue::get
 //
 // Get the next CompileTask from a CompileQueue
+/**
+ * 从当前的编译队列中获取一个编译任务
+ */
 CompileTask* CompileQueue::get() {
   NMethodSweeper::possibly_sweep();
 
   MutexLocker locker(lock());
+
   // Wait for an available CompileTask.
-  while (_first == NULL) {
-    // There is no work to be done right now.  Wait.
+  while (_first == NULL) {	//当前没有编译任务
+
+    //如果当前代码缓存堆内存不足,则等待
     if (UseCodeCacheFlushing && (!CompileBroker::should_compile_new_jobs() || CodeCache::needs_flushing())) {
       // During the emergency sweeping periods, wake up and sweep occasionally
       bool timedout = lock()->wait(!Mutex::_no_safepoint_check_flag, NmethodSweepCheckInterval*1000);
@@ -638,8 +646,10 @@ CompileTask* CompileQueue::get() {
       lock()->wait();
     }
   }
+
   CompileTask* task = CompilationPolicy::policy()->select_task(this);
   remove(task);
+
   return task;
 }
 
@@ -725,15 +735,18 @@ void CompileBroker::compilation_init() {
   // Set the interface to the current compiler(s).
   int c1_count = CompilationPolicy::policy()->compiler_count(CompLevel_simple);
   int c2_count = CompilationPolicy::policy()->compiler_count(CompLevel_full_optimization);
+
 #ifdef COMPILER1
   if (c1_count > 0) {
-    _compilers[0] = new Compiler();
+	printf("%s[%d] [tid: %lu]: 试图创建C1即时编译器(编译线程数量=%d)...\n", __FILE__, __LINE__, pthread_self(), c1_count);
+	_compilers[0] = new Compiler();
   }
 #endif // COMPILER1
 
 #ifdef COMPILER2
   if (c2_count > 0) {
-    _compilers[1] = new C2Compiler();
+	  printf("%s[%d] [tid: %lu]: 试图创建C2即时编译器(编译线程数量=%d)...\n", __FILE__, __LINE__, pthread_self(), c2_count);
+	  _compilers[1] = new C2Compiler();
   }
 #endif // COMPILER2
 
@@ -741,13 +754,14 @@ void CompileBroker::compilation_init() {
   int c1_count = 0;
   int c2_count = 1;
 
+  printf("%s[%d] [tid: %lu]: 试图创建C2即时编译器(编译线程数量=%d)...\n", __FILE__, __LINE__, pthread_self(), c2_count);
   _compilers[1] = new SharkCompiler();
 #endif // SHARK
 
   // Initialize the CompileTask free list
   _task_free_list = NULL;
 
-  // Start the CompilerThreads
+  //创建C1/C2即时编译器的工作线程及任务队列
   init_compiler_threads(c1_count, c2_count);
 
   // totalTime performance counter is always created as it is required
@@ -856,32 +870,36 @@ void CompileBroker::compilation_init() {
 
 // ------------------------------------------------------------------
 // CompileBroker::make_compiler_thread
+/**
+ * 创建一个编译线程
+ */
 CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQueue* queue, CompilerCounters* counters, TRAPS) {
   CompilerThread* compiler_thread = NULL;
 
+  //获取Java线程类
   klassOop k = SystemDictionary::resolve_or_fail(vmSymbols::java_lang_Thread(),
                                       true, CHECK_0);
 
   instanceKlassHandle klass (THREAD, k);
-  instanceHandle thread_oop = klass->allocate_instance_handle(CHECK_0);
-  Handle string = java_lang_String::create_from_str(name, CHECK_0);
+  instanceHandle thread_oop = klass->allocate_instance_handle(CHECK_0);	//申请java.lang.Thread实例所需的内存空间
+  Handle string = java_lang_String::create_from_str(name, CHECK_0);		//创建一个java.lang.String实例对象
 
   // Initialize thread_oop to put it into the system threadGroup
   Handle thread_group (THREAD,  Universe::system_thread_group());
   JavaValue result(T_VOID);
   JavaCalls::call_special(&result, thread_oop,
                        klass,
-                       vmSymbols::object_initializer_name(),
-                       vmSymbols::threadgroup_string_void_signature(),
+                       vmSymbols::object_initializer_name(),			//方法名
+                       vmSymbols::threadgroup_string_void_signature(),	//方法参数及返回类型
                        thread_group,
                        string,
-                       CHECK_0);
+                       CHECK_0);	//Java级线程
 
   {
     MutexLocker mu(Threads_lock, THREAD);
 
     printf("%s[%d] [tid: %lu]: 开始创建编译线程[%s]...\n", __FILE__, __LINE__, pthread_self(), name);
-    compiler_thread = new CompilerThread(queue, counters);
+    compiler_thread = new CompilerThread(queue, counters);	//OS级线程
     // At this point the new CompilerThread data-races with this startup
     // thread (which I believe is the primoridal thread and NOT the VM
     // thread).  This means Java bytecodes being executed at startup can
@@ -899,6 +917,7 @@ CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQue
                                     "unable to create new native thread");
     }
 
+    //java.lang.Thread对象与OS级线程绑定
     java_lang_Thread::set_thread(thread_oop(), compiler_thread);
 
     // Note that this only sets the JavaThread _priority field, which by
@@ -920,7 +939,7 @@ CompilerThread* CompileBroker::make_compiler_thread(const char* name, CompileQue
         native_prio = os::java_to_os_priority[NearMaxPriority];
       }
     }
-    os::set_native_priority(compiler_thread, native_prio);
+    os::set_native_priority(compiler_thread, native_prio);	//OS级线程的优先级
 
     java_lang_Thread::set_daemon(thread_oop());
 
@@ -988,6 +1007,9 @@ void CompileBroker::init_compiler_threads(int c1_compiler_count, int c2_compiler
 
 // ------------------------------------------------------------------
 // CompileBroker::is_idle
+/**
+ * 当前即时编译器是否空闲
+ */
 bool CompileBroker::is_idle() {
   if (_c2_method_queue != NULL && !_c2_method_queue->is_empty()) {
     return false;
@@ -1188,7 +1210,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   assert(!method->is_abstract() && (osr_bci == InvocationEntryBci || !method->is_native()), "cannot compile abstract/native methods");
   assert(!instanceKlass::cast(method->method_holder())->is_not_initialized(), "method holder must be initialized");
 
-  if (!TieredCompilation) {
+  if (!TieredCompilation) {	//本地化编译禁止分级
     comp_level = CompLevel_highest_tier;
   }
 
@@ -1204,14 +1226,19 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   if (osr_bci == InvocationEntryBci) {
     // standard compilation
     nmethod* method_code = method->code();
+
+    //Java方法正在被本地化编译或已经完成
     if (method_code != NULL) {
       if (compilation_is_complete(method, osr_bci, comp_level)) {
         return method_code;
       }
     }
+
+    //方法不能按照指定的级别编译
     if (method->is_not_compilable(comp_level)) return NULL;
 
-    if (UseCodeCacheFlushing) {
+    if (UseCodeCacheFlushing) {	//在内存不足的情况下,允许本地化代码转存到外部永久存储介质上
+      //从永久存储介质上加载该方法对应的本地代码进内存
       nmethod* saved = CodeCache::find_and_remove_saved_code(method());
       if (saved != NULL) {
         method->set_code(method, saved);
@@ -1226,6 +1253,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
     assert(comp_level == CompLevel_highest_tier,
            "all OSR compiles are assumed to be at a single compilation lavel");
 #endif // TIERED
+
     // We accept a higher level osr method
     nmethod* nm = method->lookup_osr_nmethod_for(osr_bci, comp_level, false);
     if (nm != NULL) return nm;
@@ -1233,6 +1261,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   }
 
   assert(!HAS_PENDING_EXCEPTION, "No exception should be present");
+
   // some prerequisites that are compiler specific
   if (compiler(comp_level)->is_c2() || compiler(comp_level)->is_shark()) {
     method->constants()->resolve_string_constants(CHECK_AND_CLEAR_NULL);
@@ -1272,7 +1301,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   }
 
   // If the compiler is shut off due to code cache flushing or otherwise,
-  // fail out now so blocking compiles dont hang the java thread
+  //如果当前代码缓存堆内存不足,或正在将部分编译好的本地代码转存到外部永久存储介质上,则放弃该方法的本地编译请求
   if (!should_compile_new_jobs() || (UseCodeCacheFlushing && CodeCache::needs_flushing())) {
     CompilationPolicy::policy()->delay_compilation(method());
     return NULL;
@@ -1281,7 +1310,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   // do the compilation
   if (method->is_native()) {
     if (!PreferInterpreterNativeStubs) {
-      // Acquire our lock.
+      //加锁后分配一个唯一的编译id
       int compile_id;
       {
         MutexLocker locker(MethodCompileQueue_lock, THREAD);
@@ -1305,6 +1334,9 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
 // CompileBroker::compilation_is_complete
 //
 // See if compilation of this method is already complete.
+/**
+ * 检测指定的Java方法是否已经被本地化编译成指定的级别
+ */
 bool CompileBroker::compilation_is_complete(methodHandle method,
                                             int          osr_bci,
                                             int          comp_level) {
@@ -1451,6 +1483,7 @@ CompileTask* CompileBroker::create_compile_task(CompileQueue* queue,
                                               const char*   comment,
                                               bool          blocking) {
   CompileTask* new_task = allocate_task();
+  //初始化本地编译任务
   new_task->initialize(compile_id, method, osr_bci, comp_level,
                        hot_method, hot_count, comment,
                        blocking);
@@ -1463,6 +1496,9 @@ CompileTask* CompileBroker::create_compile_task(CompileQueue* queue,
 // CompileBroker::allocate_task
 //
 // Allocate a CompileTask, from the free list if possible.
+/**
+ * 获取一个空的编译任务(新建/空编译任务池)
+ */
 CompileTask* CompileBroker::allocate_task() {
   MutexLocker locker(CompileTaskAlloc_lock);
   CompileTask* task = NULL;
@@ -1482,6 +1518,9 @@ CompileTask* CompileBroker::allocate_task() {
 // CompileBroker::free_task
 //
 // Add a task to the free list.
+/**
+ * 释放一个空编译任务到空闲池中
+ */
 void CompileBroker::free_task(CompileTask* task) {
   MutexLocker locker(CompileTaskAlloc_lock);
   task->free();

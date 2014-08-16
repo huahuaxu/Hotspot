@@ -85,6 +85,9 @@ union frame_manager_message {
     osr_result _osr_result;           /* result of OSR request */
 };
 
+/**
+ * 纯解释方式实现的字节码解释器
+ */
 class BytecodeInterpreter : StackObj {
 friend class SharedRuntime;
 friend class AbstractInterpreterGenerator;

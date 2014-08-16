@@ -32,6 +32,9 @@
 // This file contains the platform-independent parts
 // of the c++ interpreter
 
+/**
+ * C++解释器
+ */
 class CppInterpreter: public AbstractInterpreter {
   friend class VMStructs;
   friend class Interpreter; // contains()

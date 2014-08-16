@@ -159,7 +159,7 @@ AbstractInterpreterGenerator::AbstractInterpreterGenerator(StubQueue* _code) {
   _masm                      = NULL;
 }
 
-
+//方法返回值类型
 static const BasicType types[Interpreter::number_of_result_handlers] = {
   T_BOOLEAN,
   T_CHAR   ,
@@ -184,24 +184,26 @@ void AbstractInterpreterGenerator::generate_all() {
 
 //------------------------------------------------------------------------------------------------------------------------
 // Entry points
-
+/**
+ * 判断Java方法的类型
+ */
 AbstractInterpreter::MethodKind AbstractInterpreter::method_kind(methodHandle m) {
   // Abstract method?
-  if (m->is_abstract()) return abstract;
+  if (m->is_abstract()) return abstract;	//抽象方法
 
-  // Invoker for method handles?
+  // java.lang.invoke.MethodHandles的invoke方法
   if (m->is_method_handle_invoke())  return method_handle;
 
   // Native method?
   // Note: This test must come _before_ the test for intrinsic
   //       methods. See also comments below.
-  if (m->is_native()) {
+  if (m->is_native()) {	//本地方法
     assert(!m->is_method_handle_invoke(), "overlapping bits here, watch out");
     return m->is_synchronized() ? native_synchronized : native;
   }
 
   // Synchronized?
-  if (m->is_synchronized()) {
+  if (m->is_synchronized()) {	//需要初始化局部变量的同步方法
     return zerolocals_synchronized;
   }
 
@@ -212,7 +214,7 @@ AbstractInterpreter::MethodKind AbstractInterpreter::method_kind(methodHandle m)
     return zerolocals;
   }
 
-  // Empty method?
+  // 空方法
   if (m->is_empty_method()) {
     return empty;
   }
@@ -222,7 +224,7 @@ AbstractInterpreter::MethodKind AbstractInterpreter::method_kind(methodHandle m)
   //       otherwise we will run into problems with JDK 1.2, see also
   //       AbstractInterpreterGenerator::generate_method_entry() for
   //       for details.
-  switch (m->intrinsic_id()) {
+  switch (m->intrinsic_id()) {	//java.lang.Math中的数学方法
     case vmIntrinsics::_dsin  : return java_lang_math_sin  ;
     case vmIntrinsics::_dcos  : return java_lang_math_cos  ;
     case vmIntrinsics::_dtan  : return java_lang_math_tan  ;
@@ -236,12 +238,13 @@ AbstractInterpreter::MethodKind AbstractInterpreter::method_kind(methodHandle m)
   }
 
   // Accessor method?
-  if (m->is_accessor()) {
+  if (m->is_accessor()) {	//访问器方法
     assert(m->size_of_parameters() == 1, "fast code for accessors assumes parameter size = 1");
     return accessor;
   }
 
   // Note: for now: zero locals for all non-empty methods
+  //需要初始化局部变量的方法
   return zerolocals;
 }
 

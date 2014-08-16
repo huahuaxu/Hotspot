@@ -782,10 +782,16 @@ enum CompLevel {
 #endif
 };
 
+/**
+ * 指定的编译级别是否由C1即时编译器来完成
+ */
 inline bool is_c1_compile(int comp_level) {
   return comp_level > CompLevel_none && comp_level < CompLevel_full_optimization;
 }
 
+/**
+ * 指定的编译级别是否由C2即时编译器来完成
+ */
 inline bool is_c2_compile(int comp_level) {
   return comp_level == CompLevel_full_optimization;
 }
