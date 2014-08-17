@@ -26,7 +26,7 @@
 #define OS_LINUX_VM_OSTHREAD_LINUX_HPP
 
  private:
-  int _thread_type;
+  int _thread_type;		//上层JVM级线程类型
 
  public:
 
@@ -46,7 +46,7 @@
 
   // _pthread_id is the pthread id, which is used by library calls
   // (e.g. pthread_kill).
-  pthread_t _pthread_id;
+  pthread_t _pthread_id;	//指向线程标识符的指针
 
   sigset_t _caller_sigmask; // Caller's signal mask
 

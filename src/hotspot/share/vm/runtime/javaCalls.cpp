@@ -411,7 +411,9 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
   // do call
   {
 	JavaCallWrapper link(method, receiver, result, CHECK);
-    { HandleMark hm(thread);  // HandleMark used by HandleMarkCleaner
+
+    {
+	  HandleMark hm(thread);  // HandleMark used by HandleMarkCleaner
 
       printf("%s[%d] [tid: %lu]: 开始执行方法[%s]...\n", __FILE__, __LINE__, pthread_self(), method->name()->as_C_string());
       StubRoutines::call_stub()(
@@ -431,7 +433,9 @@ void JavaCalls::call_helper(JavaValue* result, methodHandle* m, JavaCallArgument
       if (oop_result_flag) {
         thread->set_vm_result((oop) result->get_jobject());
       }
+
     }
+
   } // Exit JavaCallWrapper (can block - potential return oop must be preserved)
 
   // Check if a thread stop or suspend should be executed

@@ -53,6 +53,7 @@ Bytecodes::Code Template::bytecode() const {
 
   if (i < 0 || i >= Bytecodes::number_of_codes)
 	  i = this - TemplateTable::_template_table_wide;
+
   return Bytecodes::cast(i);
 }
 
@@ -548,7 +549,9 @@ void TemplateTable::initialize() {
   #undef astore
 #endif // TEMPLATE_TABLE_BUG
 
-
+/**
+ * 初始化所有JVM字节码的模板表
+ */
 void templateTable_init() {
   TemplateTable::initialize();
 }

@@ -426,6 +426,7 @@ void Thread::set_priority(Thread* thread, ThreadPriority priority) {
  */
 void Thread::start(Thread* thread) {
   trace("start", thread);
+
   // Start is different from resume in that its safety is guaranteed by context or
   // being called from a Java method synchronized on the Thread object.
   if (!DisableStartThread) {
@@ -1458,6 +1459,11 @@ void JavaThread::block_if_vm_exited() {
 // Remove this ifdef when C1 is ported to the compiler interface.
 static void compiler_thread_entry(JavaThread* thread, TRAPS);
 
+/**
+ * 构造方法:
+ * ThreadFunction entry_point	//线程入口方法
+ * size_t stack_sz				//线程栈大小
+ */
 JavaThread::JavaThread(ThreadFunction entry_point, size_t stack_sz) : Thread()
 #ifndef SERIALGC
   , _satb_mark_queue(&_satb_mark_queue_set), _dirty_card_queue(&_dirty_card_queue_set)
@@ -1468,8 +1474,11 @@ JavaThread::JavaThread(ThreadFunction entry_point, size_t stack_sz) : Thread()
   }
 
   initialize();
+
   _jni_attach_state = _not_attaching_via_jni;
+
   set_entry_point(entry_point);
+
   // Create the native thread itself.
   // %note runtime_23
   os::ThreadType thr_type = os::java_thread;
@@ -2880,6 +2889,7 @@ void JavaThread::prepare(jobject jni_thread, ThreadPriority prio) {
 
   Handle thread_oop(Thread::current(), JNIHandles::resolve_non_null(jni_thread));
   assert(instanceKlass::cast(thread_oop->klass())->is_linked(), "must be initialized");
+
   set_threadObj(thread_oop());
   //将Java级线程和对应的JVM级线程进行绑定
   java_lang_Thread::set_thread(thread_oop(), this);
@@ -3999,11 +4009,15 @@ void Threads::add(JavaThread* p, bool force_daemon) {
   // See the comment for this method in thread.hpp for its purpose and
   // why it is called here.
   p->initialize_queues();
+
   p->set_next(_thread_list);
   _thread_list = p;
+
   _number_of_threads++;
+
   oop threadObj = p->threadObj();
   bool daemon = true;
+
   // Bootstrapping problem: threadObj can be null for initial
   // JavaThread (or for threads attached via JNI)
   if ((!force_daemon) && (threadObj == NULL || !java_lang_Thread::is_daemon(threadObj))) {

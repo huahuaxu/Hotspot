@@ -2730,6 +2730,7 @@ JVM_ENTRY(void, JVM_StartThread(JNIEnv* env, jobject jthread))
       // We could also check the stillborn flag to see if this thread was already stopped, but
       // for historical reasons we let the thread detect that itself when it starts running
 
+      //用户设置的线程栈大小
       jlong size = java_lang_Thread::stackSize(JNIHandles::resolve_non_null(jthread));
       // Allocate the C++ Thread structure and create the native thread.  The
       // stack size retrieved from java is signed, but the constructor takes

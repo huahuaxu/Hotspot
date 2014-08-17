@@ -300,8 +300,8 @@ JNIHandleBlock* JNIHandleBlock::allocate_block(Thread* thread)  {
     // - we would hold JNIHandleBlockFreeList_lock and then Threads_lock
     // - another would hold Threads_lock (jni_AttachCurrentThread) and then
     //   JNIHandleBlockFreeList_lock (JNIHandleBlock::allocate_block)
-    MutexLockerEx ml(JNIHandleBlockFreeList_lock,
-                     Mutex::_no_safepoint_check_flag);
+    MutexLockerEx ml(JNIHandleBlockFreeList_lock, Mutex::_no_safepoint_check_flag);
+
     if (_block_free_list == NULL) {
       // Allocate new block
       block = new JNIHandleBlock();
@@ -310,12 +310,15 @@ JNIHandleBlock* JNIHandleBlock::allocate_block(Thread* thread)  {
         tty->print_cr("JNIHandleBlock " INTPTR_FORMAT " allocated (%d total blocks)",
                       block, _blocks_allocated);
       }
+
       if (ZapJNIHandleArea) block->zap();
+
       #ifndef PRODUCT
       // Link new block to list of all allocated blocks
       block->_block_list_link = _block_list;
       _block_list = block;
       #endif
+
     } else {
       // Get block from free list
       block = _block_free_list;
@@ -402,7 +405,9 @@ void JNIHandleBlock::oops_do(OopClosure* f) {
       }
     }
     current_chain = current_chain->pop_frame_link();
-  }
+
+  }//while
+
 }
 
 
@@ -456,6 +461,7 @@ jobject JNIHandleBlock::allocate_handle(oop obj) {
       current->_top = 0;
       if (ZapJNIHandleArea) current->zap();
     }
+
     // Clear initial block
     _free_list = NULL;
     _allocate_before_rebuild = 0;

@@ -911,6 +911,29 @@ static void *java_start(Thread *thread) {
 
 /**
  * 为一个JVM级线程创建对应的操作系统级线程
+ *
+ * *********************************************************************
+ * 函数原型:	int pthread_attr_init(pthread_attr_t *attr);
+ * 函数说明:	初始化一个线程对象的属性,需要用pthread_attr_destroy对其去除初始化
+ * 函数返回	返回0,表示函数初始化对象成功;失败时返回一个错误代码.
+ *
+ * *********************************************************************
+ * 函数原型:	pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate)
+ * 函数说明:	设置线程分离状态,线程的分离状态决定一个线程以什么样的方式来终止自己
+ * 参数说明:	detachstate 线程的分离状态,两种方式:
+ * 				PTHREAD_CREATE_DETACHED		分离线程(自己运行结束了,线程也就终止了,马上释放系统资源)
+ * 				PTHREAD _CREATE_JOINABLE	非分离线程(当pthread_join()函数返回时,创建的线程才算终止,才能释放自己占用的系统资源)
+ *
+ * *********************************************************************
+ * 函数原型:	int pthread_attr_setstacksize(pthread_attr_t *attr ,size_t stacksize);
+ * 函数说明:	设置线程堆栈的大小
+ * 函数返回:	若成功返回0,若失败返回-1.
+ *
+ * ********************************************************************
+ * 函数原型:	int pthread_attr_setguardsize(pthread_attr_t *attr, size_t  guardsize);
+ * 函数说明:	设置线程栈末尾的警戒缓冲区大小
+ * 函数返回:	若成功返回0,若失败返回-1.
+ *
  */
 bool os::create_thread(Thread* thread, ThreadType thr_type, size_t stack_size) {
   assert(thread->osthread() == NULL, "caller responsible");
@@ -930,7 +953,7 @@ bool os::create_thread(Thread* thread, ThreadType thr_type, size_t stack_size) {
   //将操作系统级线程与JVM级线程绑定
   thread->set_osthread(osthread);
 
-  // init thread attributes
+  //初始化线程属性
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -993,6 +1016,7 @@ bool os::create_thread(Thread* thread, ThreadType thr_type, size_t stack_size) {
       // Need to clean up stuff we've allocated so far
       thread->set_osthread(NULL);
       delete osthread;
+
       if (lock) os::Linux::createThread_lock()->unlock();
       return false;
     }
@@ -1096,6 +1120,7 @@ bool os::create_attached_thread(JavaThread* thread) {
 
 void os::pd_start_thread(Thread* thread) {
   OSThread * osthread = thread->osthread();
+
   assert(osthread->get_state() != INITIALIZED, "just checking");
   Monitor* sync_with_child = osthread->startThread_lock();
   MutexLockerEx ml(sync_with_child, Mutex::_no_safepoint_check_flag);

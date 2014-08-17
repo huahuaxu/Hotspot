@@ -132,6 +132,7 @@ void HandleMark::initialize(Thread* thread) {
 
 HandleMark::~HandleMark() {
   HandleArea* area = _area;   // help compilers with poor alias analysis
+
   assert(area == _thread->handle_area(), "sanity check");
   assert(area->_handle_mark_nesting > 0, "must stack allocate HandleMarks" );
   debug_only(area->_handle_mark_nesting--);

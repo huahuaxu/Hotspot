@@ -48,13 +48,18 @@ inline void inc_stat_counter(volatile julong* dest, julong add_value) {
 #endif
 
 // allocate using malloc; will fail if no memory available
+/**
+ * 从操作系统申请指定大小的内存空间
+ */
 inline char* AllocateHeap(size_t size, const char* name = NULL) {
   char* p = (char*) os::malloc(size);
+
   #ifdef ASSERT
   if (PrintMallocFree) trace_heap_malloc(size, name, p);
   #else
   Unused_Variable(name);
   #endif
+
   if (p == NULL) vm_exit_out_of_memory(size, name);
   return p;
 }

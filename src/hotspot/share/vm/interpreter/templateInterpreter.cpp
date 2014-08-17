@@ -33,7 +33,7 @@
 # define __ _masm->
 
 void TemplateInterpreter::initialize() {
-  if (_code != NULL) return;	//解释器已经初始化
+  if (_code != NULL) return;	//模板解释器已经初始化
 
   // assertions
   assert((int)Bytecodes::number_of_codes <= (int)DispatchTable::length, "dispatch table too small");
@@ -215,6 +215,9 @@ static const BasicType types[Interpreter::number_of_result_handlers] = {
   T_OBJECT
 };
 
+/**
+ * 负责生成所有指令模板的本地代码及分发表
+ */
 void TemplateInterpreterGenerator::generate_all() {
 
   AbstractInterpreterGenerator::generate_all();
@@ -401,13 +404,15 @@ address TemplateInterpreterGenerator::generate_error_exit(const char* msg) {
 
 
 //------------------------------------------------------------------------------------------------------------------------
-
+/**
+ * 为所有的JVM字节码生成对应的本地代码,并保存其入口地址
+ */
 void TemplateInterpreterGenerator::set_entry_points_for_all_bytes() {
   for (int i = 0; i < DispatchTable::length; i++) {
     Bytecodes::Code code = (Bytecodes::Code)i;
     if (Bytecodes::is_defined(code)) {
       set_entry_points(code);
-    } else {
+    } else {	//对应的字节码没有定义
       set_unimplemented(i);
     }
   }
@@ -417,7 +422,8 @@ void TemplateInterpreterGenerator::set_entry_points_for_all_bytes() {
 void TemplateInterpreterGenerator::set_safepoints_for_all_bytes() {
   for (int i = 0; i < DispatchTable::length; i++) {
     Bytecodes::Code code = (Bytecodes::Code)i;
-    if (Bytecodes::is_defined(code)) Interpreter::_safept_table.set_entry(code, Interpreter::_safept_entry);
+    if (Bytecodes::is_defined(code))
+    	Interpreter::_safept_table.set_entry(code, Interpreter::_safept_entry);
   }
 }
 
@@ -435,6 +441,7 @@ void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
   // initialize entry points
   assert(_unimplemented_bytecode    != NULL, "should have been generated before");
   assert(_illegal_bytecode_sequence != NULL, "should have been generated before");
+
   address bep = _illegal_bytecode_sequence;
   address cep = _illegal_bytecode_sequence;
   address sep = _illegal_bytecode_sequence;
@@ -445,6 +452,7 @@ void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
   address dep = _illegal_bytecode_sequence;
   address vep = _unimplemented_bytecode;
   address wep = _unimplemented_bytecode;
+
   // code for short & wide version of bytecode
   if (Bytecodes::is_defined(code)) {
     Template* t = TemplateTable::template_for(code);
@@ -457,6 +465,7 @@ void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
     assert(t->is_valid(), "just checking");
     set_wide_entry_point(t, wep);
   }
+
   // set entry points
   EntryPoint entry(bep, cep, sep, aep, iep, lep, fep, dep, vep);
   Interpreter::_normal_table.set_entry(code, entry);
@@ -516,8 +525,10 @@ void TemplateInterpreterGenerator::generate_and_dispatch(Template* t, TosState t
     }
     __ dispatch_prolog(tos_out, step);
   }
+
   // generate template
   t->generate(_masm);
+
   // advance
   if (t->does_dispatch()) {
 #ifdef ASSERT

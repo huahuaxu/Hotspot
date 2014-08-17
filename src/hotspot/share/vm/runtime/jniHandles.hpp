@@ -30,7 +30,6 @@
 
 class JNIHandleBlock;
 
-
 // Interface for creating and resolving local/global JNI handles
 
 class JNIHandles : AllStatic {

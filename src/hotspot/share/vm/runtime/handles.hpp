@@ -272,6 +272,7 @@ class HandleArea: public Arena {
     *handle = obj;
     return handle;
   }
+
  public:
 #ifdef ASSERT
   oop* allocate_handle(oop obj);

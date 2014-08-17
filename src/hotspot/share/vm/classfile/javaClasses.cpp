@@ -906,7 +906,7 @@ void java_lang_Thread::compute_offsets() {
 }
 
 /**
- * 从制定的java级别线程对象中提取出对应的JVM级别线程对象
+ * 从指定的java级别线程对象中提取出对应的JVM级别线程对象
  */
 JavaThread* java_lang_Thread::thread(oop java_thread) {
   return (JavaThread*)java_thread->address_field(_eetop_offset);
@@ -917,7 +917,9 @@ void java_lang_Thread::set_thread(oop java_thread, JavaThread* thread) {
   java_thread->address_field_put(_eetop_offset, (address)thread);
 }
 
-
+/**
+ * 根据name属性在java.lang.Thread对象实例中的存储偏移位置获取该值
+ */
 typeArrayOop java_lang_Thread::name(oop java_thread) {
   oop name = java_thread->obj_field(_name_offset);
   assert(name == NULL || (name->is_typeArray() && typeArrayKlass::cast(name->klass())->element_type() == T_CHAR), "just checking");

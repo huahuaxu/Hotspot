@@ -1912,6 +1912,7 @@ void TemplateInterpreterGenerator::set_vtos_entry_points(Template* t,
 
 InterpreterGenerator::InterpreterGenerator(StubQueue* code)
   : TemplateInterpreterGenerator(code) {
+   printf("%s[%d] [tid: %lu]: 开始生成所有指令模板的本地代码及分发表...\n", __FILE__, __LINE__, pthread_self());
    generate_all(); // down here so it can be "virtual"
 }
 
