@@ -1247,6 +1247,10 @@ UNSAFE_ENTRY(void, Unsafe_Unpark(JNIEnv *env, jobject unsafe, jobject jthread))
   }
 UNSAFE_END
 
+/**
+ * sun.misc.Unsafe.getLoadAverage()本地方法的实现
+ * 获取当前cpu的平均负载
+ */
 UNSAFE_ENTRY(jint, Unsafe_Loadavg(JNIEnv *env, jobject unsafe, jdoubleArray loadavg, jint nelem))
   UnsafeWrapper("Unsafe_Loadavg");
   const int max_nelem = 3;
@@ -1607,10 +1611,15 @@ JNINativeMethod anonk_methods[] = {
 // The optimizer looks at names and signatures to recognize
 // individual functions.
 
+/**
+ * sun.misc.Unsafe.registerNatives()方法的本地实现
+ */
 JVM_ENTRY(void, JVM_RegisterUnsafeMethods(JNIEnv *env, jclass unsafecls))
   UnsafeWrapper("JVM_RegisterUnsafeMethods");
   {
     ThreadToNativeFromVM ttnfv(thread);
+    printf("%s[%d] [tid: %lu]: 开始注册sun.misc.Unsafe类的所有本地方法...\n", __FILE__, __LINE__, pthread_self());
+
     {
       env->RegisterNatives(unsafecls, loadavg_method, sizeof(loadavg_method)/sizeof(JNINativeMethod));
       if (env->ExceptionOccurred()) {

@@ -136,6 +136,9 @@ static JNINativeMethod lookup_special_native_methods[] = {
   { CC"Java_sun_misc_Perf_registerNatives",                        NULL, FN_PTR(JVM_RegisterPerfMethods)         }
 };
 
+/**
+ * 特殊的本地方法,jdk1.4之前是5个,之后是3个
+ */
 static address lookup_special_native(char* jni_name) {
   int i = !JDK_Version::is_gte_jdk14x_version() ? 0 : 2;  // see comment in lookup_special_native_methods
   int count = sizeof(lookup_special_native_methods) / sizeof(JNINativeMethod);
@@ -166,6 +169,7 @@ address NativeLookup::lookup_style(methodHandle method, char* pure_name, const c
   // another VM/library dependency
   Handle loader(THREAD,
                 instanceKlass::cast(method->method_holder())->class_loader());
+
   if (loader.is_null()) {
     entry = lookup_special_native(jni_name);
     if (entry == NULL) {
@@ -245,10 +249,11 @@ address NativeLookup::lookup_critical_style(methodHandle method, char* pure_name
 address NativeLookup::lookup_entry(methodHandle method, bool& in_base_library, TRAPS) {
   address entry = NULL;
   in_base_library = false;
+
   // Compute pure name
   char* pure_name = pure_jni_name(method);
 
-  // Compute argument size
+  //计算指定本地方法的参数数量
   int args_size = 1                             // JNIEnv
                 + (method->is_static() ? 1 : 0) // class for static methods
                 + method->size_of_parameters(); // actual parameters
@@ -381,12 +386,16 @@ address NativeLookup::lookup_base(methodHandle method, bool& in_base_library, TR
               method->name_and_sig_as_C_string());
 }
 
-
+/**
+ * 为给定的本地java方法寻找对应的函数入口地址
+ */
 address NativeLookup::lookup(methodHandle method, bool& in_base_library, TRAPS) {
   if (!method->has_native_function()) {
 	printf("%s[%d] [tid: %lu]: 试图查找本地方法[%s.%s]..\n", __FILE__, __LINE__, pthread_self(), Klass::cast(method->method_holder())->external_name(), method->name()->as_C_string());
     address entry = lookup_base(method, in_base_library, CHECK_NULL);
+
     method->set_native_function(entry, methodOopDesc::native_bind_event_is_interesting);
+
     // -verbose:jni printing
     if (PrintJNIResolving) {
       ResourceMark rm(THREAD);
@@ -395,6 +404,7 @@ address NativeLookup::lookup(methodHandle method, bool& in_base_library, TRAPS) 
         method->name()->as_C_string());
     }
   }
+
   return method->native_function();
 }
 

@@ -4052,7 +4052,7 @@ DT_RETURN_MARK_DECL(RegisterNatives, jint
 #endif /* USDT2 */
 
 /**
- * 注册一个类的本地方法
+ * 注册一个类的一批本地方法
  */
 JNI_ENTRY(jint, jni_RegisterNatives(JNIEnv *env, jclass clazz,
                                     const JNINativeMethod *methods,

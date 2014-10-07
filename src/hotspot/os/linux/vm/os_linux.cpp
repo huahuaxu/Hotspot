@@ -5308,6 +5308,9 @@ bool os::is_thread_cpu_time_supported() {
 // System loadavg support.  Returns -1 if load average cannot be obtained.
 // Linux doesn't yet have a (official) notion of processor sets,
 // so just return the system wide load average.
+/**
+ * 获取当前cpu的平均负载(抽样时间:1/5/15 minutes)
+ */
 int os::loadavg(double loadavg[], int nelem) {
   return ::getloadavg(loadavg, nelem);
 }

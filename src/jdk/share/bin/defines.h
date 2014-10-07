@@ -63,6 +63,7 @@ static const char* const_progname = PROGNAME;
 #else
 static char* const_progname = NULL;
 #endif
+
 static const char** const_jargs = NULL;
 static const char** const_appclasspath = NULL;
 #endif /* JAVA_ARGS */

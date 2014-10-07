@@ -1241,7 +1241,7 @@ IRT_ENTRY(void, InterpreterRuntime::prepare_native_call(JavaThread* thread, meth
   printf("%s[%d] [tid: %lu]: 开始准备本地方法[%s.%s]的调用...\n", __FILE__, __LINE__, pthread_self(), Klass::cast(method->method_holder())->external_name(), method->name()->as_C_string());
 
   bool in_base_library;
-  if (!m->has_native_function()) {
+  if (!m->has_native_function()) {	//还没有为当前本地java方法寻找对应的函数地址
     NativeLookup::lookup(m, in_base_library, CHECK);
   }
 

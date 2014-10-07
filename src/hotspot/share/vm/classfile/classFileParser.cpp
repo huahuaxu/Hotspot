@@ -2656,7 +2656,9 @@ typeArrayHandle ClassFileParser::assemble_annotations(u1* runtime_visible_annota
   return annotations;
 }
 
-
+/**
+ * 从一个*.class文件中解析该类
+ */
 instanceKlassHandle ClassFileParser::parseClassFile(Symbol* name,
                                                     Handle class_loader,
                                                     Handle protection_domain,
@@ -2674,10 +2676,12 @@ instanceKlassHandle ClassFileParser::parseClassFile(Symbol* name,
   jint cached_class_file_length;
 
   ClassFileStream* cfs = stream();
+
   // Timing
   assert(THREAD->is_Java_thread(), "must be a JavaThread");
-  JavaThread* jt = (JavaThread*) THREAD;
+  JavaThread* jt = (JavaThread*) THREAD;	//当前的Java线程
 
+  //跟踪解析性能
   PerfClassTraceTime ctimer(ClassLoader::perf_class_parse_time(),
                             ClassLoader::perf_class_parse_selftime(),
                             NULL,
@@ -2735,10 +2739,12 @@ instanceKlassHandle ClassFileParser::parseClassFile(Symbol* name,
   // Set the verify flag in stream
   cfs->set_verify(_need_verify);
 
-  // Save the class file name for easier error message printing.
+  //加载的类的全限定名
   _class_name = (name != NULL) ? name : vmSymbols::unknown_class_name();
 
-  //魔数(4)、主板本号(2)、次版本号(2)共占8bytes
+  /**
+   * 魔数(4)、主板本号(2)、次版本号(2)共占8bytes
+   */
   cfs->guarantee_more(8, CHECK_(nullHandle));  // magic, major, minor
   // Magic value
   u4 magic = cfs->get_u4_fast();	//读取魔数
@@ -2750,8 +2756,8 @@ instanceKlassHandle ClassFileParser::parseClassFile(Symbol* name,
   u2 major_version = cfs->get_u2_fast();
 
 
-  //检查但前JVM是否支持该版本的class文件
-  if (!is_supported_version(major_version, minor_version)) {
+  //检查当前JVM是否支持该版本的class文件
+  if (!is_supported_version(major_version, minor_version)) {	//不支持
     if (name == NULL) {
       Exceptions::fthrow(
         THREAD_AND_LOCATION,

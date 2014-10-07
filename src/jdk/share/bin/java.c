@@ -167,8 +167,7 @@ static jlong initialHeapSize    = 0;  /* inital heap size */
 /*
  * JVM入口主函数
  */
-int
-JLI_Launch(int argc, char ** argv,              /* main argc, argc */
+int JLI_Launch(int argc, char ** argv,              /* main argc, argc */
         int jargc, const char** jargv,          /* java args */
         int appclassc, const char** appclassv,  /* app classpath */
         const char* fullversion,                /* full version defined */

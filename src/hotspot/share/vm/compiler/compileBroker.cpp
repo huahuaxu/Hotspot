@@ -1276,7 +1276,7 @@ nmethod* CompileBroker::compile_method(methodHandle method, int osr_bci,
   //
   // Note: A native method implies non-osr compilation which is
   //       checked with an assertion at the entry of this method.
-  if (method->is_native()) {
+  if (method->is_native()) {	//需要被本地化的方法是一个本地方法
     bool in_base_library;
     address adr = NativeLookup::lookup(method, in_base_library, THREAD);
     if (HAS_PENDING_EXCEPTION) {

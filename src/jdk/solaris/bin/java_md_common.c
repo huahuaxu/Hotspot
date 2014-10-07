@@ -66,6 +66,7 @@ GetApplicationHome(char *buf, jint bufsize)
 
     return JNI_TRUE;
 }
+
 /*
  * Return true if the named program exists
  */
