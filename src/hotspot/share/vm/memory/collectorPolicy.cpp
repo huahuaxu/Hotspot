@@ -61,6 +61,9 @@
  * 检查/调整永久代的内存配置
  */
 void CollectorPolicy::initialize_flags() {
+
+  printf("%s[%d] [tid: %lu]: 开始检查/调整永久代的内存配置...\n", __FILE__, __LINE__, pthread_self());
+
   if (PermSize > MaxPermSize) {
     MaxPermSize = PermSize;
   }
@@ -94,7 +97,7 @@ void CollectorPolicy::initialize_flags() {
 }
 
 /**
- * 调整/检查内存堆容量的配置(最大值/最小值/初始值):
+ * 确定内存堆容量的配置(最大值/最小值/初始值):
  *
  * 	1.内存堆的初始容量不能小于1M
  * 	2.内存堆的最小容量不能小于1M
@@ -104,20 +107,28 @@ void CollectorPolicy::initialize_flags() {
  * 	6.内存堆的最大容量不能小于其初始容量
  */
 void CollectorPolicy::initialize_size_info() {
+
+  printf("%s[%d] [tid: %lu]: 开始确定内存堆的初始/最小/最大容量..\n", __FILE__, __LINE__, pthread_self());
+
   // User inputs from -mx and ms are aligned
   set_initial_heap_byte_size(InitialHeapSize);
 
+  /**
+   * 如果内存堆的初始容量为0,则设置为新生代+旧生代的配置初始容量
+   */
   if (initial_heap_byte_size() == 0) {
     set_initial_heap_byte_size(NewSize + OldSize);
   }
   set_initial_heap_byte_size(align_size_up(_initial_heap_byte_size,  min_alignment()));
 
+  //设置内存堆的最小容量
   set_min_heap_byte_size(Arguments::min_heap_size());
   if (min_heap_byte_size() == 0) {
     set_min_heap_byte_size(NewSize + OldSize);
   }
   set_min_heap_byte_size(align_size_up(_min_heap_byte_size, min_alignment()));
 
+  //设置内存堆的最大容量
   set_max_heap_byte_size(align_size_up(MaxHeapSize, max_alignment()));
 
   // Check heap parameter properties
@@ -151,11 +162,11 @@ void CollectorPolicy::initialize_size_info() {
 }
 
 /**
- * 配置永久内存代
+ * 创建永久代内存管理器的生成器
  */
 void CollectorPolicy::initialize_perm_generation(PermGen::Name pgnm) {
 
-	printf("%s[%d] [tid: %lu]: 开始配置永久内存代...\n", __FILE__, __LINE__, pthread_self());
+	printf("%s[%d] [tid: %lu]: 开始配置永久代内存管理器的生成器...\n", __FILE__, __LINE__, pthread_self());
 
 	_permanent_generation = new PermanentGenerationSpec(pgnm, PermSize, MaxPermSize,
 								SharedReadOnlySize,
@@ -200,7 +211,9 @@ void CollectorPolicy::cleared_all_soft_refs() {
 
 
 // GenCollectorPolicy methods.
-
+/**
+ * 根据新生代与旧生代的配比参数NewRatio来计算新生代(最小/初始/最大)容量
+ */
 size_t GenCollectorPolicy::scale_by_NewRatio_aligned(size_t base_size) {
   size_t x = base_size / (NewRatio+1);
   size_t new_gen_size = x > min_alignment() ?
@@ -256,13 +269,23 @@ void GenCollectorPolicy::initialize_flags() {
   // All sizes must be multiples of the generation granularity.
   set_min_alignment((uintx) Generation::GenGrain);
   set_max_alignment(compute_max_alignment());
+
   assert(max_alignment() >= min_alignment() &&
          max_alignment() % min_alignment() == 0,
          "invalid alignment constraints");
 
+  /**
+   * (1).检查/调整永久代的内存配置
+   */
   CollectorPolicy::initialize_flags();
 
   // All generational heaps have a youngest gen; handle those flags here.
+
+  printf("%s[%d] [tid: %lu]: 开始检查/调整新生代的内存配置...\n", __FILE__, __LINE__, pthread_self());
+
+  /**
+   * (2).检查/调整新生代的内存配置
+   */
 
   // Adjust max size parameters
   if (NewSize > MaxNewSize) {
@@ -275,8 +298,7 @@ void GenCollectorPolicy::initialize_flags() {
   assert(NewSize     % min_alignment() == 0, "eden space alignment");
   assert(MaxNewSize  % min_alignment() == 0, "survivor space alignment");
 
-  if (NewSize < 3*min_alignment()) {
-     // make sure there room for eden and two survivor spaces
+  if (NewSize < 3*min_alignment()) {	//确保新生代中的三个区(Eden/S0/S1))至少有一个内存单元的容量
     vm_exit_during_initialization("Too small new size specified");
   }
 
@@ -293,8 +315,14 @@ void TwoGenerationCollectorPolicy::initialize_flags() {
   //检查/调整永久代+新生代的内存配置
   GenCollectorPolicy::initialize_flags();
 
-  //检查/调整旧生代+内存堆的内存配置
+  printf("%s[%d] [tid: %lu]: 开始检查/调整旧生代的内存配置..\n", __FILE__, __LINE__, pthread_self());
+
+  //检查/调整旧生代的内存配置
   OldSize = align_size_down(OldSize, min_alignment());
+
+  printf("%s[%d] [tid: %lu]: 开始检查/调整内存堆的内存配置..\n", __FILE__, __LINE__, pthread_self());
+
+  //检查/调整内存堆的内存配置
   if (NewSize + OldSize > MaxHeapSize) {
     MaxHeapSize = NewSize + OldSize;
   }
@@ -321,6 +349,9 @@ void TwoGenerationCollectorPolicy::initialize_flags() {
  * 确定内存堆+新生代的初始/最小/最大容量
  */
 void GenCollectorPolicy::initialize_size_info() {
+  /**
+   * (1).确定内存堆的初始/最小/最大容量
+   */
   CollectorPolicy::initialize_size_info();
 
   // min_alignment() is used for alignment within a generation.
@@ -330,18 +361,28 @@ void GenCollectorPolicy::initialize_size_info() {
 
   // Determine maximum size of gen0
 
+  printf("%s[%d] [tid: %lu]: 开始确定新生代的初始/最小/最大容量..\n", __FILE__, __LINE__, pthread_self());
+
+  /**
+   * (2).确定新生代的初始/最小/最大容量
+   */
+
   size_t max_new_size = 0;
-  if (FLAG_IS_CMDLINE(MaxNewSize) || FLAG_IS_ERGO(MaxNewSize)) {
+  if (FLAG_IS_CMDLINE(MaxNewSize) || FLAG_IS_ERGO(MaxNewSize)) {	//用户手动配置了新生代的最大容量值
     if (MaxNewSize < min_alignment()) {
       max_new_size = min_alignment();
     }
+
     if (MaxNewSize >= max_heap_byte_size()) {
+    	//配置的新生代最大容量不小于整个内存堆的最大容量,则重新调整新生代的最大容量
       max_new_size = align_size_down(max_heap_byte_size() - min_alignment(),
                                      min_alignment());
+
       warning("MaxNewSize (" SIZE_FORMAT "k) is equal to or "
         "greater than the entire heap (" SIZE_FORMAT "k).  A "
         "new generation size of " SIZE_FORMAT "k will be used.",
         MaxNewSize/K, max_heap_byte_size()/K, max_new_size/K);
+
     } else {
       max_new_size = align_size_down(MaxNewSize, min_alignment());
     }
@@ -361,6 +402,7 @@ void GenCollectorPolicy::initialize_size_info() {
   // just accept those choices.  The choices currently made are
   // not always "wise".
   } else {
+	//根据新生代与旧生代的配比参数NewRatio来计算新生代的最大容量
     max_new_size = scale_by_NewRatio_aligned(max_heap_byte_size());
     // Bound the maximum size by NewSize below (since it historically
     // would have been NewSize and because the NewRatio calculation could
@@ -375,9 +417,7 @@ void GenCollectorPolicy::initialize_size_info() {
   // minimum gen0 sizes.
 
   if (max_heap_byte_size() == min_heap_byte_size()) {
-    // The maximum and minimum heap sizes are the same so
-    // the generations minimum and initial must be the
-    // same as its maximum.
+    //如果内存堆的最大容量和最小容量相等,则新生代的最小/初始/最大容量都为其最大容量
     set_min_gen0_size(max_new_size);
     set_initial_gen0_size(max_new_size);
     set_max_gen0_size(max_new_size);
@@ -401,8 +441,8 @@ void GenCollectorPolicy::initialize_size_info() {
       // Use the default NewSize as the floor for these values.  If
       // NewRatio is overly large, the resulting sizes can be too
       // small.
-      _min_gen0_size = MAX2(scale_by_NewRatio_aligned(min_heap_byte_size()),
-                          NewSize);
+      //根据新生代与旧生代的配比参数NewRatio来计算新生代的最小容量
+      _min_gen0_size = MAX2(scale_by_NewRatio_aligned(min_heap_byte_size()), NewSize);
       desired_new_size =
         MAX2(scale_by_NewRatio_aligned(initial_heap_byte_size()),
              NewSize);
@@ -439,6 +479,7 @@ void GenCollectorPolicy::initialize_size_info() {
       SIZE_FORMAT "  Maximum gen0 " SIZE_FORMAT,
       min_gen0_size(), initial_gen0_size(), max_gen0_size());
   }
+
 }
 
 // Call this method during the sizing of the gen1 to make
@@ -449,12 +490,17 @@ void GenCollectorPolicy::initialize_size_info() {
 // is used to make the needed adjustments.  The application of the
 // policies could be more sophisticated (iterative for example) but
 // keeping it simple also seems a worthwhile goal.
+/**
+ * 根据新生代/旧生代/内存堆的(最小/初始/最大)容量来确定新生代+旧生代的(最小/初始/最大)容量,如果新生代的
+ * (最小/初始/最大)容量被调整,则返回true,否则返回false
+ */
 bool TwoGenerationCollectorPolicy::adjust_gen0_sizes(size_t* gen0_size_ptr,
                                                      size_t* gen1_size_ptr,
                                                      size_t heap_size,
                                                      size_t min_gen0_size) {
   bool result = false;
   if ((*gen1_size_ptr + *gen0_size_ptr) > heap_size) {
+
     if (((*gen0_size_ptr + OldSize) > heap_size) &&
        (heap_size - min_gen0_size) >= min_alignment()) {
       // Adjust gen0 down to accomodate OldSize
@@ -470,6 +516,7 @@ bool TwoGenerationCollectorPolicy::adjust_gen0_sizes(size_t* gen0_size_ptr,
         MAX2((uintx)align_size_down(*gen1_size_ptr, min_alignment()),
                        min_alignment());
     }
+
   }
 
   return result;
@@ -485,7 +532,16 @@ bool TwoGenerationCollectorPolicy::adjust_gen0_sizes(size_t* gen0_size_ptr,
  * 确定内存堆+新生代+旧生代的初始/最小/最大容量
  */
 void TwoGenerationCollectorPolicy::initialize_size_info() {
+  /**
+   * (1).确定内存堆+新生代的初始/最小/最大容量
+   */
   GenCollectorPolicy::initialize_size_info();
+
+  printf("%s[%d] [tid: %lu]: 开始确定旧生代的初始/最小/最大容量..\n", __FILE__, __LINE__, pthread_self());
+
+  /**
+   * (2).确定旧生代的初始/最小/最大容量
+   */
 
   // At this point the minimum, initial and maximum sizes
   // of the overall heap and of gen0 have been determined.
@@ -505,13 +561,13 @@ void TwoGenerationCollectorPolicy::initialize_size_info() {
     // with the gen0 sizes and the overall heap sizes.
     assert(min_heap_byte_size() > _min_gen0_size, "gen0 has an unexpected minimum size");
 
-    //旧生代最小值
+    //旧生代最小容量
     set_min_gen1_size(min_heap_byte_size() - min_gen0_size());
     set_min_gen1_size(
       MAX2((uintx)align_size_down(_min_gen1_size, min_alignment()),
            min_alignment()));
 
-    //旧生代初始值
+    //旧生代初始容量
     set_initial_gen1_size(initial_heap_byte_size() - initial_gen0_size());
     set_initial_gen1_size(
       MAX2((uintx)align_size_down(_initial_gen1_size, min_alignment()),
@@ -608,17 +664,20 @@ HeapWord* GenCollectorPolicy::mem_allocate_work(size_t size, bool is_tlab,
   //确保当前JVM没有正在进行GC
   assert(gch->no_gc_in_progress(), "Allocation during gc not allowed");
 
-  // In general gc_overhead_limit_was_exceeded should be false so
-  // set it so here and reset it to true only if the gc time
-  // limit is being exceeded as checked below.
+  //先假设GC没有超时
   *gc_overhead_limit_was_exceeded = false;
 
   HeapWord* result = NULL;
 
   // Loop until the allocation is satisified,
   // or unsatisfied after GC.
+  //通过重试的机制来确保内存分配成功
   for (int try_count = 1; /* return or throw */; try_count += 1) {
     HandleMark hm; // discard any handles allocated in each iteration
+
+    /**
+     * 1. 无锁式分配
+     */
 
     //年青代必须支持无锁并发方式的内存分配
     Generation *gen0 = gch->get_gen(0);
@@ -634,9 +693,14 @@ HeapWord* GenCollectorPolicy::mem_allocate_work(size_t size, bool is_tlab,
       }
     }
 
-    unsigned int gc_count_before;  // read inside the Heap_lock locked region
+    /**
+     * 2.有锁式分配
+     */
+
+    unsigned int gc_count_before;  //记录当前发生的Gc次数
     {
-      MutexLocker ml(Heap_lock);
+      MutexLocker ml(Heap_lock);	//上内存堆的全局锁
+
       if (PrintGC && Verbose) {
         gclog_or_tty->print_cr("TwoGenerationCollectorPolicy::mem_allocate_work:"
                       " attempting locked slow path allocation");
@@ -682,7 +746,7 @@ HeapWord* GenCollectorPolicy::mem_allocate_work(size_t size, bool is_tlab,
           //等待所有的本地线程退出并执行完Gc操作
           GC_locker::stall_until_clear();
           continue;
-        } else {
+        } else {	//JNI的代码块
           if (CheckJNICalls) {
             fatal("Possible deadlock due to allocating while in jni critical section");
           }
@@ -734,7 +798,7 @@ HeapWord* GenCollectorPolicy::mem_allocate_work(size_t size, bool is_tlab,
       return result;
     }
 
-    // Give a warning if we seem to be looping forever.
+    //打印警告信息,应为当前分配内存一直失败(GC过于频繁)
     if ((QueuedAllocationWarningCount > 0) && (try_count % QueuedAllocationWarningCount == 0)) {
           warning("TwoGenerationCollectorPolicy::mem_allocate_work retries %d times \n\t size=%d %s", try_count, size, is_tlab ? "(TLAB)" : "");
     }
@@ -883,32 +947,48 @@ bool GenCollectorPolicy::should_try_older_generation_allocation(
 // MarkSweepPolicy methods
 //
 MarkSweepPolicy::MarkSweepPolicy() {
+  printf("%s[%d] [tid: %lu]: 开始初始化GC策略: MarkSweepPolicy...\n", __FILE__, __LINE__, pthread_self());
   initialize_all();
 }
 
+/**
+ * 创建永久代+新生代+旧生代对应的内存管理器的生成器
+ */
 void MarkSweepPolicy::initialize_generations() {
 
+  /**
+   * (1).创建永久代内存管理器的生成器
+   */
   initialize_perm_generation(PermGen::MarkSweepCompact);
 
   _generations = new GenerationSpecPtr[number_of_generations()];
   if (_generations == NULL)
     vm_exit_during_initialization("Unable to allocate gen spec");
 
+  /**
+   * (2).创建新生代内存管理器的生成器
+   */
   if (UseParNewGC && ParallelGCThreads > 0) {
-	printf("%s[%d] [tid: %lu]: 新生代内存管理器[ParNewGeneration],垃圾回收策略[MarkSweepPolicy],新生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen0_size, _max_gen0_size);
+	printf("%s[%d] [tid: %lu]: 新生代内存管理器[ParNewGeneration]的生成器,垃圾回收策略[MarkSweepPolicy],新生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen0_size, _max_gen0_size);
     _generations[0] = new GenerationSpec(Generation::ParNew, _initial_gen0_size, _max_gen0_size);
   } else {
-	printf("%s[%d] [tid: %lu]: 新生代内存管理器[DefNewGeneration],垃圾回收策略[MarkSweepPolicy],新生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen0_size, _max_gen0_size);
+	printf("%s[%d] [tid: %lu]: 新生代内存管理器[DefNewGeneration]的生成器,垃圾回收策略[MarkSweepPolicy],新生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen0_size, _max_gen0_size);
     _generations[0] = new GenerationSpec(Generation::DefNew, _initial_gen0_size, _max_gen0_size);
   }
 
-  printf("%s[%d] [tid: %lu]: 旧生代内存管理器[TenuredGeneration],垃圾回收策略[MarkSweepPolicy],旧生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen1_size, _max_gen1_size);
+  /**
+   * (3).创建旧生代内存管理器的生成器
+   */
+  printf("%s[%d] [tid: %lu]: 旧生代内存管理器[TenuredGeneration]的生成器,垃圾回收策略[MarkSweepPolicy],旧生代内存[初始大小=%lu, 最大大小=%lu]...\n", __FILE__, __LINE__, pthread_self(), _initial_gen1_size, _max_gen1_size);
   _generations[1] = new GenerationSpec(Generation::MarkSweepCompact, _initial_gen1_size, _max_gen1_size);
 
   if (_generations[0] == NULL || _generations[1] == NULL)
     vm_exit_during_initialization("Unable to allocate gen spec");
 }
 
+/**
+ * 创建当前GC策略的相关计数器
+ */
 void MarkSweepPolicy::initialize_gc_policy_counters() {
   // initialize the policy counters - 2 collectors, 3 generations
   if (UseParNewGC && ParallelGCThreads > 0) {

@@ -66,9 +66,9 @@ public:
   static GenCollectedHeap* _gch;
 
  private:
-  int _n_gens;
-  Generation* _gens[max_gens];
-  GenerationSpec** _gen_specs;
+  int _n_gens;	//内存堆中内存代的数量
+  Generation* _gens[max_gens];	//内存堆中内存代管理器
+  GenerationSpec** _gen_specs;	//内存堆中内存代管理器的生成器
 
   //当前内存堆的垃圾回收策略
   GenCollectorPolicy* _gen_policy;

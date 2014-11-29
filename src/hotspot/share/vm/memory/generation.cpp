@@ -397,13 +397,17 @@ CardGeneration::CardGeneration(ReservedSpace rs, size_t initial_byte_size,
 {
   HeapWord* start = (HeapWord*)rs.base();
   size_t reserved_byte_size = rs.size();
+
   assert((uintptr_t(start) & 3) == 0, "bad alignment");
   assert((reserved_byte_size & 3) == 0, "bad alignment");
+
   MemRegion reserved_mr(start, heap_word_size(reserved_byte_size));
   _bts = new BlockOffsetSharedArray(reserved_mr,
                                     heap_word_size(initial_byte_size));
+
   MemRegion committed_mr(start, heap_word_size(initial_byte_size));
   _rs->resize_covered_region(committed_mr);
+
   if (_bts == NULL)
     vm_exit_during_initialization("Could not allocate a BlockOffsetArray");
 
@@ -417,13 +421,16 @@ CardGeneration::CardGeneration(ReservedSpace rs, size_t initial_byte_size,
     // the end if we try.
     guarantee(_rs->is_aligned(reserved_mr.end()), "generation must be card aligned");
   }
+
 }
 
 bool CardGeneration::expand(size_t bytes, size_t expand_bytes) {
   assert_locked_or_safepoint(Heap_lock);
+
   if (bytes == 0) {
     return true;  // That's what grow_by(0) would return
   }
+
   size_t aligned_bytes  = ReservedSpace::page_align_size_up(bytes);
   if (aligned_bytes == 0){
     // The alignment caused the number of bytes to wrap.  An expand_by(0) will
@@ -440,6 +447,7 @@ bool CardGeneration::expand(size_t bytes, size_t expand_bytes) {
   if (aligned_expand_bytes > aligned_bytes) {
     success = grow_by(aligned_expand_bytes);
   }
+
   if (!success) {
     success = grow_by(aligned_bytes);
   }
@@ -493,7 +501,7 @@ void OneContigSpaceCardGeneration::collect(bool   full,
 }
 
 /**
- * 以允许扩展内存代的物理空间的方式分配串行/并行内存块
+ * 以允许扩展内存代的物理空间的方式串行/并行分配内存块
  *
  * 	1.串行方式:
  * 	  1).扩张当前内存代的物理容量
@@ -589,6 +597,7 @@ bool OneContigSpaceCardGeneration::grow_by(size_t bytes) {
   assert_locked_or_safepoint(ExpandHeap_lock);
 
   bool result = _virtual_space.expand_by(bytes);
+
   if (result) {
     size_t new_word_size = heap_word_size(_virtual_space.committed_size());
     MemRegion mr(_the_space->bottom(), new_word_size);
@@ -620,6 +629,7 @@ bool OneContigSpaceCardGeneration::grow_by(size_t bytes) {
     }
 
   }
+
   return result;
 }
 
@@ -630,6 +640,7 @@ bool OneContigSpaceCardGeneration::grow_to_reserved() {
   assert_locked_or_safepoint(ExpandHeap_lock);
 
   bool success = true;
+  //内存代预留的剩余大小
   const size_t remaining_bytes = _virtual_space.uncommitted_size();
   if (remaining_bytes > 0) {
     success = grow_by(remaining_bytes);

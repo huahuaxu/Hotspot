@@ -66,9 +66,8 @@ SharedHeap::SharedHeap(CollectorPolicy* policy_) :
 
   _sh = this;  // ch is static, should be set only once.
 
-  if ((UseParNewGC ||
-      (UseConcMarkSweepGC && CMSParallelRemarkEnabled) || UseG1GC) &&
-      ParallelGCThreads > 0) {
+  if ((UseParNewGC || (UseConcMarkSweepGC && CMSParallelRemarkEnabled) || UseG1GC)
+		  && ParallelGCThreads > 0) {
 
 	printf("%s[%d] [tid: %lu]: 试图创建Gc线程管理调度器(Gc线程数量=%lu)...\n", __FILE__, __LINE__, pthread_self(), ParallelGCThreads);
 

@@ -92,3 +92,5 @@ class GCCause : public AllStatic {
 };
 
 #endif // SHARE_VM_GC_INTERFACE_GCCAUSE_HPP
+
+scavenge failed

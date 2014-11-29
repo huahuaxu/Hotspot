@@ -56,15 +56,20 @@ class GCPolicyCounters;
 class PermanentGenerationSpec;
 class MarkSweepPolicy;
 
+/**
+ * 垃圾回收策略
+ */
 class CollectorPolicy : public CHeapObj {
  protected:
-  PermanentGenerationSpec *_permanent_generation;	//永久内存代配置
+  PermanentGenerationSpec *_permanent_generation;	//永久代管理器的生成器
   GCPolicyCounters* _gc_policy_counters;			//Gc计数器
 
   // Requires that the concrete subclass sets the alignment constraints
   // before calling.
+  //调整/检查各内存代的配置(检查/调整永久代的内存配置)
   virtual void initialize_flags();
-  //调整/检查内存堆容量的配置(最大值/最小值/初始值)
+
+  //确定内存堆容量的配置(最大值/最小值/初始值)
   virtual void initialize_size_info();
 
   //配置永久内存代
@@ -224,22 +229,25 @@ class ClearedAllSoftRefs : public StackObj {
 };
 
 /**
- *基于分代内存的管理回收策略
+ *基于内存分代的垃圾回收策略
  */
 class GenCollectorPolicy : public CollectorPolicy {
  protected:
-  size_t _min_gen0_size;
-  size_t _initial_gen0_size;
-  size_t _max_gen0_size;
+  size_t _min_gen0_size;			//新生代的最小容量
+  size_t _initial_gen0_size;		//新生代的初始容量
+  size_t _max_gen0_size;			//新生代的最大容量
 
-  GenerationSpec **_generations;	//当前内存堆中常用内存代的配置(新生代+旧生代)
+  GenerationSpec **_generations;	//当前GC策略管理的内存代对应的内存管理器的生成器(新生代+旧生代)
 
   // Return true if an allocation should be attempted in the older
   // generation if it fails in the younger generation.  Return
   // false, otherwise.
   virtual bool should_try_older_generation_allocation(size_t word_size) const;
 
+  //检查/调整永久代+新生代的内存配置
   void initialize_flags();
+
+  //确定内存堆+新生代的初始/最小/最大容量
   void initialize_size_info();
 
   // Try to allocate space by expanding the heap.
@@ -278,9 +286,17 @@ class GenCollectorPolicy : public CollectorPolicy {
   //配置内存堆中的各内存代
   virtual void initialize_generations() = 0;
 
+  /**
+   * 初始化GC策略
+   */
   virtual void initialize_all() {
+	printf("%s[%d] [tid: %lu]: 开始检查/调整永久代+新生代+旧生代+内存堆的内存配置..\n", __FILE__, __LINE__, pthread_self());
     initialize_flags();
+
+    printf("%s[%d] [tid: %lu]: 开始确定内存堆+新生代+旧生代的初始/最小/最大容量..\n", __FILE__, __LINE__, pthread_self());
     initialize_size_info();
+
+    printf("%s[%d] [tid: %lu]: 开始创建永久代+新生代+旧生代对应的内存管理器的生成器..\n", __FILE__, __LINE__, pthread_self());
     initialize_generations();
   }
 
@@ -303,16 +319,20 @@ class GenCollectorPolicy : public CollectorPolicy {
 // its own file.
 
 /**
- *基于两代内存的管理回收策略
+ *基于两代内存的垃圾回收策略
  */
 class TwoGenerationCollectorPolicy : public GenCollectorPolicy {
  protected:
-  size_t _min_gen1_size;
-  size_t _initial_gen1_size;
-  size_t _max_gen1_size;
+  size_t _min_gen1_size;			//旧生代的最小容量
+  size_t _initial_gen1_size;		//旧生代的初始容量
+  size_t _max_gen1_size;			//旧生代的最大容量
 
+  //检查/调整永久代+新生代+旧生代+内存堆的内存配置
   void initialize_flags();
+
+  //确定内存堆+新生代+旧生代的初始/最小/最大容量
   void initialize_size_info();
+
   void initialize_generations()                { ShouldNotReachHere(); }
 
  public:
@@ -327,7 +347,9 @@ class TwoGenerationCollectorPolicy : public GenCollectorPolicy {
   // Inherited methods
   TwoGenerationCollectorPolicy* as_two_generation_policy() { return this; }
 
+  //当前GC策略管理的内存代数量
   int number_of_generations()                  { return 2; }
+
   BarrierSet::Name barrier_set_name()          { return BarrierSet::CardTableModRef; }
   GenRemSet::Name rem_set_name()               { return GenRemSet::CardTable; }
 
@@ -340,8 +362,12 @@ class TwoGenerationCollectorPolicy : public GenCollectorPolicy {
                                size_t heap_size, size_t min_gen1_size);
 };
 
+/**
+ * 标记-清理GC策略
+ */
 class MarkSweepPolicy : public TwoGenerationCollectorPolicy {
  protected:
+  //创建永久代+新生代+旧生代对应的内存管理器的生成器
   void initialize_generations();
 
  public:

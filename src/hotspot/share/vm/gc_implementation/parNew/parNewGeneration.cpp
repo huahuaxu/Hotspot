@@ -726,6 +726,7 @@ ParNewGeneration::ParNewGeneration(ReservedSpace rs, size_t initial_byte_size, i
     }
   }
 
+  //
   if (UsePerfData) {
     EXCEPTION_MARK;
     ResourceMark rm;

@@ -167,12 +167,20 @@ DefNewGeneration::DefNewGeneration(ReservedSpace rs,
 
   Universe::heap()->barrier_set()->resize_covered_region(cmr);
 
+  //创建Eden内存区管理器
   if (GenCollectedHeap::heap()->collector_policy()->has_soft_ended_eden()) {
-    _eden_space = new ConcEdenSpace(this);
+	printf("%s[%d] [tid: %lu]: 试图创建Eden内存区管理器(ConcEdenSpace)...\n", __FILE__, __LINE__, pthread_self());
+
+	_eden_space = new ConcEdenSpace(this);
   } else {
+	printf("%s[%d] [tid: %lu]: 试图创建Eden内存区管理器(EdenSpace)...\n", __FILE__, __LINE__, pthread_self());
+
     _eden_space = new EdenSpace(this);
   }
 
+
+  printf("%s[%d] [tid: %lu]: 试图创建From/To内存区管理器(ContiguousSpace)...\n", __FILE__, __LINE__, pthread_self());
+  //创建From/To内存区管理器
   _from_space = new ContiguousSpace();
   _to_space   = new ContiguousSpace();
 
@@ -192,6 +200,9 @@ DefNewGeneration::DefNewGeneration(ReservedSpace rs,
 
   // allocate the performance counters
 
+  /**
+   * 创建相关的计数器
+   */
   // Generation counters -- generation 0, 3 subspaces
   _gen_counters = new GenerationCounters("new", 0, 3, &_virtual_space);
   _gc_counters = new CollectorCounters(policy, 0);
@@ -200,12 +211,17 @@ DefNewGeneration::DefNewGeneration(ReservedSpace rs,
   _from_counters = new CSpaceCounters("s0", 1, _max_survivor_size, _from_space, _gen_counters);
   _to_counters = new CSpaceCounters("s1", 2, _max_survivor_size, _to_space, _gen_counters);
 
+  //分配对应的物理内存区
   compute_space_boundaries(0, SpaceDecorator::Clear, SpaceDecorator::Mangle);
 
   update_counters();
 
   _next_gen = NULL;
+
+  ///对象可进入下一个内存代的存活时间阈值
   _tenuring_threshold = MaxTenuringThreshold;
+
+  //内存代允许分配的最大对象大小
   _pretenure_size_threshold_words = PretenureSizeThreshold >> LogHeapWordSize;
 
   printf("%s[%d] [tid: %lu]: 默认年青代内存代管理器[%d:DefNewGeneration]{max_survivor_size=%lu, max_eden_size=%lu, pretenure_size_threshold_words(一次可申请的最大内存块)=%lu}...\n", __FILE__, __LINE__, pthread_self(),
@@ -214,7 +230,7 @@ DefNewGeneration::DefNewGeneration(ReservedSpace rs,
 }
 
 /**
- * 确定三个内存区Eden/From/To的物理地址边界
+ * 确定三个内存区Eden/From/To在内存代中的物理地址边界即分配对应的物理内存区
  */
 void DefNewGeneration::compute_space_boundaries(uintx minimum_eden_size,
                                                 bool clear_space,
@@ -228,23 +244,29 @@ void DefNewGeneration::compute_space_boundaries(uintx minimum_eden_size,
   assert(clear_space || (to()->is_empty() && from()->is_empty()),
     "Initialization of the survivor spaces assumes these are empty");
 
-  // Compute sizes
-  uintx size = _virtual_space.committed_size();
+  //根据内存代当前的初始化大小(已经申请的内存大小)来计算各内存区的大小
+  uintx size = _virtual_space.committed_size(); //当前内存代已经申请到的内存大小
   uintx survivor_size = compute_survivor_size(size, alignment);
   uintx eden_size = size - (2*survivor_size);
   assert(eden_size > 0 && survivor_size <= eden_size, "just checking");
 
+  /**
+   * 如果Eden的实际大小小于配置的最小值,则调整From区和To的大小以保证Eden区的大小
+   */
   if (eden_size < minimum_eden_size) {
     // May happen due to 64Kb rounding, if so adjust eden size back up
     minimum_eden_size = align_size_up(minimum_eden_size, alignment);
     uintx maximum_survivor_size = (size - minimum_eden_size) / 2;
-    uintx unaligned_survivor_size =
-      align_size_down(maximum_survivor_size, alignment);
+    uintx unaligned_survivor_size = align_size_down(maximum_survivor_size, alignment);
     survivor_size = MAX2(unaligned_survivor_size, alignment);
     eden_size = size - (2*survivor_size);
     assert(eden_size > 0 && survivor_size <= eden_size, "just checking");
     assert(eden_size >= minimum_eden_size, "just checking");
   }
+
+  /**
+   * 根据各内存区的大小配置其对应的内存在内存代中的起始-结束偏移位置
+   */
 
   char *eden_start = _virtual_space.low();
   char *from_start = eden_start + eden_size;
@@ -280,6 +302,12 @@ void DefNewGeneration::compute_space_boundaries(uintx minimum_eden_size,
     }
   }
 
+  /**
+   * 初始化个内存区管理器
+   */
+
+  printf("%s[%d] [tid: %lu]: 试图初始化Eden内存区管理器...\n", __FILE__, __LINE__, pthread_self());
+
   // Reset the spaces for their new regions.
   eden()->initialize(edenMR,
                      clear_space && !live_in_eden,
@@ -292,7 +320,10 @@ void DefNewGeneration::compute_space_boundaries(uintx minimum_eden_size,
     eden()->mangle_unused_area();
   }
 
+  printf("%s[%d] [tid: %lu]: 试图初始化From内存区管理器...\n", __FILE__, __LINE__, pthread_self());
   from()->initialize(fromMR, clear_space, mangle_space);
+
+  printf("%s[%d] [tid: %lu]: 试图初始化To内存区管理器...\n", __FILE__, __LINE__, pthread_self());
   to()->initialize(toMR, clear_space, mangle_space);
 
   // Set next compaction spaces.
@@ -303,6 +334,9 @@ void DefNewGeneration::compute_space_boundaries(uintx minimum_eden_size,
   from()->set_next_compaction_space(NULL);
 }
 
+/**
+ * 交换From区和To区及相应配置(内存块/计算器/三个区的物理位置关系)
+ */
 void DefNewGeneration::swap_spaces() {
   ContiguousSpace* s = from();
   _from_space        = to();
@@ -320,6 +354,9 @@ void DefNewGeneration::swap_spaces() {
   }
 }
 
+/**
+ * 扩展整个内存代(年青代)的内存空间
+ */
 bool DefNewGeneration::expand(size_t bytes) {
   MutexLocker x(ExpandHeap_lock);
   HeapWord* prev_high = (HeapWord*) _virtual_space.high();
@@ -352,7 +389,7 @@ bool DefNewGeneration::expand(size_t bytes) {
 }
 
 /**
- * 一次Gc之后，重新调整(扩展/缩小)年青代的物理空间
+ * 一次Gc之后，重新调整(扩展/缩小)内存代(年青代)的物理空间
  * 根据年老代当前容量/NewRatio/当前非守护线程数量/NewSizeThreadIncrease来确定年青代的容量
  *
  * 	 扩展年青代的物理空间: From/To区完全空闲
@@ -425,6 +462,7 @@ void DefNewGeneration::compute_new_size() {
     compute_space_boundaries(eden()->used(),
                              SpaceDecorator::Clear,
                              SpaceDecorator::DontMangle);
+
     MemRegion cmr((HeapWord*)_virtual_space.low(),
                   (HeapWord*)_virtual_space.high());
     Universe::heap()->barrier_set()->resize_covered_region(cmr);
@@ -459,26 +497,29 @@ void DefNewGeneration::younger_refs_iterate(OopsInGenClosure* cl) {
 }
 
 /**
- * 年青代的内存容量
+ * 年青代用于对象内存分配的内存容量(Eden区+From区, To区用于内存代的垃圾对象回收时)
  */
 size_t DefNewGeneration::capacity() const {
   return eden()->capacity() + from()->capacity();  // to() is only used during scavenge
 }
 
 /**
- * 年青代的内存使用量
+ * 年青代用于对象内存分配的内存使用量
  */
 size_t DefNewGeneration::used() const {
   return eden()->used() + from()->used();      // to() is only used during scavenge
 }
 
 /**
- * 年青代的内存空闲量
+ * 年青代用于对象内存分配的内存空闲量
  */
 size_t DefNewGeneration::free() const {
   return eden()->free() + from()->free();      // to() is only used during scavenge
 }
 
+/**
+ * 年青代用于对象内存分配的内存最大量
+ */
 size_t DefNewGeneration::max_capacity() const {
   const size_t alignment = GenCollectedHeap::heap()->collector_policy()->min_alignment();
   const size_t reserved_bytes = reserved().byte_size();
@@ -1057,7 +1098,7 @@ CompactibleSpace* DefNewGeneration::first_compaction_space() const {
 /**
  * 从当前的内存代中分配指定大小的内存空间
  * 		1).以并行的方式快速从Eden区分配内存
- * 		2).扩张Eden区的方式分配内存
+ * 		2).扩展Eden区内存空间的方式分配内存
  * 		3).从From区分配内存
  */
 HeapWord* DefNewGeneration::allocate(size_t word_size,
@@ -1067,6 +1108,8 @@ HeapWord* DefNewGeneration::allocate(size_t word_size,
   // We try to allocate from the eden.  If that works, we are happy.
   // Note that since DefNewGeneration supports lock-free allocation, we
   // have to use it here, as well.
+
+  //从Eden区快速分配内存
   HeapWord* result = eden()->par_allocate(word_size);
   if (result != NULL) {
     return result;
@@ -1099,7 +1142,7 @@ HeapWord* DefNewGeneration::allocate(size_t word_size,
   // out of heap space, and we try to allocate the from-space, too.
   // allocate_from_space can't be inlined because that would introduce a
   // circular dependency at compile time.
-  if (result == NULL) {
+  if (result == NULL) {	//Eden区没有足够的空间,则从From区分配
     result = allocate_from_space(word_size);
   }
 

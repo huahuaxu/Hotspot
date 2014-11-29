@@ -1119,6 +1119,7 @@ void Arguments::set_parnew_gc_flags() {
       FLAG_SET_DEFAULT(ParallelGCThreads, 0);
     }
   }
+
   if (UseParNewGC) {
     // CDS doesn't work with ParNew yet
     no_shared_spaces();
@@ -1738,8 +1739,12 @@ static bool verify_serial_gc_flags() {
 // +UseGCLogFileRotation is a must,
 // no gc log rotation when log file not supplied or
 // NumberOfGCLogFiles is 0, or GCLogFileSize is 0
+/**
+ * 检查GC日志信息输出文件的配置
+ */
 void check_gclog_consistency() {
-  if (UseGCLogFileRotation) {
+
+  if (UseGCLogFileRotation) {	//开启日志文件切分
     if ((Arguments::gc_log_filename() == NULL) ||
         (NumberOfGCLogFiles == 0)  ||
         (GCLogFileSize == 0)) {
@@ -1751,7 +1756,7 @@ void check_gclog_consistency() {
     }
   }
 
-  if (UseGCLogFileRotation && GCLogFileSize < 8*K) {
+  if (UseGCLogFileRotation && GCLogFileSize < 8*K) {	//在开启日志文件切分的情况下,调整日志文件的大小
         FLAG_SET_CMDLINE(uintx, GCLogFileSize, 8*K);
         jio_fprintf(defaultStream::output_stream(),
                     "GCLogFileSize changed to minimum 8K\n");
@@ -1759,8 +1764,12 @@ void check_gclog_consistency() {
 }
 
 // Check consistency of GC selection
+/**
+ * 检查GC策略的配置是否正确
+ */
 bool Arguments::check_gc_consistency() {
   check_gclog_consistency();
+
   bool status = true;
   // Ensure that the user has not selected conflicting sets
   // of collectors. [Note: this check is merely a user convenience;
@@ -1770,10 +1779,12 @@ bool Arguments::check_gc_consistency() {
   // better to reduce user confusion by not allowing them to
   // select conflicting combinations.
   uint i = 0;
+
   if (UseSerialGC)                       i++;
   if (UseConcMarkSweepGC || UseParNewGC) i++;
   if (UseParallelGC || UseParallelOldGC) i++;
   if (UseG1GC)                           i++;
+
   if (i > 1) {
     jio_fprintf(defaultStream::error_stream(),
                 "Conflicting collector combinations in option list; "
@@ -2973,6 +2984,9 @@ do {                                                            \
 
 // Parse entry point called from JNI_CreateJavaVM
 
+/**
+ * 解析JVM配置参数
+ */
 jint Arguments::parse(const JavaVMInitArgs* args) {
 
   // Sharing support
@@ -2992,6 +3006,8 @@ jint Arguments::parse(const JavaVMInitArgs* args) {
   DEBUG_ONLY(strcat(shared_archive_path, "_g");)
   strcat(shared_archive_path, ".jsa");
   SharedArchivePath = shared_archive_path;
+
+  printf("%s[%d] [tid: %lu]: jar包共享内存的配置文件: %s...\n", __FILE__, __LINE__, pthread_self(), shared_archive_path);
 
   // Remaining part of option string
   const char* tail;

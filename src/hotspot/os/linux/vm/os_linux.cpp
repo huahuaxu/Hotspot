@@ -2328,6 +2328,7 @@ void os::jvm_path(char *buf, jint buflen) {
     buf[0] = '\0';
     return;
   }
+
   // Lazy resolve the path to current module.
   if (saved_jvm_path[0] != 0) {
     strcpy(buf, saved_jvm_path);
@@ -2978,22 +2979,27 @@ static address _highest_vm_reserved_address = NULL;
  * 				ETXTBSY：已写的方式打开文件，同时指定MAP_DENYWRITE标志
  * 				SIGSEGV：试着向只读区写入
  * 				SIGBUS：试着访问不属于进程的内存区
- * 参数说明:   start：映射区的开始地址，设置为0时表示由系统决定映射区的起始地址。
- * 			length：映射区的长度。长度单位是以内存页为单位
- * 			prot：期望的内存保护标志，不能与文件的打开模式冲突。是以下的某个值，可以通过or运算合理地组合在一起
+ * 参数说明:   start：映射区的开始地址，设置为0时表示由系统决定映射区的起始地址.
+ * 			length：映射区的长度.长度单位是以内存页为单位
+ * 			prot：期望的内存保护标志，不能与文件的打开模式冲突.是以下的某个值，可以通过or运算合理地组合在一起
  * 			 		PROT_EXEC //页内容可以被执行
  * 			 		PROT_READ //页内容可以被读取
  * 			 		PROT_WRITE //页可以被写入
  * 			 		PROT_NONE //页不可访问
  * 			flags：指定映射对象的类型，映射选项和映射页是否可以共享。它的值可以是一个或者多个以下位的组合体
- * 			 		MAP_FIXED 		//使用指定的映射起始地址，如果由start和len参数指定的内存区重叠于现存的映射空间，
- * 			 						重叠部分将会被丢弃。如果指定的起始地址不可用，操作将会失败。并且起始地址必须落在页的边界上。
- * 			 		MAP_SHARED 		//与其它所有映射这个对象的进程共享映射空间。对共享区的写入，相当于输出到文件。
- * 			 					  	直到msync()或者munmap()被调用，文件实际上不会被更新。
- * 			 		MAP_PRIVATE   	//建立一个写入时拷贝的私有映射。内存区域的写入不会影响到原文件。这个标志和以上标志是互斥的，只能使用其中一个。
- * 			 		MAP_NORESERVE 	//不要为这个映射保留交换空间。当交换空间被保留，对映射区修改的可能会得到保证。
- * 			 						当交换空间不被保留，同时内存不足，对映射区的修改会引起段违例信号。
- * 			 		MAP_ANONYMOUS 	//匿名映射，映射区不与任何文件关联。
+ * 			 		MAP_FIXED 		//使用指定的映射起始地址，如果由start和len参数指定的内存区重叠于现存的映射空间,
+ * 			 						重叠部分将会被丢弃.如果指定的起始地址不可用,操作将会失败.并且起始地址必须落在页的边界上.
+ * 			 		MAP_SHARED 		//与其它所有映射这个对象的进程共享映射空间.对共享区的写入,相当于输出到文件.
+ * 			 					  	直到msync()或者munmap()被调用,文件实际上不会被更新.
+ * 			 		MAP_PRIVATE   	//建立一个写入时拷贝的私有映射.内存区域的写入不会影响到原文件.这个标志和以上标志是互斥的,只能使用其中一个.
+ * 			 		MAP_NORESERVE 	//不要为这个映射保留交换空间.当交换空间被保留,对映射区修改的可能会得到保证.
+ * 			 						当交换空间不被保留,同时内存不足,对映射区的修改会引起段违例信号.
+ * 			 		MAP_ANONYMOUS 	//匿名映射,映射区不与任何文件关联.
+ * 			 		MAP_32BIT       //将映射区放在进程地址空间的低2G,MAP_FIXED指定时会被忽略.当前这个标志只在x86-64平台上得到支持
+ * 			 		MAP_POPULATE    //为文件映射通过预读的方式准备好页表.随后对映射区的访问不会被页违例阻塞.
+ * 			 		MAP_NONBLOCK    //仅和MAP_POPULATE一起使用时才有意义.不执行预读,只为已存在于内存中的页面建立页表入口.
+ * 			 fd:  有效的文件描述词.一般是由open()函数返回,其值也可以设置为-1,此时需要指定flags参数中的MAP_ANON,表明进行的是匿名映射.
+ * 			 off_toffset:  被映射对象内容的起点.
  *
  */
 static char* anon_mmap(char* requested_addr, size_t bytes, bool fixed) {
@@ -3010,7 +3016,7 @@ static char* anon_mmap(char* requested_addr, size_t bytes, bool fixed) {
   // to PROT_EXEC if executable when we commit the page.
   addr = (char*)::mmap(requested_addr, bytes, PROT_READ|PROT_WRITE, flags, -1, 0);
 
-  if (addr != MAP_FAILED) {
+  if (addr != MAP_FAILED) { //申请成功
     // anon_mmap() should only get called during VM initialization,
     // don't need lock (actually we can skip locking even it can be called
     // from multiple threads, because _highest_vm_reserved_address is just a
@@ -3032,7 +3038,7 @@ static char* anon_mmap(char* requested_addr, size_t bytes, bool fixed) {
  *
  * 函数原型: int munmap(void *start,size_t length);
  * 函数说明: 用来取消参数start所指的映射内存起始地址，参数length则是欲取消的内存大小(当进程结束或利用exec相关函数来执行其他程序时,
- * 			映射内存会自动解除，但关闭对应的文件描述词时不会解除映射)
+ * 			映射内存会自动解除,但关闭对应的文件描述词时不会解除映射)
  * 返回值:   如果解除映射成功则返回0，否则返回－1
  */
 static int anon_munmap(char * addr, size_t size) {
@@ -3043,6 +3049,9 @@ char* os::reserve_memory(size_t bytes, char* requested_addr, size_t alignment_hi
   return anon_mmap(requested_addr, bytes, (requested_addr != NULL));
 }
 
+/**
+ * 释放指定的内存块
+ */
 bool os::release_memory(char* addr, size_t size) {
   return anon_munmap(addr, size);
 }
@@ -3167,8 +3176,7 @@ static void set_coredump_filter(void) {
   fclose(f);
 }
 
-// Large page support
-
+//大内存页
 static size_t _large_page_size = 0;
 
 /**
@@ -3382,7 +3390,16 @@ char* os::reserve_memory_special(size_t bytes, char* req_addr, bool exec) {
 }
 
 /**
- * 释放指定的一块内存空间
+ * 断开指定的内存空间与当前进程的连接
+ *
+ * ******************************************************************************88***
+ * 函数原型:	int shmdt(const void *shmaddr)
+ * 函数说明:	断开与共享内存附加点的地址,禁止本进程访问此片共享内存.本函数调用并不删除所指定的共享内存区,
+ *          而只是将先前用shmat函数连接(attach)好的共享内存脱离(detach)目前的进程
+ * 函数参数:	shmaddr:	连接的共享内存的起始地址
+ * 函数返回:	成功:	0
+ * 			出错:	-1,错误原因存于error中
+ *
  */
 bool os::release_memory_special(char* base, size_t bytes) {
   // detaching the SHM segment will also delete it, see reserve_memory_special()

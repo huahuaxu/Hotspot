@@ -124,7 +124,7 @@ protected:
   // All heaps contain a "permanent generation."  This is some ways
   // similar to a generation in a generational system, in other ways not.
   // See the "PermGen" class.
-  PermGen* _perm_gen;
+  PermGen* _perm_gen;	//永久代内存管理器
 
   // and the Gen Remembered Set, at least one good enough to scan the perm
   // gen.

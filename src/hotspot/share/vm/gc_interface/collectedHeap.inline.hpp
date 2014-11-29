@@ -52,7 +52,7 @@
 /**
  * 初始化实例对象的两个基本信息
  *    1.标记信息
- *    2.该实例对象类型所对应的类型描述对象
+ *    2.设置该实例对象类型所对应的类型描述对象
  */
 void CollectedHeap::post_allocation_setup_common(KlassHandle klass,
                                                  HeapWord* obj,
@@ -62,7 +62,7 @@ void CollectedHeap::post_allocation_setup_common(KlassHandle klass,
 }
 
 /**
- * 初始化新分配对象的标记位
+ * 初始化新分配对象的标记信息
  */
 void CollectedHeap::post_allocation_setup_no_klass_install(KlassHandle klass,
                                                            HeapWord* objPtr,
@@ -221,7 +221,7 @@ HeapWord* CollectedHeap::common_mem_allocate_noinit(size_t size, TRAPS) {
 }
 
 /**
- * 申请一块非永久性存储空间并填充由于对齐而产生的间隙
+ * 申请一块非永久性存储空间并初始化分配的对象内存块
  */
 HeapWord* CollectedHeap::common_mem_allocate_init(size_t size, TRAPS) {
   HeapWord* obj = common_mem_allocate_noinit(size, CHECK_NULL);
@@ -230,7 +230,7 @@ HeapWord* CollectedHeap::common_mem_allocate_init(size_t size, TRAPS) {
 }
 
 /**
- * 从永久代的存储空间中分配内存
+ * 从永久代的存储空间中分配内存,不初始化该内存块
  */
 HeapWord* CollectedHeap::common_permanent_mem_allocate_noinit(size_t size, TRAPS) {
   if (HAS_PENDING_EXCEPTION) {
@@ -264,11 +264,12 @@ HeapWord* CollectedHeap::common_permanent_mem_allocate_noinit(size_t size, TRAPS
     JvmtiExport::post_resource_exhausted(JVMTI_RESOURCE_EXHAUSTED_OOM_ERROR, "PermGen space");
   }
 
+  //抛出永久代的OOM错误
   THROW_OOP_0(Universe::out_of_memory_error_perm_gen());
 }
 
 /**
- * 分配指定大小的一块永久性存储空间并填充由于对齐而产生的间隙
+ * 分配指定大小的一块永久性存储空间并初始化该内存块
  */
 HeapWord* CollectedHeap::common_permanent_mem_allocate_init(size_t size, TRAPS) {
   HeapWord* obj = common_permanent_mem_allocate_noinit(size, CHECK_NULL);
@@ -292,7 +293,7 @@ HeapWord* CollectedHeap::allocate_from_tlab(Thread* thread, size_t size) {
 }
 
 /**
- * 用0来填充由于对齐而产生的间隙
+ * 初始化对象的内存块(除对象的标准头部之外,其余用清零)
  */
 void CollectedHeap::init_obj(HeapWord* obj, size_t size) {
   assert(obj != NULL, "cannot initialize NULL object");
@@ -307,12 +308,14 @@ void CollectedHeap::init_obj(HeapWord* obj, size_t size) {
  */
 oop CollectedHeap::obj_allocate(KlassHandle klass, int size, TRAPS) {
   debug_only(check_for_valid_allocation_state());
+  //确保内存堆当前没有或将要发生Gc
   assert(!Universe::heap()->is_gc_active(), "Allocation during gc not allowed");
   assert(size >= 0, "int won't convert to size_t");
 
   printf("%s[%d] [tid: %lu]: 开始为%s的实例分配存储空间...\n", __FILE__, __LINE__, pthread_self(), klass->name()->as_C_string());
   HeapWord* obj = common_mem_allocate_init(size, CHECK_NULL);
 
+  //初始化对象
   post_allocation_setup_obj(klass, obj, size);
 
   NOT_PRODUCT(Universe::heap()->check_for_bad_heap_word_value(obj, size));
@@ -361,9 +364,14 @@ oop CollectedHeap::array_allocate_nozero(KlassHandle klass,
   return (oop)obj;
 }
 
+/**
+ * 为类型的描述信息对象分配永久性的存储空间
+ */
 oop CollectedHeap::permanent_obj_allocate(KlassHandle klass, int size, TRAPS) {
+  //申请内存
   oop obj = permanent_obj_allocate_no_klass_install(klass, size, CHECK_NULL);
 
+  //初始化对象(设置对象的类型信息)
   post_allocation_install_obj_klass(klass, obj, size);
 
   NOT_PRODUCT(Universe::heap()->check_for_bad_heap_word_value((HeapWord*) obj, size));
@@ -372,7 +380,7 @@ oop CollectedHeap::permanent_obj_allocate(KlassHandle klass, int size, TRAPS) {
 }
 
 /**
- * 为类型的描述分配永久性的存储空间
+ * 为类型的描述信息对象分配永久性的存储空间(不为该对象设置它的类型信息)
  */
 oop CollectedHeap::permanent_obj_allocate_no_klass_install(KlassHandle klass,
                                                            int size,
@@ -381,7 +389,10 @@ oop CollectedHeap::permanent_obj_allocate_no_klass_install(KlassHandle klass,
   assert(!Universe::heap()->is_gc_active(), "Allocation during gc not allowed");
   assert(size >= 0, "int won't convert to size_t");
 
+  //申请内存块并初始化它
   HeapWord* obj = common_permanent_mem_allocate_init(size, CHECK_NULL);
+
+  //设置对象的标记信息
   post_allocation_setup_no_klass_install(klass, obj, size);
 
 #ifndef PRODUCT

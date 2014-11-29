@@ -166,12 +166,12 @@ void CollectedHeap::check_for_valid_allocation_state() {
 
 /**
  * 申请一块新的本地分配缓冲区并顺带从中分配指定大小的内存块
- * 如果丢弃旧的本地分配缓冲区所带来的碎片大小大于设置的阈值，则放弃线程的缓冲区分配
  */
 HeapWord* CollectedHeap::allocate_from_tlab_slow(Thread* thread, size_t size) {
 
   // Retain tlab and allocate object in shared space if
   // the amount free in the tlab is too large to discard.
+  //如果丢弃旧的本地分配缓冲区所带来的碎片大小大于设置的阈值，则放弃线程的缓冲区分配
   if (thread->tlab().free() > thread->tlab().refill_waste_limit()) {
     thread->tlab().record_slow_allocation(size);
     return NULL;
@@ -192,6 +192,7 @@ HeapWord* CollectedHeap::allocate_from_tlab_slow(Thread* thread, size_t size) {
     return NULL;
   }
 
+  //新分配的本地分配缓冲区"清零"
   if (ZeroTLAB) {
     // ..and clear it.
     Copy::zero_to_words(obj, new_tlab_size);

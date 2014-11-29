@@ -1454,10 +1454,12 @@ void GenCollectedHeap::preload_and_dump(TRAPS) {
   // optionally tack on "lib" (depending on platform)
   char class_list_path[JVM_MAXPATHLEN];
   os::jvm_path(class_list_path, sizeof(class_list_path));
+
   for (int i = 0; i < 3; i++) {
     char *end = strrchr(class_list_path, *os::file_separator());
     if (end != NULL) *end = '\0';
   }
+
   int class_list_path_len = (int)strlen(class_list_path);
   if (class_list_path_len >= 3) {
     if (strcmp(class_list_path + class_list_path_len - 3, "lib") != 0) {
@@ -1467,6 +1469,8 @@ void GenCollectedHeap::preload_and_dump(TRAPS) {
   }
   strcat(class_list_path, os::file_separator());
   strcat(class_list_path, "classlist");
+
+  printf("%s[%d] [tid: %lu]: 试图打开类列表文件: %s...\n", __FILE__, __LINE__, pthread_self(), class_list_path);
 
   FILE* file = fopen(class_list_path, "r");
   if (file != NULL) {
@@ -1507,6 +1511,7 @@ void GenCollectedHeap::preload_and_dump(TRAPS) {
 
         continue;
       }
+
       // Remove trailing newline
       size_t name_len = strlen(class_name);
       class_name[name_len-1] = '\0';
@@ -1553,6 +1558,7 @@ void GenCollectedHeap::preload_and_dump(TRAPS) {
       }
       file_jsum = 0; // Checksum must be on last line of file
     }
+
     if (computed_jsum != file_jsum) {
       tty->cr();
       tty->print_cr("Preload failed: checksum of class list was incorrect.");

@@ -840,6 +840,9 @@ size_t ContiguousSpace::block_size(const HeapWord* p) const {
 }
 
 // This version requires locking.
+/**
+ * 内存区管理器有琐式分配
+ */
 inline HeapWord* ContiguousSpace::allocate_impl(size_t size,
                                                 HeapWord* const end_value) {
   // In G1 there are places where a GC worker can allocates into a
@@ -852,7 +855,7 @@ inline HeapWord* ContiguousSpace::allocate_impl(size_t size,
                                (Thread::current()->is_VM_thread() || UseG1GC)),
          "not locked");
   HeapWord* obj = top();
-  if (pointer_delta(end_value, obj) >= size) {
+  if (pointer_delta(end_value, obj) >= size) {	//当前内存区内存足够,则分配
     HeapWord* new_top = obj + size;
     set_top(new_top);
     assert(is_aligned(obj) && is_aligned(new_top), "checking alignment");

@@ -540,6 +540,7 @@ class BlockOffsetArrayContigSpace: public BlockOffsetArray {
 
   // Initialize the threshold for an empty heap.
   HeapWord* initialize_threshold();
+
   // Zero out the entry for _bottom (offset will be zero)
   void      zero_bottom_entry();
 

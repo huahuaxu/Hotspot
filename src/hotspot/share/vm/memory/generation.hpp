@@ -686,7 +686,7 @@ class OneContigSpaceCardGeneration: public CardGeneration {
 
  protected:
   size_t     _min_heap_delta_bytes;   //内存代一次扩展的最小值
-  ContiguousSpace*  _the_space;       //内存代中用于分配存储空间的内存区
+  ContiguousSpace*  _the_space;       //内存代中用于分配对象存储空间的内存区
   WaterMark  _last_gc;                // watermark between objects allocated before
                                       // and after last GC.
 

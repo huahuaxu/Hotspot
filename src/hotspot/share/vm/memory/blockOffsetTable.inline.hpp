@@ -51,6 +51,7 @@ inline size_t BlockOffsetSharedArray::index_for(const void* p) const {
   assert(pc >= (char*)_reserved.start() &&
          pc <  (char*)_reserved.end(),
          "p not in range.");
+
   size_t delta = pointer_delta(pc, _reserved.start(), sizeof(char));
   size_t result = delta >> LogN;
   assert(result < _vs.committed_size(), "bad index from address");

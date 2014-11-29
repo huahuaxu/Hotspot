@@ -141,7 +141,7 @@ protected:
     MinFreeScratchWords = 100
   };
 
-  // 根据配置参数SurvivorRatio来确定年青代中Eden/From/To三个内存区的最大内存空间
+  // 根据配置参数SurvivorRatio来确定年青代中Eden/From/To三个内存区的大小
   size_t compute_survivor_size(size_t gen_size, size_t alignment) const {
     size_t n = gen_size / (SurvivorRatio + 2);
     return n > alignment ? align_size_down(n, alignment) : alignment;

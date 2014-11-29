@@ -78,6 +78,7 @@ GenCollectedHeap::GenCollectedHeap(GenCollectorPolicy *policy) :
   if (_gen_process_strong_tasks == NULL || !_gen_process_strong_tasks->valid()) {
     vm_exit_during_initialization("Failed necessary allocation.");
   }
+
   assert(policy != NULL, "Sanity check");
 
   _preloading_shared_classes = false;
@@ -106,9 +107,9 @@ jint GenCollectedHeap::initialize() {
   // The heap must be at least as aligned as generations.
   size_t alignment = Generation::GenGrain;
 
-  //各内存代管理器指针
+  //各内存代管理器的生成器
   _gen_specs = gen_policy()->generations();
-  //永久代管理器指针
+  //永久代管理器的生成器
   PermanentGenerationSpec *perm_gen_spec = collector_policy()->permanent_generation();
 
   //对齐各内存代的初始大小及最大大小
@@ -148,6 +149,7 @@ jint GenCollectedHeap::initialize() {
       }
 
       FileMapInfo* mapinfo = FileMapInfo::current_info();
+      //当前JVM放弃jar共享
       mapinfo->fail_continue("Unable to reserve shared region.");
       allocate(alignment, perm_gen_spec, &total_reserved, &n_covered_regions, &heap_rs);
     }
@@ -187,7 +189,7 @@ jint GenCollectedHeap::initialize() {
 #ifndef SERIALGC
   // If we are running CMS, create the collector responsible
   // for collecting the CMS generations.
-  if (collector_policy()->is_concurrent_mark_sweep_policy()) {
+  if (collector_policy()->is_concurrent_mark_sweep_policy()) { //CMS Gc策略
     bool success = create_cms_collector();
     if (!success) return JNI_ENOMEM;
   }
@@ -213,6 +215,7 @@ char* GenCollectedHeap::allocate(size_t alignment,
   size_t total_reserved = 0;
   //内存堆的总分区数量
   int n_covered_regions = 0;
+  //内存页大小
   const size_t pageSize = UseLargePages ? os::large_page_size() : os::vm_page_size();
 
   //通过新生代及旧生代来计算内存堆的总大小及总分区数
@@ -248,7 +251,7 @@ char* GenCollectedHeap::allocate(size_t alignment,
     vm_exit_during_initialization(overflow_msg);
   }
 
-  if (UseLargePages) {
+  if (UseLargePages) {	//使用大内存页
     assert(total_reserved != 0, "total_reserved cannot be 0");
     //将内存堆的总大小向上调整为内存页大小的整数倍
     total_reserved = round_to(total_reserved, os::large_page_size());
@@ -261,7 +264,8 @@ char* GenCollectedHeap::allocate(size_t alignment,
   // the shared data to be at the required address.
 
   char* heap_address;
-  if (UseSharedSpaces) {
+
+  if (UseSharedSpaces) {	//JVM共享jar包
 
     // Calculate the address of the first word beyond the heap.
     FileMapInfo* mapinfo = FileMapInfo::current_info();
@@ -271,10 +275,11 @@ char* GenCollectedHeap::allocate(size_t alignment,
 
     // Calculate the address of the first word of the heap.
     heap_address -= total_reserved;
+
   } else {
     heap_address = NULL;  // any address will do.
 
-    if (UseCompressedOops) {
+    if (UseCompressedOops) {	//使用对象地址压缩
 
       heap_address = Universe::preferred_heap_base(total_reserved, Universe::UnscaledNarrowOop);
       *_total_reserved = total_reserved;
@@ -315,7 +320,7 @@ char* GenCollectedHeap::allocate(size_t alignment,
 }
 
 /**
- * 内存堆初始化的后值处理:
+ * 内存堆初始化的后置处理:
  * 	1).确保年青代/年老代内存管理器配置正确合理
  * 	2).初始化内存代大小调整器
  * 	3).创建Gc计数器
@@ -469,6 +474,7 @@ HeapWord* GenCollectedHeap::attempt_allocation(size_t size,
       else if (first_only) break;
     }
   }
+
   // Otherwise...
   return NULL;
 }

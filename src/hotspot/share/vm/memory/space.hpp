@@ -1125,6 +1125,7 @@ class TenuredSpace: public OffsetTableContigSpace {
  protected:
   // Mark sweep support
   size_t allowed_dead_ratio() const;
+
  public:
   // Constructor
   TenuredSpace(BlockOffsetSharedArray* sharedOffsetArray,

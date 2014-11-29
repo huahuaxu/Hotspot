@@ -45,17 +45,17 @@ Generation* GenerationSpec::init(ReservedSpace rs, int level,
     case Generation::DefNew:		//默认年青代内存管理器
       return new DefNewGeneration(rs, init_size(), level);
 
-    case Generation::MarkSweepCompact:
+    case Generation::MarkSweepCompact:	//默认的旧生代内存管理器
       return new TenuredGeneration(rs, init_size(), level, remset);
 
 #ifndef SERIALGC
-    case Generation::ParNew:
+    case Generation::ParNew:	//可并行GC的年青代内存管理器
       return new ParNewGeneration(rs, init_size(), level);
 
-    case Generation::ASParNew:
+    case Generation::ASParNew:	//可调整大小及并行GC的年青代内存管理器
       return new ASParNewGeneration(rs, init_size(), init_size() /* min size */, level);
 
-    case Generation::ConcurrentMarkSweep: {
+    case Generation::ConcurrentMarkSweep: {	//CMS的旧生代内存管理器
       assert(UseConcMarkSweepGC, "UseConcMarkSweepGC should be set");
       CardTableRS* ctrs = remset->as_CardTableRS();
       if (ctrs == NULL) {
@@ -75,7 +75,7 @@ Generation* GenerationSpec::init(ReservedSpace rs, int level,
       return g;
     }
 
-    case Generation::ASConcurrentMarkSweep: {
+    case Generation::ASConcurrentMarkSweep: {	//可调整大小及CMS的旧生代内存管理器
       assert(UseConcMarkSweepGC, "UseConcMarkSweepGC should be set");
       CardTableRS* ctrs = remset->as_CardTableRS();
       if (ctrs == NULL) {
@@ -136,7 +136,9 @@ PermanentGenerationSpec::PermanentGenerationSpec(PermGen::Name name,
   _max_size = max_size;
 }
 
-
+/**
+ * 根据名字创建对应的内存代管理器(永久代)
+ */
 PermGen* PermanentGenerationSpec::init(ReservedSpace rs,
                                        size_t init_size,
                                        GenRemSet *remset) {

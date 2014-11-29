@@ -794,6 +794,7 @@ jint universe_init() {
     // Open the shared archive file, read and validate the header. If
     // initialization files, shared spaces [UseSharedSpaces] are
     // disabled and the file is closed.
+    printf("%s[%d] [tid: %lu]: 加载jar包共享的配置信息.\n", __FILE__, __LINE__, pthread_self());
 
     if (mapinfo->initialize()) {
       FileMapInfo::set_current_info(mapinfo);

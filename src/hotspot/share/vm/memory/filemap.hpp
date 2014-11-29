@@ -89,6 +89,7 @@ private:
       long   _filesize;           // jar file size.
     } _jar[JVM_SHARED_JARS_MAX];
   } _header;
+
   const char* _full_path;
 
   static FileMapInfo* _current_info;

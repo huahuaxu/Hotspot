@@ -438,9 +438,11 @@ size_t ReservedSpace::allocation_align_size_down(size_t size) {
   return align_size_down(size, os::vm_allocation_granularity());
 }
 
-
+/**
+ * 向操作系统释放申请的内存空间
+ */
 void ReservedSpace::release() {
-  if (is_reserved()) {
+  if (is_reserved()) {	//
     char *real_base = _base - _noaccess_prefix;
     const size_t real_size = _size + _noaccess_prefix;
     if (special()) {
@@ -448,6 +450,7 @@ void ReservedSpace::release() {
     } else{
       os::release_memory(real_base, real_size);
     }
+
     _base = NULL;
     _size = 0;
     _noaccess_prefix = 0;
@@ -508,6 +511,7 @@ ReservedHeapSpace::ReservedHeapSpace(const size_t prefix_size,
                 (UseCompressedOops && (Universe::narrow_oop_base() != NULL) &&
                  Universe::narrow_oop_use_implicit_null_checks()) ?
                   lcm(os::vm_page_size(), prefix_align) : 0) {
+
   protect_noaccess_prefix(prefix_size+suffix_size);
 }
 

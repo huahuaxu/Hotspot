@@ -304,6 +304,9 @@ unsigned int Abstract_VM_Version::calc_parallel_worker_threads() {
 
 // Does not set the _initialized flag since it is
 // a global flag.
+/**
+ *
+ */
 unsigned int Abstract_VM_Version::parallel_worker_threads() {
   if (!_parallel_worker_threads_initialized) {
     if (FLAG_IS_DEFAULT(ParallelGCThreads)) {
@@ -313,5 +316,6 @@ unsigned int Abstract_VM_Version::parallel_worker_threads() {
     }
     _parallel_worker_threads_initialized = true;
   }
+
   return _parallel_worker_threads;
 }

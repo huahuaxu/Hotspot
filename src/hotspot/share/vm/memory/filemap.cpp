@@ -74,7 +74,7 @@ void FileMapInfo::fail_stop(const char *msg, ...) {
 // If we continue, then disable shared spaces and close the file.
 
 /**
- * jar包共享内存操作失败时，当前JVM放弃jar共享
+ * jar包共享内存操作失败时,当前JVM放弃jar共享
  */
 void FileMapInfo::fail_continue(const char *msg, ...) {
   va_list ap;
@@ -149,7 +149,9 @@ void FileMapInfo::populate_header(size_t alignment) {
 
 
 // Read the FileMapInfo information from the file.
-
+/**
+ * 从classes.jsa文件中加载共享的jar包信息
+ */
 bool FileMapInfo::init_from_file(int fd) {
 
   size_t n = read(fd, &_header, sizeof(struct FileMapHeader));
@@ -229,7 +231,9 @@ void FileMapInfo::open_for_write() {
 
 
 // Write the header to the file, seek to the next allocation boundary.
-
+/**
+ * 将jar包共享内存的映射信息头部写入映射信息文件classes.jas
+ */
 void FileMapInfo::write_header() {
   write_bytes_aligned(&_header, sizeof(FileMapHeader));
 }
@@ -483,16 +487,20 @@ bool FileMapInfo::initialize() {
   return true;
 }
 
-
+/**
+ * 检查jar包是否可共享
+ */
 bool FileMapInfo::validate() {
   if (_header._version != current_version()) {
     fail_continue("The shared archive file is the wrong version.");
     return false;
   }
+
   if (_header._magic != (int)0xf00baba2) {
     fail_continue("The shared archive file has a bad magic number.");
     return false;
   }
+
   if (strncmp(_header._jvm_ident, VM_Version::internal_vm_info_string(),
               JVM_IDENT_MAX-1) != 0) {
     fail_continue("The shared archive file was created by a different"
@@ -513,7 +521,7 @@ bool FileMapInfo::validate() {
   ClassPathEntry *cpe = ClassLoader::classpath_entry(0);
   for ( ; cpe != NULL; cpe = cpe->next()) {
 
-    if (cpe->is_jar_file()) {
+    if (cpe->is_jar_file()) {	//jar包文件
       if (num_jars_now < _header._num_jars) {
 
         // Jar file - verify timestamp and file size.
@@ -524,6 +532,7 @@ bool FileMapInfo::validate() {
           return false;
         }
 
+        //jar包已被修改,不能共享
         if (_header._jar[num_jars_now]._timestamp != st.st_mtime ||
             _header._jar[num_jars_now]._filesize != st.st_size) {
           fail_continue("A jar file is not the one used while building"
@@ -532,12 +541,13 @@ bool FileMapInfo::validate() {
         }
       }
       ++num_jars_now;
+
     } else {
 
       // If directories appear in boot classpath, they must be empty to
       // avoid having to verify each individual class file.
       const char* name = ((ClassPathDirEntry*)cpe)->name();
-      if (!os::dir_is_empty(name)) {
+      if (!os::dir_is_empty(name)) {	//类路径
         fail_continue("Boot classpath directory %s is not empty.", name);
         return false;
       }
