@@ -1,0 +1,137 @@
+
+
+Bootstrap Settings:
+  BOOTDIR = /usr/lib/jvm/java-6-openjdk
+    ALT_BOOTDIR = /usr/lib/jvm/java-6-openjdk
+  BOOT_VER = 1.6.0 [requires at least 1.6]
+  OUTPUTDIR = ./../build/linux-amd64
+    ALT_OUTPUTDIR = 
+  ABS_OUTPUTDIR = /home/xhh/C++/JVM/openjdk/jdk/build/linux-amd64
+ 
+Build Tool Settings:
+  SLASH_JAVA = /NOT-SET
+    ALT_SLASH_JAVA = 
+  VARIANT = OPT
+  JDK_DEVTOOLS_DIR = /NOT-SET/devtools
+    ALT_JDK_DEVTOOLS_DIR = 
+  ANT_HOME = 
+  UNIXCOMMAND_PATH = /bin/
+    ALT_UNIXCOMMAND_PATH = 
+  COMPILER_PATH = /usr/bin/
+    ALT_COMPILER_PATH = 
+  DEVTOOLS_PATH = /usr/bin/
+    ALT_DEVTOOLS_PATH = 
+  UNIXCCS_PATH = /usr/ccs/bin/
+    ALT_UNIXCCS_PATH = 
+  USRBIN_PATH = /usr/bin/
+    ALT_USRBIN_PATH = 
+  COMPILER_NAME = GCC4
+  COMPILER_VERSION = GCC4
+  CC_VER = 4.6 [requires at least 4.3.0]
+  ZIP_VER = 3.0 [requires at least 2.2]
+  UNZIP_VER = 6.00 [requires at least 5.12]
+  ANT_VER = 1.8.2 [requires at least 1.7.1]
+  TEMPDIR = ./../build/linux-amd64/tmp
+ 
+Build Directives:
+  OPENJDK = true
+  USE_HOTSPOT_INTERPRETER_MODE = 
+  PEDANTIC = 
+  DEV_ONLY = 
+  NO_DOCS = 
+  NO_IMAGES = 
+  TOOLS_ONLY = 
+  INSANE = 
+  COMPILE_APPROACH = parallel
+  PARALLEL_COMPILE_JOBS = 2
+    ALT_PARALLEL_COMPILE_JOBS = 
+  FASTDEBUG = 
+  COMPILER_WARNINGS_FATAL = false
+  COMPILER_WARNING_LEVEL = 
+  SHOW_ALL_WARNINGS = 
+  INCREMENTAL_BUILD = false
+  CC_HIGHEST_OPT = 
+  CC_HIGHER_OPT = 
+  CC_LOWER_OPT = 
+  CXXFLAGS =  -O2 -fPIC -DCC_NOEX -W -Wall  -Wno-unused -Wno-parentheses -fno-omit-frame-pointer -D_LITTLE_ENDIAN  
+  CFLAGS =  -O2   -fno-strict-aliasing -fPIC -W -Wall  -Wno-unused -Wno-parentheses -pipe -fno-omit-frame-pointer -D_LITTLE_ENDIAN  
+  BOOT_JAVA_CMD = /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m
+  BOOT_JAVAC_CMD = /usr/lib/jvm/java-6-openjdk/bin/javac  -J-XX:ThreadStackSize=1536 -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -encoding ascii -source 6 -target 6 -XDignore.symbol.file=true
+  BOOT_JAR_CMD = /usr/lib/jvm/java-6-openjdk/bin/jar
+  BOOT_JARSIGNER_CMD = /usr/lib/jvm/java-6-openjdk/bin/jarsigner
+  JAVAC_CMD = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/bin/javac  -J-XX:ThreadStackSize=1536 -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m  -source 7 -target 7 -encoding ascii -Xbootclasspath:./../build/linux-amd64/classes 
+  JAVAH_CMD = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/bin/javah -bootclasspath ./../build/linux-amd64/classes
+  JAVADOC_CMD = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/bin/javadoc -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -bootclasspath ./../build/linux-amd64/classes
+ 
+Build Platform Settings:
+  USER = xhh
+  PLATFORM = linux
+  ARCH = amd64
+  LIBARCH = amd64
+  ARCH_FAMILY = amd64
+  ARCH_DATA_MODEL = 64
+  ARCHPROP = amd64
+  ALSA_VERSION = 1.0.25
+  OS_VERSION = 3.2.0-40-generic [requires at least 2.6]
+  OS_VARIANT_NAME = Ubuntu
+  OS_VARIANT_VERSION = 12.04
+  MB_OF_MEMORY = 3850
+ 
+GNU Make Settings:
+  MAKE = make
+  MAKE_VER = 3.81 [requires at least 3.81]
+  MAKECMDGOALS = 
+  MAKEFLAGS = 
+  SHELL = /bin/sh
+ 
+Target Build Versions:
+  JDK_VERSION = 1.7.0
+  MILESTONE = internal
+  RELEASE = 1.7.0-internal
+  FULL_VERSION = 1.7.0-internal-xhh_2013_04_27_16_54-b00
+  BUILD_NUMBER = b00
+ 
+External File/Binary Locations:
+  USRJDKINSTANCES_PATH = /opt/java
+  BUILD_JDK_IMPORT_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries
+    ALT_BUILD_JDK_IMPORT_PATH = 
+  JDK_IMPORT_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64
+    ALT_JDK_IMPORT_PATH = 
+  LANGTOOLS_DIST = 
+    ALT_LANGTOOLS_DIST = 
+  CORBA_DIST = 
+    ALT_CORBA_DIST = 
+  JAXP_DIST = 
+    ALT_JAXP_DIST = 
+  JAXWS_DIST = 
+    ALT_JAXWS_DIST = 
+  HOTSPOT_DOCS_IMPORT_PATH = /NO_DOCS_DIR
+    ALT_HOTSPOT_DOCS_IMPORT_PATH = 
+  HOTSPOT_IMPORT_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64
+    ALT_HOTSPOT_IMPORT_PATH = 
+  HOTSPOT_SERVER_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/jre/lib/amd64/server
+    ALT_HOTSPOT_SERVER_PATH = 
+  CACERTS_FILE = ./../src/share/lib/security/cacerts
+    ALT_CACERTS_FILE = 
+  CUPS_HEADERS_PATH = /usr/include
+    ALT_CUPS_HEADERS_PATH = 
+ 
+OpenJDK-specific settings:
+  FREETYPE_HEADERS_PATH = /usr/include
+    ALT_FREETYPE_HEADERS_PATH = 
+  FREETYPE_LIB_PATH = /usr/lib
+    ALT_FREETYPE_LIB_PATH = 
+ 
+Previous JDK Settings:
+  PREVIOUS_RELEASE_PATH = USING-PREVIOUS_RELEASE_IMAGE
+    ALT_PREVIOUS_RELEASE_PATH = 
+  PREVIOUS_JDK_VERSION = 1.6.0
+    ALT_PREVIOUS_JDK_VERSION = 
+  PREVIOUS_JDK_FILE = 
+    ALT_PREVIOUS_JDK_FILE = 
+  PREVIOUS_JRE_FILE = 
+    ALT_PREVIOUS_JRE_FILE = 
+  PREVIOUS_RELEASE_IMAGE = /usr/lib/jvm/java-6-openjdk
+    ALT_PREVIOUS_RELEASE_IMAGE = 
+
+

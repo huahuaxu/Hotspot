@@ -1,0 +1,15 @@
+WARNING: The directory HOTSPOT_IMPORT_PATH=/NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64 
+       does not exist, check your value of ALT_HOTSPOT_IMPORT_PATH. 
+ 
+WARNING: HOTSPOT_IMPORT_PATH does not contain the interface file jvmti.h. 
+         Check your value of ALT_HOTSPOT_IMPORT_PATH. 
+ 
+WARNING: HOTSPOT_IMPORT_PATH does not contain the interface file jvmticmlr.h. 
+         Check your value of ALT_HOTSPOT_IMPORT_PATH. 
+ 
+WARNING: File /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/lib/sa-jdi.jar does not exist.
+         The JDI binding for the Serviceability Agent will not be included in the build.
+         Please check your access to
+           /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/lib/sa-jdi.jar
+         and/or check your value of ALT_HOTSPOT_IMPORT_PATH.
+ 

@@ -1,0 +1,58 @@
+export LANG=C ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk
+export ALLOW_DOWNLOADS=true
+export EXTRA_LIBS=/usr/lib/x86_64-linux-gnu/libasound.so.2 
+
+tar -xzvf openjdk-2013-11-10.tar.gz
+
+＃检查编译的前置条件
+make sanity
+
+sudo yum install freetype-devel
+sudo yum install alsa-lib-devel
+sudo yum install cups-devel
+
+#安装ant
+unzip apache-ant-1.9.13-bin.zip
+sudo mv apache-ant-1.9.13 /usr/local/
+sudo ln -sf /usr/local/apache-ant-1.9.13/bin/ant  /usr/bin/ant
+
+#安装jdk
+yum search jdk
+sudo yum install java-1.6.0-openjdk-devel.x86_64
+
+export LANG=C
+export ANT_HOME=/usr/local/apache-ant-1.9.13
+export ALT_BOOTDIR=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.36.x86_64
+
+#添加支持该版本的操作系统
+#获取操作系统的版本号
+uname -a
+vim ./hotspot/make/linux/Makefile 
+SUPPORTED_OS_VERSION = 2.4% 2.5% 2.6% 3% 4%
+
+sudo yum install libstdc++
+sudo yum install libstdc++-static
+
+#如果libjvm.so没有生成则手动从依赖的jvm的libjvm.so连接到当前的编译中
+ln -sf /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.36.x86_64/jre/lib/amd64/server/libjvm.so build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product/libjvm.so
+
+#如果出现错误:symbol JVM_FindClassFromCaller, version SUNWprivate_1.1 not defined in file libjvm.so with link time reference
+修改文件./jdk/src/share/classes/java/util/CurrencyData.properties中的时间格式到10年内
+# AZERBAIJAN
+108 AZ=AZM;2005-12-31-20-00-00;AZN
+ # MOZAMBIQUE
+381 MZ=MZM;2006-06-30-22-00-00;MZN
+# ROMANIA
+443 RO=ROL;2005-06-30-21-00-00;RON
+# TURKEY
+535 TR=TRL;2004-12-31-22-00-00;TRY
+ # VENEZUELA
+561 VE=VEB;2008-01-01-04-00-00;VEF
+修改文件:hotspot/make/linux/Makefile,去掉文件中所有的 && ./test_gamma即可
+
+sudo yum install libX11-devel
+sudo yum install libXtst-devel
+sudo yum install libXt-devel
+sudo yum  install libXrender-devel
+
+

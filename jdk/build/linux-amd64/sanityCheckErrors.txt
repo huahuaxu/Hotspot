@@ -1,0 +1,7 @@
+ERROR: HOTSPOT_SERVER_PATH does not point to a valid HotSpot VM. 
+       Please check your access to 
+           /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64/jre/lib/amd64/server/libjvm.so 
+       and/or check your value of ALT_HOTSPOT_SERVER_PATH. 
+ 
+Exiting because of the above error(s). 
+ 

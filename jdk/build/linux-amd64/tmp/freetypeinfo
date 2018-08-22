@@ -1,0 +1,8 @@
+make[1]: Entering directory `/home/xhh/C++/JVM/openjdk/jdk/make/tools/freetypecheck'
+/bin/mkdir -p ../../../build/linux-amd64/btbins
+rm -f ../../../build/linux-amd64/btbins/freetype_versioncheck
+../../../build/linux-amd64/btbins/freetype_versioncheck
+Required version of freetype: 2.3.0
+Detected freetype headers: 2.4.8
+Detected freetype library: 2.4.8
+make[1]: Leaving directory `/home/xhh/C++/JVM/openjdk/jdk/make/tools/freetypecheck'
