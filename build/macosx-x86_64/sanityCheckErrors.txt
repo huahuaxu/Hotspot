@@ -1,0 +1,13 @@
+ERROR: The Compiler version is undefined. 
+ 
+ERROR: The version of ant being used is older than 
+       the required version of '1.7.1'. 
+       The version of ant found was ''. 
+ 
+ERROR: FreeType version  2.3.0  or higher is required. 
+ /bin/mkdir -p /Users/xuhuahua/git/Hotspot/build/macosx-x86_64/btbins
+rm -f /Users/xuhuahua/git/Hotspot/build/macosx-x86_64/btbins/freetype_versioncheck
+Failed to build freetypecheck.  
+
+Exiting because of the above error(s). 
+ 

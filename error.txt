@@ -1,0 +1,822 @@
+( cd  ./jdk/make && \
+	  make sanity HOTSPOT_IMPORT_CHECK=false JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64 ALT_LANGTOOLS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist ALT_CORBA_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/dist ALT_JAXP_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp/dist ALT_JAXWS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/dist ALT_HOTSPOT_IMPORT_PATH=/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import BUILD_HOTSPOT=true ; )
+make[1]: Entering directory `/home/xhh/C++/JVM/openjdk/jdk/make'
+make[1]: Leaving directory `/home/xhh/C++/JVM/openjdk/jdk/make'
+
+Build Machine Information:
+   build machine = xhh
+
+Build Directory Structure:
+   CWD = /home/xhh/C++/JVM/openjdk
+   TOPDIR = .
+   LANGTOOLS_TOPDIR = ./langtools
+   JAXP_TOPDIR = ./jaxp
+   JAXWS_TOPDIR = ./jaxws
+   CORBA_TOPDIR = ./corba
+   HOTSPOT_TOPDIR = ./hotspot
+   JDK_TOPDIR = ./jdk
+
+Build Directives:
+   BUILD_LANGTOOLS = true 
+   BUILD_JAXP = true 
+   BUILD_JAXWS = true 
+   BUILD_CORBA = true 
+   BUILD_HOTSPOT = true 
+   BUILD_JDK    = true 
+   DEBUG_CLASSFILES =  
+   DEBUG_BINARIES =  
+
+Hotspot Settings: 
+      HOTSPOT_BUILD_JOBS  =  
+      HOTSPOT_OUTPUTDIR   = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir 
+      HOTSPOT_EXPORT_PATH = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import 
+ 
+
+
+
+Bootstrap Settings:
+  BOOTDIR = /usr/lib/jvm/java-6-openjdk
+    ALT_BOOTDIR = /usr/lib/jvm/java-6-openjdk
+  BOOT_VER = 1.6.0 [requires at least 1.6]
+  OUTPUTDIR = /home/xhh/C++/JVM/openjdk/build/linux-amd64
+    ALT_OUTPUTDIR = /home/xhh/C++/JVM/openjdk/build/linux-amd64
+  ABS_OUTPUTDIR = /home/xhh/C++/JVM/openjdk/build/linux-amd64
+ 
+Build Tool Settings:
+  SLASH_JAVA = /NOT-SET
+    ALT_SLASH_JAVA = 
+  VARIANT = OPT
+  JDK_DEVTOOLS_DIR = /NOT-SET/devtools
+    ALT_JDK_DEVTOOLS_DIR = 
+  ANT_HOME = 
+  UNIXCOMMAND_PATH = /bin/
+    ALT_UNIXCOMMAND_PATH = 
+  COMPILER_PATH = /usr/bin/
+    ALT_COMPILER_PATH = 
+  DEVTOOLS_PATH = /usr/bin/
+    ALT_DEVTOOLS_PATH = 
+  UNIXCCS_PATH = /usr/ccs/bin/
+    ALT_UNIXCCS_PATH = 
+  USRBIN_PATH = /usr/bin/
+    ALT_USRBIN_PATH = 
+  COMPILER_NAME = GCC4
+  COMPILER_VERSION = GCC4
+  CC_VER = 4.6 [requires at least 4.3.0]
+  ZIP_VER = 3.0 [requires at least 2.2]
+  UNZIP_VER = 6.00 [requires at least 5.12]
+  ANT_VER = 1.8.2 [requires at least 1.7.1]
+  TEMPDIR = /home/xhh/C++/JVM/openjdk/build/linux-amd64/tmp
+ 
+Build Directives:
+  OPENJDK = true
+  USE_HOTSPOT_INTERPRETER_MODE = 
+  PEDANTIC = 
+  DEV_ONLY = 
+  NO_DOCS = 
+  NO_IMAGES = 
+  TOOLS_ONLY = 
+  INSANE = 
+  COMPILE_APPROACH = parallel
+  PARALLEL_COMPILE_JOBS = 2
+    ALT_PARALLEL_COMPILE_JOBS = 
+  FASTDEBUG = 
+  COMPILER_WARNINGS_FATAL = false
+  COMPILER_WARNING_LEVEL = 
+  SHOW_ALL_WARNINGS = 
+  INCREMENTAL_BUILD = false
+  CC_HIGHEST_OPT = 
+  CC_HIGHER_OPT = 
+  CC_LOWER_OPT = 
+  CXXFLAGS =  -O2 -fPIC -DCC_NOEX -W -Wall  -Wno-unused -Wno-parentheses -fno-omit-frame-pointer -D_LITTLE_ENDIAN  
+  CFLAGS =  -O2   -fno-strict-aliasing -fPIC -W -Wall  -Wno-unused -Wno-parentheses -pipe -fno-omit-frame-pointer -D_LITTLE_ENDIAN  
+  BOOT_JAVA_CMD = /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m
+  BOOT_JAVAC_CMD = /usr/lib/jvm/java-6-openjdk/bin/javac  -J-XX:ThreadStackSize=1536 -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -encoding ascii -source 6 -target 6 -XDignore.symbol.file=true
+  BOOT_JAR_CMD = /usr/lib/jvm/java-6-openjdk/bin/jar
+  BOOT_JARSIGNER_CMD = /usr/lib/jvm/java-6-openjdk/bin/jarsigner
+  JAVAC_CMD = /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m -Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -source 7 -target 7 -encoding ascii -Xbootclasspath:/home/xhh/C++/JVM/openjdk/build/linux-amd64/classes 
+  JAVAH_CMD = /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m -Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javah.jar:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javah.jar -bootclasspath /home/xhh/C++/JVM/openjdk/build/linux-amd64/classes
+  JAVADOC_CMD = /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m -Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javadoc.jar:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/doclets.jar -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javadoc.jar -bootclasspath /home/xhh/C++/JVM/openjdk/build/linux-amd64/classes
+ 
+Build Platform Settings:
+  USER = xhh
+  PLATFORM = linux
+  ARCH = amd64
+  LIBARCH = amd64
+  ARCH_FAMILY = amd64
+  ARCH_DATA_MODEL = 64
+  ARCHPROP = amd64
+  ALSA_VERSION = 1.0.25
+  OS_VERSION = 3.2.0-41-generic [requires at least 2.6]
+  OS_VARIANT_NAME = Ubuntu
+  OS_VARIANT_VERSION = 12.04
+  MB_OF_MEMORY = 3850
+ 
+GNU Make Settings:
+  MAKE = make
+  MAKE_VER = 3.81 [requires at least 3.81]
+  MAKECMDGOALS = sanity
+  MAKEFLAGS = w
+  SHELL = /bin/sh
+ 
+Target Build Versions:
+  JDK_VERSION = 1.7.0
+  MILESTONE = internal
+  RELEASE = 1.7.0-internal
+  FULL_VERSION = 1.7.0-internal-xhh_2013_05_08_15_12-b00
+  BUILD_NUMBER = b00
+ 
+External File/Binary Locations:
+  USRJDKINSTANCES_PATH = /opt/java
+  BUILD_JDK_IMPORT_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries
+    ALT_BUILD_JDK_IMPORT_PATH = 
+  JDK_IMPORT_PATH = /NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64
+    ALT_JDK_IMPORT_PATH = 
+  LANGTOOLS_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist
+    ALT_LANGTOOLS_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist
+  CORBA_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/dist
+    ALT_CORBA_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/dist
+  JAXP_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp/dist
+    ALT_JAXP_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp/dist
+  JAXWS_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/dist
+    ALT_JAXWS_DIST = /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/dist
+  HOTSPOT_DOCS_IMPORT_PATH = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import/docs
+    ALT_HOTSPOT_DOCS_IMPORT_PATH = 
+  HOTSPOT_IMPORT_PATH = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import
+    ALT_HOTSPOT_IMPORT_PATH = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import
+  HOTSPOT_SERVER_PATH = /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import/jre/lib/amd64/server
+    ALT_HOTSPOT_SERVER_PATH = 
+  CACERTS_FILE = ./../src/share/lib/security/cacerts
+    ALT_CACERTS_FILE = 
+  CUPS_HEADERS_PATH = /usr/include
+    ALT_CUPS_HEADERS_PATH = 
+ 
+OpenJDK-specific settings:
+  FREETYPE_HEADERS_PATH = /usr/include
+    ALT_FREETYPE_HEADERS_PATH = 
+  FREETYPE_LIB_PATH = /usr/lib
+    ALT_FREETYPE_LIB_PATH = 
+ 
+Previous JDK Settings:
+  PREVIOUS_RELEASE_PATH = USING-PREVIOUS_RELEASE_IMAGE
+    ALT_PREVIOUS_RELEASE_PATH = 
+  PREVIOUS_JDK_VERSION = 1.6.0
+    ALT_PREVIOUS_JDK_VERSION = 
+  PREVIOUS_JDK_FILE = 
+    ALT_PREVIOUS_JDK_FILE = 
+  PREVIOUS_JRE_FILE = 
+    ALT_PREVIOUS_JRE_FILE = 
+  PREVIOUS_RELEASE_IMAGE = /usr/lib/jvm/java-6-openjdk
+    ALT_PREVIOUS_RELEASE_IMAGE = 
+
+
+Sanity check passed.
+make \
+	        SKIP_FASTDEBUG_BUILD=true \
+	        SKIP_DEBUG_BUILD=true \
+	         \
+	        generic_build_repo_series
+make[1]: Entering directory `/home/xhh/C++/JVM/openjdk'
+/bin/mkdir -p ./build/linux-amd64/j2sdk-image
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools
+
+
+########################################################################
+########################################################################
+##### Entering langtools for target(s) all                         #####
+########################################################################
+
+(cd  ./langtools/make && \
+	  make JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk all)
+make[2]: Entering directory `/home/xhh/C++/JVM/openjdk/langtools/make'
+JAVA_HOME=/usr/lib/jvm/java-6-openjdk ANT_OPTS=-Djava.io.tmpdir='/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/build/ant-tmp' ant -Djdk.version=1.7.0 -Dfull.version='1.7.0-internal-xhh_2013_05_08_15_12-b00'  -Dmilestone=internal -Dbuild.number=b00 -Djavac.target=7 -Djavac.source=7 -Dboot.java.home=/usr/lib/jvm/java-6-openjdk -Dimport.jdk=/home/xhh/C++/JVM/openjdk/jdk -Dbuild.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/build -Ddist.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist build
+Buildfile: /home/xhh/C++/JVM/openjdk/langtools/make/build.xml
+
+-def-pcompile:
+
+-def-build-classes:
+
+-def-build-bootstrap-classes:
+
+-def-build-jar:
+
+-def-build-bootstrap-jar:
+
+-def-check:
+
+-check-boot.java.home:
+
+-def-build-tool:
+
+-def-build-bootstrap-tool:
+
+build-bootstrap-javac:
+
+build-bootstrap-javadoc:
+
+build-bootstrap-doclets:
+
+build-bootstrap-javah:
+
+build-bootstrap-tools:
+
+-def-genstubs:
+
+-create-import-jdk-stubs:
+
+build-all-classes:
+
+build:
+
+BUILD SUCCESSFUL
+Total time: 3 seconds
+make[2]: Leaving directory `/home/xhh/C++/JVM/openjdk/langtools/make'
+########################################################################
+##### Leaving langtools for target(s) all                          #####
+########################################################################
+##### Build time 00:00:03 langtools for target(s) all              #####
+########################################################################
+
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba
+
+
+########################################################################
+########################################################################
+##### Entering corba for target(s) all                             #####
+########################################################################
+
+(cd  ./corba/make && \
+	 make JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk ALT_JDK_IMPORT_PATH=/NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64 ALT_LANGTOOLS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist all)
+make[2]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make'
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/tools'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/strip_properties'
+make[4]: Nothing to be done for `build'.
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/strip_properties'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/idlj'
+make[4]: Nothing to be done for `build'.
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/idlj'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/logutil'
+make[4]: Nothing to be done for `build'.
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/tools/logutil'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/tools'
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/javax'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/javax/xa'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/javax.transaction.xa/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/javax.transaction.xa/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../src/solaris/classes:../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/javax.transaction.xa/.classes.list; \
+	fi
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/javax/xa'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/javax'
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/idl'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.tools.corba.se.idl/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.tools.corba.se.idl/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.tools.corba.se.idl/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/idl'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/sources'
+/usr/lib/jvm/java-6-openjdk/bin/idlj -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -td "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc" -i "../../../../src/share/classes/org/omg/PortableServer" -i "../../../../src/share/classes/org/omg/PortableInterceptor" -corba 3.0 -fall -pkgPrefix PortableServer org.omg ../../../../src/share/classes/org/omg/PortableServer/poa.idl
+rm -f -r /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/CurrentPackage/NoContextHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ForwardRequestHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ObjectIdHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ObjectIdHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAListHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAListHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/AdapterInactiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/StateHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/StateHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterAlreadyExistsHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterNonExistentHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/InvalidPolicyHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/NoServantHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectAlreadyActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectNotActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantAlreadyActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantNotActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongAdapterHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongPolicyHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivatorHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocatorHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyValueHolder.java
+/usr/lib/jvm/java-6-openjdk/bin/idlj -J-XX:-PrintVMOptions -J-XX:+UnlockDiagnosticVMOptions -J-XX:-LogVMOutput -J-Xmx512m -J-Xms512m -J-XX:PermSize=32m -J-XX:MaxPermSize=160m -td "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc" -i "../../../../src/share/classes/org/omg/PortableServer" -i "../../../../src/share/classes/org/omg/PortableInterceptor" -corba 3.0 -fall -pkgPrefix PortableServer org.omg ../../../../src/share/classes/org/omg/PortableServer/poa.idl
+rm -f -r /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/CurrentPackage/NoContextHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ForwardRequestHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ObjectIdHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ObjectIdHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAListHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAListHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/AdapterInactiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/StateHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/StateHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterAlreadyExistsHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterNonExistentHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/InvalidPolicyHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/NoServantHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectAlreadyActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectNotActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantAlreadyActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantNotActiveHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongAdapterHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongPolicyHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyValueHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivatorHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocatorHolder.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyValueHelper.java /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyValueHolder.java
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/sources'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/PortableServer'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableServer/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableServer/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableServer/.classes.list; \
+	fi
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/AdapterActivator.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/AdapterActivatorOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/Current.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/CurrentOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/CurrentPackage/NoContext.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/CurrentPackage/NoContextHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ForwardRequest.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ForwardRequestHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ID_ASSIGNMENT_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ID_UNIQUENESS_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IMPLICIT_ACTIVATION_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdAssignmentPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/IdUniquenessPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ImplicitActivationPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LIFESPAN_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/LifespanPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POA.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManager.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/AdapterInactive.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/AdapterInactiveHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAManagerPackage/State.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterAlreadyExists.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterAlreadyExistsHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterNonExistent.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/AdapterNonExistentHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/InvalidPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/InvalidPolicyHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/NoServant.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/NoServantHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectAlreadyActive.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectAlreadyActiveHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectNotActive.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ObjectNotActiveHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantAlreadyActive.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantAlreadyActiveHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantNotActive.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/ServantNotActiveHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongAdapter.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongAdapterHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/POAPackage/WrongPolicyHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/REQUEST_PROCESSING_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/RequestProcessingPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivator.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivatorHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivatorOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantActivatorPOA.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/_ServantActivatorStub.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocator.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocatorHelper.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocatorOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantLocatorPOA.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/_ServantLocatorStub.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantManager.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantManagerOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/SERVANT_RETENTION_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ServantRetentionPolicyValue.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/THREAD_POLICY_ID.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicy.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyOperations.java
+/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc/org/omg/PortableServer/ThreadPolicyValue.java
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/PortableServer'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/CORBA'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CORBA/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CORBA/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CORBA/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/CORBA'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/CosNaming'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CosNaming/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CosNaming/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.CosNaming/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/CosNaming'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/DynamicAny'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/DynamicAny'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/PortableInterceptor'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableInterceptor/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableInterceptor/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/org.omg.PortableInterceptor/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg/PortableInterceptor'
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org/omg'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/org'
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/org'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/org/omg'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.org.omg/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.org.omg/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../src/solaris/classes:../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.org.omg/.classes.list; \
+	fi
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/org/omg'
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/org'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/core'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba/core'
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/corba'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/corbalogsources'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/corbalogsources'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/corbalogcompile'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/corbalogcompile'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/rmic'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../src/solaris/classes:../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list; \
+	fi
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi/rmic'
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun/rmi'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/sun'
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com'
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun'
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/sources'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../src/solaris/classes:../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se/.classes.list; \
+	fi
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/sources'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/pept'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.pept/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.pept/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../src/solaris/classes:../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.pept/.classes.list; \
+	fi
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/pept'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/corespi'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.corespi/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.corespi/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../src/solaris/classes:../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.corespi/.classes.list; \
+	fi
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/corespi'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/core'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.core/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.core/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../src/solaris/classes:../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.core/.classes.list; \
+	fi
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/core'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/activation'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se.spi.activation/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se.spi.activation/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/org/com.sun.corba.se.spi.activation/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/activation'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/encoding'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.encoding/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.encoding/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.encoding/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/encoding'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/extension'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.extension/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.extension/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.extension/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/extension'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy/connection'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.connection/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.connection/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.connection/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy/connection'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy/interceptor'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.interceptor/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.interceptor/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.spi.legacy.interceptor/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy/interceptor'
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/legacy'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/logging'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/logging/com.sun.corba.se.spi.logging/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/logging/com.sun.corba.se.spi.logging/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/logging/com.sun.corba.se.spi.logging/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/logging'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/monitoring'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/monitoring/com.sun.corba.se.spi.monitoring/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/monitoring/com.sun.corba.se.spi.monitoring/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/monitoring/com.sun.corba.se.spi.monitoring/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/monitoring'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/copyobject'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/copyobject/com.sun.corba.se.spi.copyobject/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/copyobject/com.sun.corba.se.spi.copyobject/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/copyobject/com.sun.corba.se.spi.copyobject/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi/copyobject'
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/spi'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa/poa'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.poa/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.poa/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.poa/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa/poa'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa/toa'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.toa/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.toa/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.oa.toa/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa/toa'
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/oa'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/namingutil'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.namingutil/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.namingutil/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.namingutil/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/namingutil'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/cosnaming'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.naming.cosnaming/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.naming.cosnaming/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.naming.cosnaming/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/cosnaming'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/pcosnaming'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/PCosNaming/com.sun.corba.se.impl.naming.pcosnaming/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/PCosNaming/com.sun.corba.se.impl.naming.pcosnaming/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/PCosNaming/com.sun.corba.se.impl.naming.pcosnaming/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming/pcosnaming'
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/naming'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation/orbd'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation/orbd'
+make[9]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation/servertool'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../../src/solaris/classes:../../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/Activation/com.sun.corba.se.impl.activation/.classes.list; \
+	fi
+make[9]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation/servertool'
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/activation'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/interceptors'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/com/com.sun.corba.se.impl.interceptors/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/com/com.sun.corba.se.impl.interceptors/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/com/com.sun.corba.se.impl.interceptors/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/interceptors'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/logging'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.logging/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/logging'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/monitoring'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.monitoring/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.monitoring/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/com.sun.corba.se.impl.monitoring/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl/monitoring'
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/impl'
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/rmi'
+make[8]: Entering directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/rmi/rmic'
+if [ -s /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list ] ; then \
+	  /bin/cat /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list; \
+	  /usr/lib/jvm/java-6-openjdk/bin/java -XX:-PrintVMOptions -XX:+UnlockDiagnosticVMOptions -XX:-LogVMOutput -Xmx512m -Xms512m -XX:PermSize=32m -XX:MaxPermSize=160m "-Xbootclasspath/p:/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar" -jar /home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar  -XDignore.symbol.file=true -source 7 -target 7 -encoding ascii -classpath /usr/lib/jvm/java-6-openjdk/lib/tools.jar  -Xprefer:source -sourcepath "/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/gensrc:../../../../../../../src/solaris/classes:../../../../../../../src/share/classes" -d /home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/classes @/home/xhh/C++/JVM/openjdk/build/linux-amd64/corba/tmp/sun/sun.rmi.rmic/.classes.list; \
+	fi
+make[8]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/rmi/rmic'
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se/rmi'
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba/se'
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun/corba'
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com/sun'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make/com'
+make[2]: Leaving directory `/home/xhh/C++/JVM/openjdk/corba/make'
+########################################################################
+##### Leaving corba for target(s) all                              #####
+########################################################################
+##### Build time 00:00:03 corba for target(s) all                  #####
+########################################################################
+
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp
+
+
+########################################################################
+########################################################################
+##### Entering jaxp for target(s) all                              #####
+########################################################################
+
+(cd  ./jaxp/make && \
+	 make JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk ALT_JDK_IMPORT_PATH=/NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64 ALT_LANGTOOLS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist all)
+make[2]: Entering directory `/home/xhh/C++/JVM/openjdk/jaxp/make'
+cd .. && JAVA_HOME=/usr/lib/jvm/java-6-openjdk ant -Djavac.target=7 -Djavac.source=7 -Ddrops.dir=/java/devtools/share/jdk7-drops -Doutput.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp -Djdk.home=/usr/lib/jvm/java-6-openjdk -Dbootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap -version
+Apache Ant(TM) version 1.8.2 compiled on December 3 2011
+cd .. && JAVA_HOME=/usr/lib/jvm/java-6-openjdk ant -Djavac.target=7 -Djavac.source=7 -Ddrops.dir=/java/devtools/share/jdk7-drops -Doutput.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp -Djdk.home=/usr/lib/jvm/java-6-openjdk -Dbootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap all
+Buildfile: /home/xhh/C++/JVM/openjdk/jaxp/build.xml
+
+-banner:
+     [echo] +---------------------------------------+
+     [echo] + Starting ant project jaxp +
+     [echo] +---------------------------------------+
+
+-javac-jar-exists:
+
+sanity:
+     [echo] Sanity Settings:
+     [echo] ant.home=/usr/share/ant
+     [echo] ant.version=Apache Ant(TM) version 1.8.2 compiled on December 3 2011
+     [echo] ant.java.version=1.6
+     [echo] java.home=/usr/lib/jvm/java-6-openjdk-amd64/jre
+     [echo] java.version=1.6.0_27
+     [echo] os.name=Linux
+     [echo] os.arch=amd64
+     [echo] os.version=3.2.0-41-generic
+     [echo] bootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap
+     [echo] javac.jar=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar
+     [echo] javac.memoryInitialSize=256m
+     [echo] javac.memoryMaximumSize=512m
+     [echo] javac.source=7
+     [echo] javac.debug=true
+     [echo] javac.target=7
+     [echo] javac.version.opt=
+     [echo] javac.lint.opts=
+     [echo] javac.no.jdk.warnings=-XDignore.symbol.file=true
+     [echo] output.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp
+     [echo] build.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp/build
+     [echo] dist.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxp/dist
+     [echo] 
+
+init:
+
+compile:
+
+-build-setup:
+
+build:
+
+-dist-classes-jar-uptodate:
+
+-dist-classes-jar:
+
+-dist-src-zip:
+
+dist:
+
+all:
+     [echo] +---------------------------------------+
+     [echo] + Finishing ant project jaxp
+     [echo] +---------------------------------------+
+
+BUILD SUCCESSFUL
+Total time: 1 second
+make[2]: Leaving directory `/home/xhh/C++/JVM/openjdk/jaxp/make'
+########################################################################
+##### Leaving jaxp for target(s) all                               #####
+########################################################################
+##### Build time 00:00:02 jaxp for target(s) all                   #####
+########################################################################
+
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws
+
+
+########################################################################
+########################################################################
+##### Entering jaxws for target(s) all                             #####
+########################################################################
+
+(cd  ./jaxws/make && \
+	 make JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk ALT_JDK_IMPORT_PATH=/NOT-SET/re/jdk/1.7.0/promoted/latest/binaries/linux-amd64 ALT_LANGTOOLS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist all)
+make[2]: Entering directory `/home/xhh/C++/JVM/openjdk/jaxws/make'
+cd .. && JAVA_HOME=/usr/lib/jvm/java-6-openjdk ant -Djavac.target=7 -Djavac.source=7 -Doutput.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws -Djdk.home=/usr/lib/jvm/java-6-openjdk -Dbootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap -version
+Apache Ant(TM) version 1.8.2 compiled on December 3 2011
+cd .. && JAVA_HOME=/usr/lib/jvm/java-6-openjdk ant -Djavac.target=7 -Djavac.source=7 -Doutput.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws -Djdk.home=/usr/lib/jvm/java-6-openjdk -Dbootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap all
+Buildfile: /home/xhh/C++/JVM/openjdk/jaxws/build.xml
+
+-banner:
+     [echo] +---------------------------------------+
+     [echo] + Starting ant project jaxws +
+     [echo] +---------------------------------------+
+
+-javac-jar-exists:
+
+sanity:
+     [echo] Sanity Settings:
+     [echo] ant.home=/usr/share/ant
+     [echo] ant.version=Apache Ant(TM) version 1.8.2 compiled on December 3 2011
+     [echo] ant.java.version=1.6
+     [echo] java.home=/usr/lib/jvm/java-6-openjdk-amd64/jre
+     [echo] java.version=1.6.0_27
+     [echo] os.name=Linux
+     [echo] os.arch=amd64
+     [echo] os.version=3.2.0-41-generic
+     [echo] bootstrap.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap
+     [echo] javac.jar=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist/bootstrap/lib/javac.jar
+     [echo] javac.memoryInitialSize=256m
+     [echo] javac.memoryMaximumSize=512m
+     [echo] javac.source=7
+     [echo] javac.debug=true
+     [echo] javac.target=7
+     [echo] javac.version.opt=
+     [echo] javac.lint.opts=
+     [echo] javac.no.jdk.warnings=-XDignore.symbol.file=true
+     [echo] output.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws
+     [echo] build.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/build
+     [echo] dist.dir=/home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/dist
+     [echo] 
+
+init:
+
+compile:
+    [javac] Compiling 1 source file to /home/xhh/C++/JVM/openjdk/build/linux-amd64/jaxws/build/classes
+
+-build-setup:
+
+build:
+
+-dist-classes-jar-uptodate:
+
+-dist-classes-jar:
+
+-dist-src-zip:
+
+dist:
+
+all:
+     [echo] +---------------------------------------+
+     [echo] + Finishing ant project jaxws
+     [echo] +---------------------------------------+
+
+BUILD SUCCESSFUL
+Total time: 3 seconds
+make[2]: Leaving directory `/home/xhh/C++/JVM/openjdk/jaxws/make'
+########################################################################
+##### Leaving jaxws for target(s) all                              #####
+########################################################################
+##### Build time 00:00:04 jaxws for target(s) all                  #####
+########################################################################
+
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir
+/bin/mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import
+
+
+########################################################################
+########################################################################
+##### Entering hotspot for target(s) all_product                   #####
+########################################################################
+
+cd  ./hotspot/make && \
+	    make JDK_TOPDIR=/home/xhh/C++/JVM/openjdk/jdk JDK_MAKE_SHARED_DIR=/home/xhh/C++/JVM/openjdk/jdk/make/common/shared EXTERNALSANITYCONTROL=true SOURCE_LANGUAGE_VERSION=7 TARGET_CLASS_VERSION=7 MILESTONE=internal BUILD_NUMBER=b00 JDK_BUILD_NUMBER=b00 FULL_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 PREVIOUS_JDK_VERSION=1.6.0 JDK_VERSION=1.7.0 JDK_MKTG_VERSION=7 JDK_MAJOR_VERSION=1 JDK_MINOR_VERSION=7 JDK_MICRO_VERSION=0 PREVIOUS_MAJOR_VERSION=1 PREVIOUS_MINOR_VERSION=6 PREVIOUS_MICRO_VERSION=0 ARCH_DATA_MODEL=64 COOKED_BUILD_NUMBER=0 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir ALT_EXPORT_PATH=/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/import BUILD_FLAVOR=product ALT_SLASH_JAVA=/NOT-SET ALT_BOOTDIR=/usr/lib/jvm/java-6-openjdk ALT_LANGTOOLS_DIST=/home/xhh/C++/JVM/openjdk/build/linux-amd64/langtools/dist all_product
+make[2]: Entering directory `/home/xhh/C++/JVM/openjdk/hotspot/make'
+cd /home/xhh/C++/JVM/openjdk/hotspot/make; \
+	make BUILD_FLAVOR=product VM_TARGET=product generic_build2 ALT_OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir
+make[3]: Entering directory `/home/xhh/C++/JVM/openjdk/hotspot/make'
+mkdir -p /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir
+cd /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir; \
+	    make -f /home/xhh/C++/JVM/openjdk/hotspot/make/linux/Makefile \
+		       LP64=1 JAVA_HOME=/usr/lib/jvm/java-6-openjdk OUTPUTDIR=/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir GAMMADIR=/home/xhh/C++/JVM/openjdk/hotspot MAKE_VERBOSE=y HOTSPOT_RELEASE_VERSION=23.2-b09 JRE_RELEASE_VERSION=1.7.0-internal-xhh_2013_05_08_15_12-b00 HOTSPOT_BUILD_VERSION= product
+make[4]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir'
+cd linux_amd64_compiler2/product && make -w " LP64=1 "
+make[5]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+../generated/adfiles/adlc -DLINUX -D_GNU_SOURCE -DAMD64 -q -T -g -D_LP64 ../generated/adfiles/linux_x86_64.ad  \
+ -c../generated/adfiles/mktmp17272/ad_x86_64.cpp -h../generated/adfiles/mktmp17272/ad_x86_64.hpp -a../generated/adfiles/mktmp17272/dfa_x86_64.cpp -v../generated/adfiles/mktmp17272/adGlobals_x86_64.hpp \
+	    || { rm -rf ../generated/adfiles/mktmp17272; exit 1; }
+./adlc_updater ad_x86_64.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64.hpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_clone.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_expand.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_format.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_gen.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_misc.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_peephole.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater ad_x86_64_pipeline.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater adGlobals_x86_64.hpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+./adlc_updater dfa_x86_64.cpp ../generated/adfiles/mktmp17272 ../generated/adfiles
+[ -f ../generated/adfiles/mktmp17272/made-change ] \
+		|| echo "Rescanned ../generated/adfiles/linux_x86_64.ad  but encountered no changes."
+Rescanned ../generated/adfiles/linux_x86_64.ad  but encountered no changes.
+rm -rf ../generated/adfiles/mktmp17272
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Nothing to be done for `all'.
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+if [ -d /home/xhh/C++/JVM/openjdk/hotspot/agent -a "x86" != "ia64" \
+             -a "x86" != "arm" \
+             -a "x86" != "ppc" \
+             -a "x86" != "zero" ] ; then \
+	   make -f sa.make /home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product/../generated/sa-jdi.jar; \
+	fi
+make[7]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[7]: `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product/../generated/sa-jdi.jar' is up to date.
+make[7]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[6]: Entering directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+echo Generating precompiled header precompiled.hpp.gch
+Generating precompiled header precompiled.hpp.gch
+mkdir -p .
+g++ -DLINUX -D_GNU_SOURCE -DAMD64 -DPRODUCT -I. -I/home/xhh/C++/JVM/openjdk/hotspot/src/share/vm/prims -I/home/xhh/C++/JVM/openjdk/hotspot/src/share/vm -I/home/xhh/C++/JVM/openjdk/hotspot/src/share/vm/precompiled -I/home/xhh/C++/JVM/openjdk/hotspot/src/cpu/x86/vm -I/home/xhh/C++/JVM/openjdk/hotspot/src/os_cpu/linux_x86/vm -I/home/xhh/C++/JVM/openjdk/hotspot/src/os/linux/vm -I/home/xhh/C++/JVM/openjdk/hotspot/src/os/posix/vm -I../generated -DHOTSPOT_RELEASE_VERSION="\"23.2-b09\"" -DHOTSPOT_BUILD_TARGET="\"product\"" -DHOTSPOT_BUILD_USER="\"xhh\"" -DHOTSPOT_LIB_ARCH=\"amd64\" -DHOTSPOT_VM_DISTRO="\"OpenJDK\"" -DTARGET_OS_FAMILY_linux -DTARGET_ARCH_x86 -DTARGET_ARCH_MODEL_x86_64 -DTARGET_OS_ARCH_linux_x86 -DTARGET_OS_ARCH_MODEL_linux_x86_64 -DTARGET_COMPILER_gcc -DCOMPILER2 -DCOMPILER1 -fPIC -fno-rtti -fno-exceptions -D_REENTRANT -fcheck-new -fvisibility=hidden -m64 -pipe -O3 -fno-strict-aliasing -g -DVM_LITTLE_ENDIAN -D_LP64=1 -fno-omit-frame-pointer -DINCLUDE_TRACE -Werror -Wpointer-arith -Wsign-compare    -c -MMD -MP -MF ../generated/dependencies/precompiled.hpp.gch.d -x c++-header /home/xhh/C++/JVM/openjdk/hotspot/src/share/vm/precompiled/precompiled.hpp -o precompiled.hpp.gch 
+make[6]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[5]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir/linux_amd64_compiler2/product'
+make[4]: Leaving directory `/home/xhh/C++/JVM/openjdk/build/linux-amd64/hotspot/outputdir'
+make[3]: Leaving directory `/home/xhh/C++/JVM/openjdk/hotspot/make'
+make[2]: Leaving directory `/home/xhh/C++/JVM/openjdk/hotspot/make'
+make[1]: Leaving directory `/home/xhh/C++/JVM/openjdk'

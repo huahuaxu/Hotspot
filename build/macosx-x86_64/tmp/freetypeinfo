@@ -1,0 +1,3 @@
+/bin/mkdir -p /Users/xuhuahua/git/Hotspot/build/macosx-x86_64/btbins
+rm -f /Users/xuhuahua/git/Hotspot/build/macosx-x86_64/btbins/freetype_versioncheck
+Failed to build freetypecheck.

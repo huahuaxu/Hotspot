@@ -598,9 +598,13 @@ IRT_ENTRY_NO_ASYNC(void, InterpreterRuntime::monitorenter(JavaThread* thread, Ba
   if (PrintBiasedLockingStatistics) {
     Atomic::inc(BiasedLocking::slow_path_entry_count_addr());
   }
+
   Handle h_obj(thread, elem->obj());
   assert(Universe::heap()->is_in_reserved_or_null(h_obj()),
          "must be NULL or an object");
+
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁{UseBiasedLocking = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), UseBiasedLocking);
+
   if (UseBiasedLocking) {
     // Retry fast entry if bias is revoked to avoid unnecessary inflation
     ObjectSynchronizer::fast_enter(h_obj, elem->lock(), true, CHECK);

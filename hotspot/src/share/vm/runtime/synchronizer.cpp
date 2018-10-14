@@ -170,7 +170,10 @@ static volatile int MonitorPopulation = 0 ;      // # Extant -- in circulation
  * 获取对像的锁
  */
 void ObjectSynchronizer::fast_enter(Handle obj, BasicLock* lock, bool attempt_rebias, TRAPS) {
- if (UseBiasedLocking) {
+
+ printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[fast_enter]获取对象同步锁{UseBiasedLocking = %d}..\n", __FILE__, __LINE__, pthread_self(), THREAD->name(), UseBiasedLocking);
+
+ if (UseBiasedLocking) { //开启了偏向锁优化
     if (!SafepointSynchronize::is_at_safepoint()) {
       BiasedLocking::Condition cond = BiasedLocking::revoke_and_rebias(obj, attempt_rebias, THREAD);
       if (cond == BiasedLocking::BIAS_REVOKED_AND_REBIASED) {
@@ -183,13 +186,15 @@ void ObjectSynchronizer::fast_enter(Handle obj, BasicLock* lock, bool attempt_re
     assert(!obj->mark()->has_bias_pattern(), "biases should be revoked by now");
  }
 
+ printf("%s[%d] [tid: %lu]: 当前线程[%s]放弃[fast_enter]方式获取对象同步锁,改用[slow_enter]方式..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+
  slow_enter (obj, lock, THREAD) ;
 }
 
 void ObjectSynchronizer::fast_exit(oop object, BasicLock* lock, TRAPS) {
   assert(!object->mark()->has_bias_pattern(), "should not see bias pattern here");
 
-  if(Klass::cast(object->klass())->name()) printf("%s[%d] [tid: %lu]: 当前线程[%s]开始释放对象[%s]锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name(), Klass::cast(object->klass())->name()->as_C_string());
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[fast_exit]释放对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
 
   // if displaced header is null, the previous enter is recursive enter, no-op
   markOop dhw = lock->displaced_header();
@@ -234,8 +239,7 @@ void ObjectSynchronizer::slow_enter(Handle obj, BasicLock* lock, TRAPS) {
   markOop mark = obj->mark();
   assert(!mark->has_bias_pattern(), "should not see bias pattern here");
 
-  if(Klass::cast(obj()->klass())->name()) printf("%s[%d] [tid: %lu]: 当前线程[%s]开始获取对象[%s]锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name(), Klass::cast(obj()->klass())->name()->as_C_string());
-  //else
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[slow_enter]获取对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
 
   if (mark->is_neutral()) {
     // Anticipate successful CAS -- the ST of the displaced mark must
@@ -274,6 +278,8 @@ void ObjectSynchronizer::slow_enter(Handle obj, BasicLock* lock, TRAPS) {
 // failed in the interpreter/compiler code. Simply use the heavy
 // weight monitor should be ok, unless someone find otherwise.
 void ObjectSynchronizer::slow_exit(oop object, BasicLock* lock, TRAPS) {
+ // printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[slow_exit]释放对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+
   fast_exit (object, lock, THREAD) ;
 }
 

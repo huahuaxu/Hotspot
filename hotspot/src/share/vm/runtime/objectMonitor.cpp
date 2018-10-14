@@ -324,6 +324,8 @@ void ATTR ObjectMonitor::enter(TRAPS) {
   Thread * const Self = THREAD ;	//当前线程
   void * cur ;
 
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]开始获取对象的同步锁..\n", __FILE__, __LINE__, pthread_self(), Self->name());
+
   cur = Atomic::cmpxchg_ptr (Self, &_owner, NULL) ;
   if (cur == NULL) {	//当前线程成功持有该对象锁
      // Either ASSERT _recursions == 0 or explicitly set _recursions = 0.
