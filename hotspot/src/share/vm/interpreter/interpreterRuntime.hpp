@@ -144,6 +144,10 @@ class InterpreterRuntime: AllStatic {
                                         methodOopDesc* method,
                                         intptr_t* from, intptr_t* to);
 
+
+  //
+  static void  debug_monitorenter_for_lock_object(JavaThread* thread, BasicObjectLock* elem);
+
 #if defined(IA32) || defined(AMD64) || defined(ARM)
   // Popframe support (only needed on x86, AMD64 and ARM)
   static void popframe_move_outgoing_args(JavaThread* thread, void* src_address, void* dest_address);

@@ -664,8 +664,9 @@ void InterpreterMacroAssembler::lock_object(Register lock_reg) {
 
   if (UseHeavyMonitors) {
     call_VM(noreg,
-            CAST_FROM_FN_PTR(address, InterpreterRuntime::monitorenter),
+            CAST_FROM_FN_PTR(address, InterpreterRuntime::debug_monitorenter_for_lock_object),
             lock_reg);
+
   } else {
     Label done;
 
@@ -731,7 +732,7 @@ void InterpreterMacroAssembler::lock_object(Register lock_reg) {
 
     // Call the runtime routine for slow case
     call_VM(noreg,
-            CAST_FROM_FN_PTR(address, InterpreterRuntime::monitorenter),
+            CAST_FROM_FN_PTR(address, InterpreterRuntime::debug_monitorenter_for_lock_object),
             lock_reg);
 
     bind(done);

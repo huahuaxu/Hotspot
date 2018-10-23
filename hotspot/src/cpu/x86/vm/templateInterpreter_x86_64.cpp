@@ -1912,6 +1912,8 @@ void TemplateInterpreterGenerator::set_vtos_entry_points(Template* t,
 
 InterpreterGenerator::InterpreterGenerator(StubQueue* code)
   : TemplateInterpreterGenerator(code) {
+  printf("%s[%d] [tid: %lu]: 创建JVM字节码解释器的生成器..\n", __FILE__, __LINE__, pthread_self());
+
    generate_all(); // down here so it can be "virtual"
 }
 

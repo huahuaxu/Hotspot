@@ -1411,6 +1411,8 @@ OopMapSet* Runtime1::generate_code_for(StubID id, StubAssembler* sasm) {
       // fall through
     case monitorenter_id:
       {
+    	printf("%s[%d] [tid: %lu]: 当前线程试图获取对象同步锁...\n", __FILE__, __LINE__, pthread_self());
+
         StubFrame f(sasm, "monitorenter", dont_gc_arguments);
         OopMap* map = save_live_registers(sasm, 3, save_fpu_registers);
 

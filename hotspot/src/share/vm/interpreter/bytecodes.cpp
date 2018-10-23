@@ -280,7 +280,8 @@ void Bytecodes::initialize() {
   if (_is_initialized) return;
   assert(number_of_codes <= 256, "too many bytecodes");
 
-  printf("%s[%d] [tid: %lu]: 开始初始化JVM的操作码(指令集)...\n", __FILE__, __LINE__, pthread_self());
+  printf("%s[%d] [tid: %lu]: 开始初始化JVM的字节操作码(指令集){number_of_codes = %d}...\n", __FILE__, __LINE__, pthread_self(), number_of_codes);
+
   // initialize bytecode tables - didn't use static array initializers
   // (such as {}) so we can do additional consistency checks and init-
   // code is independent of actual bytecode numbering.

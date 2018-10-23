@@ -61,6 +61,8 @@ JRT_ENTRY(void, SharkRuntime::monitorenter(JavaThread*      thread,
   if (PrintBiasedLockingStatistics)
     Atomic::inc(BiasedLocking::slow_path_entry_count_addr());
 
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[fast_enter]获取对象同步锁{UseBiasedLocking = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), UseBiasedLocking);
+
   Handle object(thread, lock->obj());
   assert(Universe::heap()->is_in_reserved_or_null(object()), "should be");
   if (UseBiasedLocking) {

@@ -1155,6 +1155,9 @@ void InterpreterMacroAssembler::remove_activation(TosState state,
 // Argument - lock_reg points to the BasicObjectLock to be used for locking,
 //            it must be initialized with the object to lock
 void InterpreterMacroAssembler::lock_object(Register lock_reg, Register Object) {
+
+  printf("%s[%d] [tid: %lu]: 当前线程试图获取对象同步锁{UseHeavyMonitors = %d}..\n", __FILE__, __LINE__, pthread_self(), UseHeavyMonitors);
+
   if (UseHeavyMonitors) {
     call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::monitorenter), lock_reg);
   }

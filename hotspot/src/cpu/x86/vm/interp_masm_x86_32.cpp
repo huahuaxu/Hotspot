@@ -660,6 +660,8 @@ void InterpreterMacroAssembler::remove_activation(TosState state, Register ret_a
 void InterpreterMacroAssembler::lock_object(Register lock_reg) {
   assert(lock_reg == rdx, "The argument is only for looks. It must be rdx");
 
+  printf("%s[%d] [tid: %lu]: 当前线程试图获取对象同步锁{UseHeavyMonitors = %d}..\n", __FILE__, __LINE__, pthread_self(), UseHeavyMonitors);
+
   if (UseHeavyMonitors) {
     call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::monitorenter), lock_reg);
   } else {

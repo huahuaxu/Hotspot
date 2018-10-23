@@ -38,6 +38,8 @@ void TemplateInterpreter::initialize() {
   // assertions
   assert((int)Bytecodes::number_of_codes <= (int)DispatchTable::length, "dispatch table too small");
 
+  printf("%s[%d] [tid: %lu]: {Bytecodes.number_of_codes = %d, DispatchTable.length = %d}..\n", __FILE__, __LINE__, pthread_self(), Bytecodes::number_of_codes, DispatchTable::length);
+
   //
   AbstractInterpreter::initialize();
 
@@ -49,6 +51,10 @@ void TemplateInterpreter::initialize() {
     TraceTime timer("Interpreter generation", TraceStartupTime);
     int code_size = InterpreterCodeSize;
     NOT_PRODUCT(code_size *= 4;)  // debug uses extra interpreter code space
+
+    printf("%s[%d] [tid: %lu]: 试图创建JVM字节码解释器的生成器{InterpreterCodeSize = %d, code_size = %d}..\n", __FILE__, __LINE__, pthread_self(), InterpreterCodeSize, code_size);
+
+
     _code = new StubQueue(new InterpreterCodeletInterface, code_size, NULL, "Interpreter");
     InterpreterGenerator g(_code);
     if (PrintInterpreter) print();
@@ -213,6 +219,8 @@ static const BasicType types[Interpreter::number_of_result_handlers] = {
 
 void TemplateInterpreterGenerator::generate_all() {
 
+  printf("%s[%d] [tid: %lu]: 生成所有方法的调用入口地址..\n", __FILE__, __LINE__, pthread_self());
+
   AbstractInterpreterGenerator::generate_all();
 
   { CodeletMark cm(_masm, "error exits");
@@ -342,6 +350,8 @@ void TemplateInterpreterGenerator::generate_all() {
     generate_throw_exception();
   }
 
+  printf("%s[%d] [tid: %lu]: 初始化抛常见异常的调用入口地址..\n", __FILE__, __LINE__, pthread_self());
+
   { CodeletMark cm(_masm, "throw exception entrypoints");
     Interpreter::_throw_ArrayIndexOutOfBoundsException_entry = generate_ArrayIndexOutOfBounds_handler("java/lang/ArrayIndexOutOfBoundsException");
     Interpreter::_throw_ArrayStoreException_entry            = generate_klass_exception_handler("java/lang/ArrayStoreException"                 );
@@ -358,6 +368,7 @@ void TemplateInterpreterGenerator::generate_all() {
     Interpreter::_entry_table[Interpreter::kind] = generate_method_entry(Interpreter::kind);  \
   }
 
+  printf("%s[%d] [tid: %lu]: 初始化常用非本地化方法的调用入口地址..\n", __FILE__, __LINE__, pthread_self());
   // all non-native method kinds
   method_entry(zerolocals)
   method_entry(zerolocals_synchronized)
@@ -374,6 +385,7 @@ void TemplateInterpreterGenerator::generate_all() {
   method_entry(java_lang_math_log10)
   method_entry(java_lang_ref_reference_get)
 
+  printf("%s[%d] [tid: %lu]: 初始化调用本地化方法的入口地址..\n", __FILE__, __LINE__, pthread_self());
   // all native method kinds (must be one contiguous block)
   Interpreter::_native_entry_begin = Interpreter::code()->code_end();
   method_entry(native)
@@ -382,6 +394,7 @@ void TemplateInterpreterGenerator::generate_all() {
 
 #undef method_entry
 
+  printf("%s[%d] [tid: %lu]: 初始化JVM字节码调用的入口地址..\n", __FILE__, __LINE__, pthread_self());
   // Bytecodes
   set_entry_points_for_all_bytes();
   set_safepoints_for_all_bytes();
@@ -427,7 +440,11 @@ void TemplateInterpreterGenerator::set_unimplemented(int i) {
 
 
 void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
+
+  printf("%s[%d] [tid: %lu]: 设置字节码[%s]的执行入口地址..\n", __FILE__, __LINE__, pthread_self(), Bytecodes::name(code));
+
   CodeletMark cm(_masm, Bytecodes::name(code), code);
+
   // initialize entry points
   assert(_unimplemented_bytecode    != NULL, "should have been generated before");
   assert(_illegal_bytecode_sequence != NULL, "should have been generated before");
@@ -441,10 +458,12 @@ void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
   address dep = _illegal_bytecode_sequence;
   address vep = _unimplemented_bytecode;
   address wep = _unimplemented_bytecode;
+
   // code for short & wide version of bytecode
   if (Bytecodes::is_defined(code)) {
     Template* t = TemplateTable::template_for(code);
     assert(t->is_valid(), "just checking");
+
     set_short_entry_points(t, bep, cep, sep, aep, iep, lep, fep, dep, vep);
   }
 
@@ -453,6 +472,7 @@ void TemplateInterpreterGenerator::set_entry_points(Bytecodes::Code code) {
     assert(t->is_valid(), "just checking");
     set_wide_entry_point(t, wep);
   }
+
   // set entry points
   EntryPoint entry(bep, cep, sep, aep, iep, lep, fep, dep, vep);
   Interpreter::_normal_table.set_entry(code, entry);

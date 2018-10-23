@@ -43,6 +43,8 @@
 
 void TemplateTable::pd_initialize() {
   // No amd64 specific initialization
+	printf("%s[%d] [tid: %lu]: 字节码解释执行模板的x86_64..\n", __FILE__, __LINE__, pthread_self());
+
 }
 
 // Address computation: local variables
@@ -3554,6 +3556,9 @@ void TemplateTable::athrow() {
 // ...
 // [saved rbp    ] <--- rbp
 void TemplateTable::monitorenter() {
+
+  printf("%s[%d] [tid: %lu]: 生成[monitorenter]指令的汇编代码...\n", __FILE__, __LINE__, pthread_self());
+
   transition(atos, vtos);
 
   // check for NULL object
@@ -3648,6 +3653,9 @@ void TemplateTable::monitorenter() {
 
 
 void TemplateTable::monitorexit() {
+
+  printf("%s[%d] [tid: %lu]: 生成[monitorexit]指令的汇编代码...\n", __FILE__, __LINE__, pthread_self());
+
   transition(atos, vtos);
 
   // check for NULL object
@@ -3664,6 +3672,7 @@ void TemplateTable::monitorexit() {
   // find matching slot
   {
     Label entry, loop;
+
     __ movptr(c_rarg1, monitor_block_top); // points to current entry,
                                      // starting with top-most entry
     __ lea(c_rarg2, monitor_block_bot); // points to word before bottom

@@ -107,6 +107,15 @@ void InterpreterRuntime::set_bcp_and_mdp(address bcp, JavaThread *thread) {
 }
 
 //------------------------------------------------------------------------------------------------------------------------
+//debug代码
+
+void InterpreterRuntime::debug_monitorenter_for_lock_object(JavaThread* thread, BasicObjectLock* elem){
+   printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁{UseHeavyMonitors = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), UseHeavyMonitors);
+
+   InterpreterRuntime::monitorenter(thread, elem);
+}
+
+//------------------------------------------------------------------------------------------------------------------------
 // Constants
 
 
@@ -611,6 +620,7 @@ IRT_ENTRY_NO_ASYNC(void, InterpreterRuntime::monitorenter(JavaThread* thread, Ba
   } else {
     ObjectSynchronizer::slow_enter(h_obj, elem->lock(), CHECK);
   }
+
   assert(Universe::heap()->is_in_reserved_or_null(elem->obj()),
          "must be NULL or an object");
 #ifdef ASSERT

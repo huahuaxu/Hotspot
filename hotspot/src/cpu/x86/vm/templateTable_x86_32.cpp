@@ -44,6 +44,7 @@
 
 void TemplateTable::pd_initialize() {
   // No i486 specific initialization
+	printf("%s[%d] [tid: %lu]: 字节码解释执行模板的x86_32..\n", __FILE__, __LINE__, pthread_self());
 }
 
 //----------------------------------------------------------------------------------------------------

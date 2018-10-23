@@ -220,6 +220,8 @@ class markOopDesc: public oopDesc {
   bool is_marked()   const {
     return (mask_bits(value(), lock_mask_in_place) == marked_value);
   }
+
+  //判断mark是否为无锁状态
   bool is_neutral()  const { return (mask_bits(value(), biased_lock_mask_in_place) == unlocked_value); }
 
   // Special temporary state of the markOop while being inflated.

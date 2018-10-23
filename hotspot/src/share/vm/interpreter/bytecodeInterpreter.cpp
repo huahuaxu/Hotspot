@@ -660,6 +660,8 @@ BytecodeInterpreter::run(interpreterState istate) {
       // lock method if synchronized
       if (METHOD->is_synchronized()) {
           // oop rcvr = locals[0].j.r;
+    	  printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取方法的同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+
           oop rcvr;
           if (METHOD->is_static()) {
             rcvr = METHOD->constants()->pool_holder()->java_mirror();
@@ -858,6 +860,9 @@ BytecodeInterpreter::run(interpreterState istate) {
       VERIFY_OOP(lockee);
       // derefing's lockee ought to provoke implicit null check
       // find a free monitor
+
+      printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+
       BasicObjectLock* entry = (BasicObjectLock*) istate->stack_base();
       assert(entry->obj() == NULL, "Frame manager didn't allocate the monitor");
       entry->set_obj(lockee);
@@ -1668,6 +1673,9 @@ run:
         oop lockee = STACK_OBJECT(-1);
         // derefing's lockee ought to provoke implicit null check
         CHECK_NULL(lockee);
+
+        printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+
         // find a free monitor or one already allocated for this object
         // if we find a matching object then we need a new monitor
         // since this is recursive enter

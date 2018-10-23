@@ -647,6 +647,9 @@ JRT_ENTRY_NO_ASYNC(void, Runtime1::monitorenter(JavaThread* thread, oopDesc* obj
   }
   Handle h_obj(thread, obj);
   assert(h_obj()->is_oop(), "must be NULL or an object");
+
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁{UseBiasedLocking = %d, UseFastLocking = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), UseBiasedLocking, UseFastLocking);
+
   if (UseBiasedLocking) {
     // Retry fast entry if bias is revoked to avoid unnecessary inflation
     ObjectSynchronizer::fast_enter(h_obj, lock->lock(), true, CHECK);

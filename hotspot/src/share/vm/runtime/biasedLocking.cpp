@@ -523,7 +523,9 @@ public:
   }
 };
 
-
+/**
+ * 偏向锁的获取
+ */
 BiasedLocking::Condition BiasedLocking::revoke_and_rebias(Handle obj, bool attempt_rebias, TRAPS) {
   assert(!SafepointSynchronize::is_at_safepoint(), "must not be called while at safepoint");
 

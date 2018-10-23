@@ -1907,10 +1907,14 @@ JRT_ENTRY_NO_ASYNC(void, SharedRuntime::complete_monitor_locking_C(oopDesc* _obj
 #ifndef PRODUCT
   _monitor_enter_ctr++;             // monitor enter slow
 #endif
+
   if (PrintBiasedLockingStatistics) {
     Atomic::inc(BiasedLocking::slow_path_entry_count_addr());
   }
   Handle h_obj(THREAD, obj);
+
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]试图获取对象同步锁{UseBiasedLocking = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), UseBiasedLocking);
+
   if (UseBiasedLocking) {
     // Retry fast entry if bias is revoked to avoid unnecessary inflation
     ObjectSynchronizer::fast_enter(h_obj, lock, true, CHECK);

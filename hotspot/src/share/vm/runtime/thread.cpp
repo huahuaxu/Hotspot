@@ -1528,6 +1528,7 @@ void JavaThread::run() {
 
   printf("%s[%d] [tid: %lu]: 线程[%s]开始执行...\n", __FILE__, __LINE__, pthread_self(), name());
 
+  printf("%s[%d] [tid: %lu]: 初始化线程[%s]的TLAB{UseTLAB = %d}...\n", __FILE__, __LINE__, pthread_self(), name(), UseTLAB);
   // initialize thread-local alloc buffer related fields
   this->initialize_tlab();
 
@@ -1604,7 +1605,12 @@ static void ensure_join(JavaThread* thread) {
   // We do not need to grap the Threads_lock, since we are operating on ourself.
   Handle threadObj(thread, thread->threadObj());
   assert(threadObj.not_null(), "java thread object must exist");
+
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]即将退出,唤醒(notifyAll)阻塞在该对象监视器(ObjectMonitor)上的等待者..\n", __FILE__, __LINE__, pthread_self(), thread->name());
+
+
   ObjectLocker lock(threadObj, thread);
+
   // Ignore pending exception (ThreadDeath), since we are exiting anyway
   thread->clear_pending_exception();
   // Thread is exiting. So set thread_status field in  java.lang.Thread class to TERMINATED.

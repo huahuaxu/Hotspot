@@ -245,6 +245,7 @@ void ObjectSynchronizer::slow_enter(Handle obj, BasicLock* lock, TRAPS) {
     // Anticipate successful CAS -- the ST of the displaced mark must
     // be visible <= the ST performed by the CAS.
     lock->set_displaced_header(mark);
+
     if (mark == (markOop) Atomic::cmpxchg_ptr(lock, obj()->mark_addr(), mark)) {
       TEVENT (slow_enter: release stacklock) ;
       return ;
@@ -278,7 +279,7 @@ void ObjectSynchronizer::slow_enter(Handle obj, BasicLock* lock, TRAPS) {
 // failed in the interpreter/compiler code. Simply use the heavy
 // weight monitor should be ok, unless someone find otherwise.
 void ObjectSynchronizer::slow_exit(oop object, BasicLock* lock, TRAPS) {
- // printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[slow_exit]释放对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]放弃[slow_exit]的方式，使用[fast_exit]的方式释放对象同步锁..\n", __FILE__, __LINE__, pthread_self(), THREAD->name());
 
   fast_exit (object, lock, THREAD) ;
 }
@@ -371,6 +372,8 @@ ObjectLocker::ObjectLocker(Handle obj, Thread* thread, bool doLock) {
   debug_only(if (StrictSafepointChecks) _thread->check_for_valid_safepoint_state(false);)
   _obj = obj;
 
+  printf("%s[%d] [tid: %lu]: 当前线程[%s]通过[ObjectLocker]获取对象同步锁{_dolock = %d}..\n", __FILE__, __LINE__, pthread_self(), thread->name(), _dolock);
+
   if (_dolock) {
     TEVENT (ObjectLocker) ;
 
@@ -379,6 +382,9 @@ ObjectLocker::ObjectLocker(Handle obj, Thread* thread, bool doLock) {
 }
 
 ObjectLocker::~ObjectLocker() {
+
+  printf("%s[%d] [tid: %lu]: 当前线程通过[~ObjectLocker]释放对象同步锁{_dolock = %d}..\n", __FILE__, __LINE__, pthread_self(), _dolock);
+
   if (_dolock) {
     ObjectSynchronizer::fast_exit(_obj(), &_lock, _thread);
   }

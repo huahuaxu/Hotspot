@@ -124,6 +124,7 @@ jint init_globals() {
     return status;
 
   //初始化JVM字节码解释器
+  printf("%s[%d] [tid: %lu]: 试图初始化JVM的字节码解释器...\n", __FILE__, __LINE__, pthread_self());
   interpreter_init();  // before any methods loaded
 
   invocationCounter_init();  // before any methods loaded
